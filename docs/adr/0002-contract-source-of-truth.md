@@ -1,28 +1,31 @@
 # Contract Source of Truth
 
-Status: Draft
-Owner: UNASSIGNED
+Status: Accepted
+Owner: 0disoft
 
-## Purpose
+## Decision
 
-This document captures the durable design contract for Contract Source of Truth.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+The source of truth order is:
 
-## Source of Truth
+1. Product scope and MVP behavior: `docs/product/02-spec.md`.
+2. Architecture boundary: `docs/architecture/00-system-boundary.md` and this ADR set.
+3. CLI behavior: `docs/cli/command-contract.md`.
+4. GitHub Action wrapper behavior: `docs/github-action/action-contract.md`.
+5. Static report information architecture: `docs/docs-site/information-architecture.md`.
+6. Validation names and reporting contract: `VALIDATION.md`.
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
+`service.yaml` manifests in scanned repositories are the authoritative input data for generated
+catalog outputs.
 
-## Required Decisions
+## Consequences
 
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+- Generated reports cannot be edited to fix catalog facts.
+- CLI, Action, and docs-site changes must trace back to the product spec or an ADR.
+- Example manifests must use synthetic data and stay aligned with the schema once fixtures exist.
+- Validation changes must update docs and examples in the same change.
 
 ## Review Blockers
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- A behavior change updates generated examples but not the owning product or contract document.
+- A CLI output change lacks corresponding documentation.
+- A report structure change makes generated HTML the only place where a catalog fact is described.

@@ -1,28 +1,41 @@
 # Roadmap
 
 Status: Draft
-Owner: UNASSIGNED
+Owner: 0disoft
 
 ## Purpose
 
-This document captures the durable design contract for Roadmap.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+This roadmap keeps the first releases small enough to ship while preserving the path toward richer
+catalog reports.
 
-## Source of Truth
+## Phase 0: Catalog Contract
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
+- Draft the minimal `service.yaml` fields.
+- Include example manifests for a tiny multi-service workspace.
+- Define required, optional, and explicitly out-of-scope fields.
+- Record how owner, runtime, repository, deploy target, data class, and dependencies are expressed.
 
-## Required Decisions
+## Phase 1: CLI MVP
 
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+- Scan one folder or a list of folders.
+- Validate manifest shape and required fields.
+- Print diagnostics suitable for humans.
+- Export normalized catalog JSON.
+- Export dependency graph DOT.
 
-## Review Blockers
+## Phase 2: Static Report
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- Generate a static HTML report from the same normalized catalog.
+- Show service list, missing metadata, owner/runtime/deploy slices, and dependency graph.
+- Keep report generation deterministic for CI diffs.
+
+## Phase 3: CI Wrapper
+
+- Provide a GitHub Action wrapper around the CLI.
+- Support check-only validation and optional report artifact upload.
+- Keep default permissions read-only.
+
+## Explicitly Deferred
+
+- Hosted portal, RBAC, live inventory database, Kubernetes discovery, cloud cost ingestion, incident
+  workflow, and automatic ownership sync.

@@ -4,11 +4,13 @@
 
 Scope: infra
 
-This repository owns infrastructure design contracts, environment boundaries, change plans,
-drift handling, rollback decisions, and operational validation surfaces.
+This repository owns a file-first service catalog generator. Its core contract is to read
+repository-owned service manifests such as `service.yaml`, validate the declared service metadata,
+and generate static service maps, dependency graphs, and machine-readable catalog exports.
 
-This repository does not generate runtime infrastructure code, credentials, cloud resources,
-or deployment secrets.
+This repository does not own a live CMDB, hosted developer portal, runtime infrastructure
+provisioning, cloud cost billing, credentials, cloud resources, deployment secrets, or incident
+management workflows.
 
 ## Repository Shape
 

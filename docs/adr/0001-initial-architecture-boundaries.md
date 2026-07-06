@@ -1,28 +1,34 @@
 # Initial Architecture Boundaries
 
-Status: Draft
-Owner: UNASSIGNED
+Status: Accepted
+Owner: 0disoft
 
-## Purpose
+## Decision
 
-This document captures the durable design contract for Initial Architecture Boundaries.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+Service Catalog Generator starts as a read-only, file-first catalog generator.
 
-## Source of Truth
+The repository owns a CLI, optional GitHub Action wrapper, and static report contract. It does not
+own a hosted portal, live service database, cloud discovery engine, permissions system, incident
+workflow, or cost reconciliation system.
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
+## Context
 
-## Required Decisions
+The product exists because small teams and solo builders need a service map before they need a full
+developer portal. The useful first boundary is checked-in manifests plus deterministic generated
+views.
 
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+## Consequences
+
+- `service.yaml` manifests remain the source of truth.
+- Generated JSON, DOT, and HTML outputs are derived artifacts.
+- Validation errors should point back to manifest file paths and fields.
+- Automatic cloud, Kubernetes, Terraform, or source-code discovery is deferred until a new ADR
+  accepts that boundary.
+- Any GitHub Action wrapper must call the same CLI behavior instead of owning a second policy layer.
 
 ## Review Blockers
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- A change introduces persistent catalog state without a new ADR.
+- A change treats generated output as authoritative input.
+- A change expands into portal, RBAC, incident, or cost-management behavior without changing the
+  product boundary first.

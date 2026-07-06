@@ -1,28 +1,33 @@
 # Risk Register
 
 Status: Draft
-Owner: UNASSIGNED
+Owner: 0disoft
 
-## Purpose
+## Manifest Drift
 
-This document captures the durable design contract for Risk Register.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+- Risk: stale manifests create a confident but false service map.
+- Mitigation: validation should highlight missing review timestamps, weak owner fields, and unknown
+  dependency references before report generation looks polished.
 
-## Source of Truth
+## Scope Creep Into Portal
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
+- Risk: catalog fields expand into HR, FinOps, RBAC, incident management, and CMDB workflows.
+- Mitigation: keep the MVP read-only and file-first; defer hosted state and permissions to a later
+  explicit product decision.
 
-## Required Decisions
+## Sensitive Metadata Leakage
 
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+- Risk: examples or reports expose private URLs, account identifiers, customer data, or secrets.
+- Mitigation: examples must use synthetic values, and report output must avoid secret-like fields by
+  default.
 
-## Review Blockers
+## Noisy Dependency Graphs
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- Risk: automatic dependency inference creates false edges and erodes trust.
+- Mitigation: start with explicit manifest-declared dependencies; treat auto-discovery as deferred.
+
+## Heavier Alternatives
+
+- Risk: competing against mature developer portals makes the project an underpowered clone.
+- Mitigation: optimize for file-owned manifests, deterministic static output, CI checks, and agent
+  readability.

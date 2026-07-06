@@ -42,6 +42,14 @@ if (!binContents.startsWith("#!/usr/bin/env node")) {
   process.exit(1);
 }
 
+const actionContents = await readFile(actionPath, "utf8");
+if (/\brequire\(["']yaml["']\)/.test(actionContents)) {
+  console.error(
+    `smoke: built GitHub Action bundle leaves yaml as a runtime dependency\n- ${actionPath}`
+  );
+  process.exit(1);
+}
+
 const version = execFileSync(process.execPath, [binPath, "--version"], {
   cwd: process.cwd(),
   encoding: "utf8",

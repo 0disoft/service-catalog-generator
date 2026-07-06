@@ -54,6 +54,44 @@ describe("GitHub Action wrapper", () => {
     ]);
   });
 
+  it("keeps the committed action entrypoint covered by a read-only self-smoke workflow", async () => {
+    const workflow = parse(
+      await readFile(join(process.cwd(), ".github/workflows/action-self-smoke.yml"), "utf8")
+    ) as {
+      name: string;
+      permissions: {
+        contents: string;
+      };
+      jobs: {
+        "self-smoke": {
+          steps: Array<{
+            id?: string;
+            uses?: string;
+            with?: Record<string, string>;
+          }>;
+        };
+      };
+    };
+
+    const steps = workflow.jobs["self-smoke"].steps;
+    const actionStep = steps.find((step) => step.id === "scg");
+
+    expect(workflow.name).toBe("action-self-smoke");
+    expect(workflow.permissions).toEqual({ contents: "read" });
+    expect(steps.some((step) => step.uses === "actions/checkout@v7")).toBe(true);
+    expect(actionStep).toEqual(
+      expect.objectContaining({
+        uses: "./",
+        with: {
+          roots: ".tmp/action-smoke/services",
+          report: "true",
+          format: "json,dot,html",
+          "output-directory": ".tmp/action-smoke/.catalog"
+        }
+      })
+    );
+  });
+
   it("maps action inputs to check CLI arguments", () => {
     const argv = buildCliArguments(
       {

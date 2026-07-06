@@ -30,4 +30,5 @@ Unimplemented gates must fail clearly or be reported as skipped. Fake passing sc
 
 - Required validation names: docs, smoke, check
 - Release blocker status: CI cannot publish releases if implemented gates are failing
-- Remaining operational risk: actual workflow files are not yet generated
+- Remaining operational risk: release publishing and tagged Action smoke validation are not yet
+  configured

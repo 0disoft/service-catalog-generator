@@ -17,7 +17,8 @@ This repository type owns action inputs, outputs, permissions, token handling, a
 
 - GitHub Action ownership boundary: docs/github-action/action-contract.md
 - GitHub Action public contract: docs/github-action/inputs-and-outputs.md
-- GitHub Action validation evidence: action input, output, permission, and CLI propagation tests.
+- GitHub Action validation evidence: action input, output, permission, CLI propagation tests, and
+  the `action-self-smoke` workflow.
 - GitHub Action release or rollout policy: docs/ops/release.md
 - GitHub Action compatibility and migration policy: Node.js 24 action runtime
 

@@ -16,7 +16,8 @@ Normal CLI and GitHub Action usage requires no secrets.
 
 - Do not commit credentials, tokens, private URLs, cloud account IDs, customer data, or real owner
   emails in examples or fixtures.
-- Do not require npm tokens for the default release path once trusted publishing is configured.
+- Do not require npm tokens for the default release path. Release publishing uses npm Trusted
+  Publishing through GitHub OIDC.
 - Do not expose full manifest contents in diagnostics or generated reports.
 - Secret-like manifest values should produce diagnostics and redaction where output is allowed.
 
@@ -24,4 +25,5 @@ Normal CLI and GitHub Action usage requires no secrets.
 
 - Required validation names: docs, smoke, check
 - Release blocker status: secret exposure blocks release
-- Remaining operational risk: automated secret scanning is not configured yet
+- Remaining operational risk: automated secret scanning is not configured yet, and npm Trusted
+  Publishing must be configured in npm before the first tag publish

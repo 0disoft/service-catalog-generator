@@ -12,6 +12,9 @@
     "type": "git",
     "url": "git+https://github.com/0disoft/service-catalog-generator.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "bugs": {
     "url": "https://github.com/0disoft/service-catalog-generator/issues"
   },

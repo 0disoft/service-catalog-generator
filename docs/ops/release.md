@@ -48,10 +48,20 @@ CLI JSON output, and exit codes are compatibility contracts.
 3. Confirm examples and fixtures are synthetic.
 4. Confirm generated reports are not published as public assets unless synthetic.
 5. Confirm `package.json` repository metadata matches the public GitHub repository.
-6. Use npm trusted publishing when available.
-7. Create GitHub Release from the same version.
-8. Move or create the corresponding Action tag.
-9. Smoke test package installation and Action usage from the released tag.
+6. Push an immutable `vX.Y.Z` tag that exactly matches `package.json.version`.
+7. Use the `release` workflow to publish with npm Trusted Publishing through GitHub OIDC.
+8. Create the GitHub Release from the same version tag.
+9. Move or create the corresponding major Action tag, such as `v0`.
+10. Smoke test package installation and Action usage from the released tag.
+
+## Release Workflow
+
+The release workflow runs only for `v*.*.*` tags. It validates package metadata, runs `check`, runs
+`pnpm pack --dry-run`, publishes the scoped public package with Trusted Publishing, creates the
+GitHub Release, and moves the mutable major Action tag.
+
+The workflow must not use long-lived npm tokens. If npm Trusted Publishing is not configured for the
+package and workflow, the publish step must fail rather than falling back to a repository secret.
 
 ## Stop Conditions
 

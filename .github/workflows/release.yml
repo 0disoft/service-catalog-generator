@@ -1,0 +1,55 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - run: pnpm --version
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/release-check.mjs
+      - run: pnpm run check
+      - run: pnpm pack --dry-run
+      - run: npm publish --access public
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --verify-tag \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes
+
+      - name: Move major Action tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          MAJOR_TAG="v${VERSION%%.*}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f "$MAJOR_TAG" "$GITHUB_SHA"
+          git push --force origin "refs/tags/$MAJOR_TAG"

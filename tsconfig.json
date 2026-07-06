@@ -3,8 +3,8 @@
   "references": [
     { "path": "./packages/schema" },
     { "path": "./packages/core" },
-    { "path": "./packages/cli" },
     { "path": "./packages/report" },
+    { "path": "./packages/cli" },
     { "path": "./packages/action" }
   ]
 }

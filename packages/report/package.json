@@ -10,7 +10,8 @@
     }
   },
   "dependencies": {
-    "@scg/core": "workspace:*"
+    "@scg/core": "workspace:*",
+    "@scg/schema": "workspace:*"
   },
   "scripts": {
     "typecheck": "tsc -b"

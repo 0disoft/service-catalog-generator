@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -163,17 +163,55 @@ describe("scg CLI", () => {
     });
   });
 
-  it("keeps report unavailable until report writers exist", async () => {
+  it("writes report artifacts and emits machine-readable write results", async () => {
     const workspace = await createWorkspace();
+    await writeManifest(workspace, "services/billing/service.yaml", serviceYaml("billing-api"));
     const io = createIo();
 
-    const exitCode = await runCli({ argv: ["report", "--json"], cwd: workspace, io });
+    const exitCode = await runCli({
+      argv: ["report", "--json", "--format", "json", "--format", "dot"],
+      cwd: workspace,
+      io
+    });
+    const result = JSON.parse(io.stdoutText());
+
+    expect(exitCode).toBe(0);
+    expect(result.files).toEqual([
+      {
+        format: "json",
+        path: ".catalog/catalog.json"
+      },
+      {
+        format: "dot",
+        path: ".catalog/graph.dot"
+      }
+    ]);
+    await expect(readFile(join(workspace, ".catalog", "catalog.json"), "utf8")).resolves.toContain(
+      '"billing-api"'
+    );
+    await expect(readFile(join(workspace, ".catalog", "graph.dot"), "utf8")).resolves.toContain(
+      "digraph service_catalog"
+    );
+  });
+
+  it("returns exit code 4 when report output cannot be written safely", async () => {
+    const parent = await createWorkspace();
+    const workspace = join(parent, "inside");
+    await mkdir(workspace, { recursive: true });
+    await writeManifest(workspace, "services/billing/service.yaml", serviceYaml("billing-api"));
+    const io = createIo();
+
+    const exitCode = await runCli({
+      argv: ["report", "--json", "--out", "../outside"],
+      cwd: workspace,
+      io
+    });
     const error = JSON.parse(io.stderrText());
 
-    expect(exitCode).toBe(2);
+    expect(exitCode).toBe(4);
     expect(error.diagnostics[0]).toMatchObject({
-      code: "config.invalid",
-      message: "The report command is not implemented yet."
+      code: "output.write_failed",
+      file: "../outside"
     });
   });
 });

@@ -50,6 +50,9 @@ importers:
       '@scg/core':
         specifier: workspace:*
         version: link:../core
+      '@scg/report':
+        specifier: workspace:*
+        version: link:../report
       yaml:
         specifier: 2.9.0
         version: 2.9.0
@@ -68,6 +71,9 @@ importers:
       '@scg/core':
         specifier: workspace:*
         version: link:../core
+      '@scg/schema':
+        specifier: workspace:*
+        version: link:../schema
 
   packages/schema:
     dependencies:

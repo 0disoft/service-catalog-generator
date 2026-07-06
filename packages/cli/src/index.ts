@@ -9,6 +9,12 @@ import {
   type CatalogConfigInput,
   type CorePackageBoundary
 } from "@scg/core";
+import {
+  ReportWriteError,
+  writeCatalogReports,
+  type ReportFormat,
+  type WrittenReportFile
+} from "@scg/report";
 import { parseDocument } from "yaml";
 
 export const packageName = "@scg/cli";
@@ -42,7 +48,7 @@ type ParsedArgs = {
   configPath?: string;
   roots: string[];
   manifestNames: string[];
-  format?: string;
+  formats: ReportFormat[];
   out?: string;
   failOnWarnings: boolean;
   allowUnknownDependencies: boolean;
@@ -80,15 +86,6 @@ export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> 
       return 0;
     }
 
-    if (parsed.command === "report") {
-      return writeCliError(io, parsed.json, {
-        severity: "error",
-        code: "config.invalid",
-        message: "The report command is not implemented yet.",
-        hint: "Use scan or check until JSON, DOT, and HTML writers are available."
-      });
-    }
-
     const configResult = await loadConfigInput(cwd, parsed.configPath);
     if (!configResult.ok) {
       return writeCliError(io, parsed.json, configResult.diagnostic);
@@ -110,6 +107,33 @@ export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> 
       result.config.validation.failOnWarnings
     );
 
+    if (parsed.command === "report") {
+      const writeResult = await writeCatalogReports(result.snapshot, {
+        cwd,
+        outputDirectory: result.config.output.directory,
+        formats: result.config.output.formats
+      });
+      if (parsed.json) {
+        writeLine(
+          io.stdout,
+          JSON.stringify(
+            {
+              summary: result.snapshot.summary,
+              files: writeResult.files,
+              diagnostics: result.snapshot.diagnostics
+            },
+            null,
+            2
+          )
+        );
+      } else {
+        writeLine(io.stdout, humanSummary(parsed.command, result.snapshot.summary));
+        writeWrittenFiles(io.stdout, writeResult.files);
+        writeDiagnostics(io.stdout, result.snapshot.diagnostics);
+      }
+      return exitCode;
+    }
+
     if (parsed.json) {
       writeLine(io.stdout, JSON.stringify(result.snapshot, null, 2));
     } else {
@@ -126,6 +150,10 @@ export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> 
         message: error.message,
         hint: "Run scg --help for supported commands and flags."
       });
+    }
+
+    if (error instanceof ReportWriteError) {
+      return writeCliError(io, argv.includes("--json"), error.diagnostic, 4);
     }
 
     return writeCliError(
@@ -150,6 +178,7 @@ function parseArgs(argv: string[]): ParsedArgs {
     version: false,
     roots: [],
     manifestNames: [],
+    formats: [],
     failOnWarnings: false,
     allowUnknownDependencies: false,
     deterministic: false
@@ -201,7 +230,7 @@ function parseArgs(argv: string[]): ParsedArgs {
         state.manifestNames.push(readFlagValue(token, remaining));
         break;
       case "--format":
-        state.format = readFlagValue(token, remaining);
+        state.formats.push(parseReportFormat(readFlagValue(token, remaining)));
         break;
       case "--out":
         state.out = readFlagValue(token, remaining);
@@ -211,11 +240,19 @@ function parseArgs(argv: string[]): ParsedArgs {
     }
   }
 
-  if (state.format && state.format !== "json") {
+  if (state.command !== "report" && state.formats.some((format) => format !== "json")) {
     throw new CliUsageError("Only JSON output is currently supported for scan and check.");
   }
 
   return state;
+}
+
+function parseReportFormat(value: string): ReportFormat {
+  if (value === "json" || value === "dot" || value === "html") {
+    return value;
+  }
+
+  throw new CliUsageError("Unsupported format. Use json, dot, or html.");
 }
 
 function readFlagValue(flag: string, remaining: string[]): string {
@@ -326,7 +363,7 @@ function mergeCliFlags(config: CatalogConfigInput, parsed: ParsedArgs): CatalogC
     output: {
       ...config.output,
       ...(parsed.out ? { directory: parsed.out } : {}),
-      ...(parsed.format ? { formats: [parsed.format as "json"] } : {}),
+      ...(parsed.formats.length > 0 ? { formats: parsed.formats } : {}),
       ...(parsed.deterministic ? { deterministic: true } : {})
     }
   };
@@ -402,6 +439,12 @@ function writeDiagnostics(stdout: CliIo["stdout"], diagnostics: CliDiagnostic[])
   }
 }
 
+function writeWrittenFiles(stdout: CliIo["stdout"], files: WrittenReportFile[]): void {
+  for (const file of files) {
+    writeLine(stdout, `wrote ${file.format} ${file.path}`);
+  }
+}
+
 function writeCliError(
   io: CliIo,
   json: boolean,
@@ -437,13 +480,13 @@ function helpText(): string {
     "Commands:",
     "  scan    Print a catalog snapshot",
     "  check   Validate manifests and set the exit code",
-    "  report  Not implemented yet",
+    "  report  Write catalog.json, graph.dot, and report.html",
     "",
     "Flags:",
     "  --root <path>",
     "  --config <path>",
     "  --manifest <name>",
-    "  --format json",
+    "  --format <json|dot|html>",
     "  --out <path>",
     "  --fail-on-warning",
     "  --allow-unknown-dependencies",

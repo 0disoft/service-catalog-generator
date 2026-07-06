@@ -1,7 +1,19 @@
-import type { SchemaPackageBoundary } from "@scg/schema";
+export { compileCatalog, resolveCatalogConfig } from "./scan.js";
+export { discoverManifestFiles } from "./discovery.js";
+export { parseManifestFile } from "./parser.js";
+export { normalizeServiceRecord, sortServiceRecords } from "./normalizer.js";
+export { buildGraphEdges, sortGraphEdges } from "./graph.js";
+export { createDiagnostic, sortDiagnostics, summarizeDiagnostics } from "./diagnostics.js";
+export { redactOwnerRef, redactSecretLikeValue, stripAnsiAndControl } from "./redaction.js";
+export type {
+  CatalogConfigInput,
+  CompileCatalogOptions,
+  CompileCatalogResult,
+  CorePackageBoundary,
+  CoreSchemaDependency,
+  DiscoveredManifest,
+  ParsedManifest,
+  ValidatedManifest
+} from "./types.js";
 
 export const packageName = "@scg/core";
-
-export type CorePackageBoundary = "discovery" | "parser" | "normalizer" | "validator" | "graph";
-
-export type CoreSchemaDependency = SchemaPackageBoundary;

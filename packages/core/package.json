@@ -10,7 +10,8 @@
     }
   },
   "dependencies": {
-    "@scg/schema": "workspace:*"
+    "@scg/schema": "workspace:*",
+    "yaml": "2.9.0"
   },
   "scripts": {
     "typecheck": "tsc -b"

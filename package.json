@@ -29,7 +29,7 @@
     "format:write": "prettier --write \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \"*.config.*\" \".github/workflows/*.yml\" \"packages/**/*.{json,ts}\" \"scripts/**/*.mjs\" \"tests/**/*.ts\"",
     "lint": "eslint .",
     "typecheck": "tsc -b tsconfig.json && tsc -p tsconfig.check.json --noEmit",
-    "test": "vitest run tests/workspace.test.ts tests/schema",
+    "test": "vitest run tests/workspace.test.ts tests/schema tests/core",
     "contract": "vitest run tests/contract",
     "migration-check": "node scripts/not-configured.mjs migration-check \"No schema migrations exist yet.\"",
     "smoke": "node scripts/smoke.mjs",

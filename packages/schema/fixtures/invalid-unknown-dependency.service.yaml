@@ -1,0 +1,29 @@
+schemaVersion: scg.service/v1alpha1
+id: worker
+name: Worker
+lifecycle: production
+owner:
+  type: team
+  ref: platform
+repository:
+  provider: github
+  slug: example/worker
+runtime:
+  language: typescript
+  platform: node
+deploy:
+  type: job
+  targets:
+    - environment: production
+      provider: unknown
+      ref: worker-prod
+data:
+  storesPersonalData: false
+  classification: internal
+dependencies:
+  - type: service
+    target: ghost-api
+    direction: outbound
+    criticality: required
+metadata:
+  lastReviewedAt: "2026-07-01"

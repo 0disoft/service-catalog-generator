@@ -1,0 +1,21 @@
+schemaVersion: scg.service/v1alpha1
+id: missing-owner-api
+name: Missing Owner API
+lifecycle: production
+repository:
+  provider: github
+  slug: example/missing-owner-api
+runtime:
+  language: typescript
+  platform: node
+deploy:
+  type: container
+  targets:
+    - environment: production
+      provider: unknown
+      ref: missing-owner-api-prod
+data:
+  classification: internal
+dependencies: []
+metadata:
+  lastReviewedAt: "2026-07-01"

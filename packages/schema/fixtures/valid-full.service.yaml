@@ -1,0 +1,42 @@
+schemaVersion: scg.service/v1alpha1
+id: billing-api
+name: Billing API
+lifecycle: production
+owner:
+  type: team
+  ref: platform
+repository:
+  provider: github
+  slug: example/billing-api
+runtime:
+  language: typescript
+  platform: node
+  framework: fastify
+deploy:
+  type: container
+  targets:
+    - environment: production
+      provider: unknown
+      ref: billing-api-prod
+data:
+  storesPersonalData: false
+  classification: internal
+dependencies:
+  - type: service
+    target: auth-api
+    direction: outbound
+    criticality: required
+    reason: validates user sessions
+  - type: external
+    target: stripe
+    direction: outbound
+    criticality: required
+    reason: payment processing
+cost:
+  owner: platform
+retirement:
+  status: none
+metadata:
+  lastReviewedAt: "2026-07-01"
+  annotations:
+    catalog.example: synthetic

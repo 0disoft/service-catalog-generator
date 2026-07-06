@@ -1,0 +1,24 @@
+schemaVersion: scg.service/v1beta1
+id: bad-version-api
+name: Bad Version API
+lifecycle: production
+owner:
+  type: team
+  ref: platform
+repository:
+  provider: github
+  slug: example/bad-version-api
+runtime:
+  language: typescript
+  platform: node
+deploy:
+  type: container
+  targets:
+    - environment: production
+      provider: unknown
+      ref: bad-version-api-prod
+data:
+  classification: internal
+dependencies: []
+metadata:
+  lastReviewedAt: "2026-07-01"

@@ -25,8 +25,14 @@ if (missing.length > 0) {
 }
 
 const binPath = join(process.cwd(), rootPackage.bin.scg);
+const actionPath = join(process.cwd(), "dist", "action", "index.cjs");
 if (!existsSync(binPath)) {
   console.error(`smoke: missing built CLI binary\n- ${binPath}`);
+  process.exit(1);
+}
+
+if (!existsSync(actionPath)) {
+  console.error(`smoke: missing built GitHub Action bundle\n- ${actionPath}`);
   process.exit(1);
 }
 
@@ -46,5 +52,16 @@ if (version !== rootPackage.version) {
   console.error(`smoke: CLI version mismatch\nexpected=${rootPackage.version}\nactual=${version}`);
   process.exit(1);
 }
+
+execFileSync(process.execPath, [actionPath], {
+  cwd: process.cwd(),
+  env: {
+    ...process.env,
+    INPUT_ROOTS: ".",
+    INPUT_MANIFEST_NAME: "service.yaml"
+  },
+  encoding: "utf8",
+  stdio: ["ignore", "pipe", "pipe"]
+});
 
 console.log("smoke: ok");

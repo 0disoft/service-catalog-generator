@@ -2,7 +2,6 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import {
   compileCatalog,
   resolveCatalogConfig,
@@ -506,7 +505,7 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
 
 class CliUsageError extends Error {}
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+if (process.argv[1] && isCliEntrypoint(process.argv[1])) {
   runCli()
     .then((exitCode) => {
       process.exitCode = exitCode;
@@ -514,4 +513,13 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     .catch(() => {
       process.exitCode = 5;
     });
+}
+
+function isCliEntrypoint(path: string): boolean {
+  const normalized = resolve(path).replaceAll("\\", "/");
+  return (
+    normalized.endsWith("/dist/cli/index.js") ||
+    normalized.endsWith("/packages/cli/dist/index.js") ||
+    normalized.endsWith("/packages/cli/src/index.ts")
+  );
 }

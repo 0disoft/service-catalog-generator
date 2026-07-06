@@ -1,0 +1,50 @@
+name: Service Catalog Generator
+description: Validate service.yaml manifests and optionally write static service catalog artifacts.
+author: 0disoft
+
+inputs:
+  roots:
+    description: Newline or comma separated scan roots.
+    required: false
+    default: "."
+  manifest-name:
+    description: Manifest filename to discover.
+    required: false
+    default: service.yaml
+  config:
+    description: Optional path to scg.config.yaml.
+    required: false
+  output-directory:
+    description: Directory for generated report artifacts.
+    required: false
+    default: .catalog
+  fail-on-warning:
+    description: Promote warnings to a failing validation.
+    required: false
+    default: "false"
+  allow-unknown-dependencies:
+    description: Permit unresolved service dependency refs.
+    required: false
+    default: "false"
+  report:
+    description: Generate report artifacts in addition to validation.
+    required: false
+    default: "false"
+  format:
+    description: Comma or newline separated report formats when report is true.
+    required: false
+    default: json,dot,html
+
+outputs:
+  service-count:
+    description: Number of normalized service records.
+  error-count:
+    description: Number of error diagnostics.
+  warning-count:
+    description: Number of warning diagnostics.
+  report-directory:
+    description: Directory containing generated artifacts when report generation ran.
+
+runs:
+  using: node24
+  main: dist/action/index.cjs

@@ -28,13 +28,13 @@
     "yaml": "2.9.0"
   },
   "scripts": {
-    "format": "prettier --check \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \"*.config.*\" \".github/workflows/*.yml\" \"packages/**/*.{json,ts}\" \"scripts/**/*.mjs\" \"tests/**/*.ts\"",
-    "format:write": "prettier --write \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \"*.config.*\" \".github/workflows/*.yml\" \"packages/**/*.{json,ts}\" \"scripts/**/*.mjs\" \"tests/**/*.ts\"",
+    "format": "prettier --check \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"packages/**/*.{json,ts}\" \"scripts/**/*.mjs\" \"tests/**/*.ts\"",
+    "format:write": "prettier --write \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"packages/**/*.{json,ts}\" \"scripts/**/*.mjs\" \"tests/**/*.ts\"",
     "lint": "eslint .",
     "typecheck": "tsc -b tsconfig.json && tsc -p tsconfig.check.json --noEmit",
-    "test": "vitest run tests/workspace.test.ts tests/schema tests/core tests/report tests/cli",
+    "test": "vitest run tests/workspace.test.ts tests/schema tests/core tests/report tests/cli tests/action",
     "contract": "vitest run tests/contract",
-    "build": "tsup packages/cli/src/index.ts --format esm --platform node --target node24 --sourcemap --external yaml --out-dir dist/cli",
+    "build": "node scripts/build.mjs",
     "migration-check": "node scripts/not-configured.mjs migration-check \"No schema migrations exist yet.\"",
     "smoke": "pnpm run build && node scripts/smoke.mjs",
     "docs": "node scripts/check-docs.mjs",

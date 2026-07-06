@@ -2,18 +2,27 @@
 
 Status: Draft
 
-## Operational Contract
+## Operational Boundary
 
-Cover logs, metrics, traces, dashboards, alerts, health checks, sampling, retention, and incident evidence quality.
+The MVP has no hosted telemetry, metrics backend, traces, dashboards, or alerts. Observability is CLI
+diagnostics, JSON summaries, exit codes, and optional generated reports.
 
 ## Owners
 
-- Primary owner: UNASSIGNED
-- Backup owner: UNASSIGNED
-- Escalation path: UNDECIDED
+- Primary owner: 0disoft
+- Backup owner: primary owner until a second maintainer is assigned
+- Escalation path: repository issue or release blocker
+
+## Signals
+
+- Exit code.
+- Diagnostic severity counts.
+- Stable diagnostic codes.
+- Service count, warning count, error count, and edge count.
+- Output write path when report generation succeeds.
 
 ## Validation
 
-- Required validation names: VALIDATION.md
-- Release blocker status: UNDECIDED
-- Remaining operational risk: UNDECIDED
+- Required validation names: docs, smoke, check
+- Release blocker status: telemetry or external observability requires a new ADR
+- Remaining operational risk: diagnostic formatting still needs implementation tests

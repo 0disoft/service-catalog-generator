@@ -1,28 +1,22 @@
 # Infrastructure Change Plan
 
-Status: Draft
-Owner: UNASSIGNED
+Status: Deferred
+Owner: 0disoft
 
-## Purpose
+## Contract
 
-This document captures the durable design contract for Infrastructure Change Plan.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+Infrastructure changes are out of scope for the MVP. Any future infrastructure capability must first
+update the product boundary and add an ADR.
 
-## Source of Truth
+## Required Questions
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
-
-## Required Decisions
-
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+- Does the change introduce hosted runtime state?
+- Does it require Docker, Kubernetes, Terraform, cloud credentials, or deployment secrets?
+- Does it add network calls or telemetry?
+- Does it make generated reports public by default?
+- Does it change GitHub Action permissions beyond `contents: read`?
 
 ## Review Blockers
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- Infrastructure behavior is added before an ADR accepts the boundary.
+- The change requires secrets or write permissions not documented in GitHub Action permissions.

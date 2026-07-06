@@ -5,13 +5,16 @@ Scope: infra
 Repository Type: cli-tool
 Addons: github-action, docs-site
 
-Service Catalog Generator is a small, file-first tool for turning repository-local service
-manifests into a static service map.
+Service Catalog Generator is a read-only `service.yaml` compiler and linter for turning
+repository-local service manifests into deterministic catalog artifacts.
 
-The project starts from a deliberately narrow idea: each service repository owns a compact
-`service.yaml`, and this tool scans those files to produce validation results, dependency graph
-exports, and a static HTML report. It is not a live CMDB, Backstage replacement, cloud discovery
-platform, or permissions portal.
+The project starts from a deliberately narrow idea: each service repository owns a compact manifest,
+and this tool scans those files to produce validation results, `catalog.json`, `graph.dot`, and a
+static HTML report. Generated artifacts are derived output. The original truth remains the checked-in
+manifest in the owning repository.
+
+This is not a live CMDB, Backstage replacement, cloud discovery platform, permissions portal, or
+service editor. Its useful edge is manifest-first validation that can run locally and in CI.
 
 ## Source Files
 
@@ -34,11 +37,13 @@ platform, or permissions portal.
 
 ## MVP Direction
 
-- Define a minimal `service.yaml` schema.
-- Scan one or more repositories or folders for manifests.
-- Validate required owner, runtime, repository, deploy target, data, and dependency fields.
-- Export service list and dependency graph as JSON and DOT.
+- Define `service.yaml` v1alpha1.
+- Scan one or more repositories or folders for manifests without network calls.
+- Validate required owner, runtime, repository, deploy target, data, review timestamp, and
+  dependency fields.
+- Export service list and dependency graph as deterministic JSON and DOT.
 - Generate a static HTML report suitable for small teams and agent workflows.
+- Provide a GitHub Action wrapper that delegates to the same CLI behavior.
 
 ## Explicit Non-Goals
 
@@ -47,6 +52,7 @@ platform, or permissions portal.
 - Auto-discovering Kubernetes, Terraform, or cloud resources.
 - Owning RBAC, incident management, HR ownership, or FinOps source systems.
 - Treating generated reports as more authoritative than checked-in manifests.
+- Inferring dependencies from source code during the MVP.
 
 ## Repository Hygiene
 
@@ -55,5 +61,8 @@ binary diffs, local files, build outputs, caches, and secret files under control
 
 ## Scope Notes
 
-Implementation language, package manager, runtime compatibility floor, and release packaging remain
-UNDECIDED until recorded in product and ADR documents.
+Confirmed implementation decisions are TypeScript, Node.js 24 LTS, pnpm workspace, npm package
+distribution, CLI binary `scg`, Apache-2.0 licensing, and a root GitHub Action metadata file.
+Generated real catalog reports are CI/internal artifacts by default; public examples must be
+synthetic. These decisions are documented in ADRs and still require normal implementation review
+before source code is introduced.

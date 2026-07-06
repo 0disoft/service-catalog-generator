@@ -2,11 +2,18 @@
 
 Status: Draft
 
+## Decision Summary
+
+Service Catalog Generator is a read-only `service.yaml` compiler and linter. It runs locally or in
+CI, does not perform network calls by default, and emits derived catalog artifacts that point users
+back to source manifests.
+
 ## Boundary
 
 This repository owns the local catalog generation boundary:
 
 - input discovery for repository-owned `service.yaml` manifests;
+- schema contracts for `scg.service/v1alpha1`, `scg.catalog/v1alpha1`, and `scg.config/v1alpha1`;
 - manifest validation and stale-field linting;
 - normalized in-memory catalog records;
 - static JSON, DOT, and HTML report output;
@@ -25,6 +32,16 @@ systems that humans maintain.
 5. Emit human-readable diagnostics and machine-readable JSON.
 6. Optionally write static report artifacts and dependency graph exports.
 
+## Package Boundaries
+
+| Package | Owns | Must not own |
+| --- | --- | --- |
+| `@scg/schema` | Manifest, config, catalog snapshot, and diagnostic schemas. | File system access, CLI output, HTML generation. |
+| `@scg/core` | Discovery, parsing, normalization, validation, and graph building. | Terminal output, GitHub Action API, HTML templates. |
+| `@scg/cli` | Commands, flags, config precedence, output modes, and exit codes. | Duplicate validation policy. |
+| `@scg/report` | JSON, DOT, and HTML writers from normalized catalog data. | Manifest parsing or external network fetches. |
+| `@scg/action` | GitHub Action input/output mapping and CLI execution. | Separate validation logic or write permissions. |
+
 ## Quality Attributes
 
 - Maintainability: changes must preserve source-of-truth documents.
@@ -34,3 +51,7 @@ systems that humans maintain.
   clean up.
 - Usefulness: generated output must make stale or missing metadata obvious instead of hiding it
   behind a polished report.
+
+## ADRs
+
+Current accepted decisions live in `docs/adr/0001` through `docs/adr/0010`.

@@ -1,28 +1,22 @@
 # Infrastructure Module Contract
 
-Status: Draft
-Owner: UNASSIGNED
+Status: Deferred
+Owner: 0disoft
 
-## Purpose
+## Contract
 
-This document captures the durable design contract for Infrastructure Module Contract.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+There is no infrastructure module contract in the MVP.
 
-## Source of Truth
+The repository may later contain release workflows and Action metadata, but those are packaging and
+CI contracts, not infrastructure provisioning modules.
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
+## Package Boundary
 
-## Required Decisions
-
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+- Schema, core, CLI, report, and action packages may exist in the monorepo.
+- No package may provision runtime infrastructure in the MVP.
+- No package may require cloud credentials or deployment secrets in the MVP.
 
 ## Review Blockers
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- A package introduces provisioning behavior without a new ADR.
+- An Action or CLI path requires cloud credentials for normal catalog validation.

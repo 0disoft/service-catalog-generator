@@ -1,19 +1,25 @@
 # Backup and Restore
 
-Status: Draft
+Status: Deferred
 
-## Operational Contract
+## Operational Boundary
 
-Focus on restore, including restore owner, schedule, test cadence, RTO, RPO, integrity checks, and partial restore behavior.
+The MVP has no database, object store, hosted report store, or managed backup target.
 
 ## Owners
 
-- Primary owner: UNASSIGNED
-- Backup owner: UNASSIGNED
-- Escalation path: UNDECIDED
+- Primary owner: 0disoft
+- Backup owner: primary owner until a second maintainer is assigned
+- Escalation path: repository issue or release blocker
+
+## Policy
+
+- Source truth is Git-tracked `service.yaml` and `scg.config.yaml` in user repositories.
+- Generated reports can be regenerated from source truth.
+- This project must not promise backup or restore for user catalog data.
 
 ## Validation
 
-- Required validation names: VALIDATION.md
-- Release blocker status: UNDECIDED
-- Remaining operational risk: UNDECIDED
+- Required validation names: docs, check
+- Release blocker status: no backup feature may ship without a new ADR
+- Remaining operational risk: users must protect their own repositories and CI artifacts

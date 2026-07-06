@@ -9,17 +9,23 @@ This repository type owns action inputs, outputs, permissions, token handling, a
 
 ## Source of Truth
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
+- Product decision: docs/product/02-spec.md
+- Technical owner: 0disoft
+- Related ADR: docs/adr/0007-no-network-and-no-telemetry-by-default.md
 
 ## Required Decisions
 
-- GitHub Action ownership boundary: UNDECIDED
-- GitHub Action public contract: UNDECIDED
-- GitHub Action validation evidence: UNDECIDED
-- GitHub Action release or rollout policy: UNDECIDED
-- GitHub Action compatibility and migration policy: UNDECIDED
+- GitHub Action ownership boundary: docs/github-action/action-contract.md
+- GitHub Action public contract: docs/github-action/inputs-and-outputs.md
+- GitHub Action validation evidence: action input, output, permission, and CLI propagation tests.
+- GitHub Action release or rollout policy: docs/ops/release.md
+- GitHub Action compatibility and migration policy: Node.js 24 action runtime
+
+## Action Boundary
+
+The action is a CI wrapper around the CLI. It maps inputs to CLI flags, exposes summary outputs, and
+propagates the CLI exit code. It must not duplicate manifest validation policy or require write
+permissions by default.
 
 ## Review Blockers
 

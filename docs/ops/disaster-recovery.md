@@ -1,19 +1,27 @@
 # Disaster Recovery
 
-Status: Draft
+Status: Deferred
 
-## Operational Contract
+## Operational Boundary
 
-Define severity, roles, first 10 minutes, communication, timeline, postmortem, follow-up policy, and evidence preservation.
+The MVP has no hosted runtime or persistent service state. Disaster recovery is limited to source
+repository recovery, package rollback, and Action tag rollback.
 
 ## Owners
 
-- Primary owner: UNASSIGNED
-- Backup owner: UNASSIGNED
-- Escalation path: UNDECIDED
+- Primary owner: 0disoft
+- Backup owner: primary owner until a second maintainer is assigned
+- Escalation path: repository issue or release blocker
+
+## Recovery Paths
+
+- Restore user manifests from Git history.
+- Regenerate reports from manifests.
+- Deprecate or replace broken npm releases.
+- Move floating Action tags back to a known-good commit when needed.
 
 ## Validation
 
-- Required validation names: VALIDATION.md
-- Release blocker status: UNDECIDED
-- Remaining operational risk: UNDECIDED
+- Required validation names: docs, smoke, check
+- Release blocker status: hosted DR requirements require a new ADR
+- Remaining operational risk: no first release exists yet

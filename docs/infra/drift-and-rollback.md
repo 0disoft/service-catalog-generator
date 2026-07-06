@@ -1,28 +1,22 @@
-# Drift and Rollback
+# Infrastructure Drift and Rollback
 
-Status: Draft
-Owner: UNASSIGNED
+Status: Deferred
+Owner: 0disoft
 
-## Purpose
+## Contract
 
-This document captures the durable design contract for Drift and Rollback.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+The MVP has no managed infrastructure, so infrastructure drift and rollback are not release blockers.
+Release rollback is documented in docs/ops/rollback.md.
 
-## Source of Truth
+## Current Drift Sources
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
-
-## Required Decisions
-
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+- npm package version drift.
+- GitHub Action tag drift.
+- Documentation contract drift.
+- Generated artifact drift from source manifests.
 
 ## Review Blockers
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- A change treats infrastructure drift as evidence for catalog facts.
+- A change adds infrastructure rollback requirements without adding the corresponding infrastructure
+  ADR.

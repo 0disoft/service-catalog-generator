@@ -5,10 +5,12 @@ Owner: 0disoft
 
 ## Purpose
 
-Service Catalog Generator is a read-only CLI and report generator for small service catalogs.
+Service Catalog Generator is a read-only `service.yaml` compiler and linter for small service
+catalogs.
 
 It reads checked-in service manifests, validates their shape, normalizes the records, and emits
-artifacts that help humans and coding agents understand a workspace without deploying a portal.
+deterministic artifacts that help humans and coding agents understand a workspace without deploying a
+portal.
 
 ## Source of Truth
 
@@ -23,9 +25,18 @@ artifacts that help humans and coding agents understand a workspace without depl
 - Platform teams that want file-owned catalog facts for agent workflows.
 - Maintainers who need CI to catch stale or missing service metadata.
 
+## Product Identity
+
+The project must stay read-only, manifest-first, deterministic, and CI-friendly.
+
+The product competes with stale spreadsheets, READMEs, wiki pages, chat threads, and tribal memory.
+It does not compete with hosted developer portals. The primary value is telling a maintainer which
+manifest field is wrong, missing, stale, unsafe, or impossible to resolve.
+
 ## Manifest Contract
 
-The first manifest target is `service.yaml`. The minimum useful record should cover:
+The first manifest target is `service.yaml` with schema version `scg.service/v1alpha1`. The minimum
+useful record covers:
 
 - stable service id;
 - display name;
@@ -39,7 +50,62 @@ The first manifest target is `service.yaml`. The minimum useful record should co
 - cost reference or cost owner;
 - deletion or retirement note.
 
-The exact YAML schema remains draft until fixtures and validation tests exist.
+Required fields are:
+
+- `schemaVersion`;
+- `id`;
+- `name`;
+- `lifecycle`;
+- `owner.type`;
+- `owner.ref`;
+- `repository`;
+- `runtime`;
+- `deploy`;
+- `data.classification`;
+- `metadata.lastReviewedAt`.
+
+`dependencies` may be an empty array. An explicit empty dependency list means the service owner has
+reviewed the service and found no declared dependencies.
+
+```yaml
+schemaVersion: scg.service/v1alpha1
+id: billing-api
+name: Billing API
+lifecycle: production
+owner:
+  type: team
+  ref: platform
+repository:
+  provider: github
+  slug: example/billing-api
+runtime:
+  language: typescript
+  platform: node
+  framework: fastify
+deploy:
+  type: container
+  targets:
+    - environment: production
+      provider: unknown
+      ref: billing-api-prod
+data:
+  storesPersonalData: false
+  classification: internal
+dependencies:
+  - type: service
+    target: auth-api
+    direction: outbound
+    criticality: required
+    reason: validates user sessions
+cost:
+  owner: platform
+retirement:
+  status: none
+metadata:
+  lastReviewedAt: "2026-07-01"
+```
+
+The schema remains pre-1.0 until fixtures and contract tests lock the behavior.
 
 ## CLI MVP
 
@@ -49,8 +115,8 @@ The first CLI should expose these product-level actions:
 - `check`: validate required fields and dependency references;
 - `report`: write static JSON, DOT, and HTML report artifacts.
 
-Names and flags may change before implementation, but every command must keep a machine-readable
-JSON mode and deterministic exit behavior.
+Command names are the draft public contract. Flags may change before implementation, but every
+command must keep a machine-readable JSON mode and deterministic exit behavior.
 
 ## Outputs
 
@@ -61,14 +127,31 @@ JSON mode and deterministic exit behavior.
 
 Generated outputs are derived artifacts. They must never become the source of truth.
 
+## Runtime, Licensing, and Packaging
+
+- Runtime floor: Node.js 24 LTS.
+- Language: TypeScript with strict type checking.
+- Package manager: pnpm workspace.
+- Public package name: `@0disoft/service-catalog-generator` unless package availability blocks it.
+- CLI binary: `scg`.
+- Project license: Apache-2.0.
+- GitHub Action metadata: root `action.yml`.
+- Generated HTML reports: CI/internal artifacts by default; public release assets must use synthetic
+  examples only.
+
+The repository should stay a single public monorepo until the manifest, CLI, and report contracts are
+stable enough to justify splitting packages or repositories.
+
 ## Non-Goals
 
 - Backstage, OpsLevel, Cortex, or CMDB replacement.
 - Hosted portal, login, RBAC, or team management.
 - Cloud resource auto-discovery.
+- Kubernetes, Terraform state, source-code, or package-import dependency auto-discovery in the MVP.
 - Cost calculation or billing reconciliation.
 - Incident management or service ownership escalation workflow.
 - Automatic inference of every dependency from source code.
+- Web server, live database, telemetry, automatic update check, or remote schema fetch by default.
 
 ## Failure and Recovery
 
@@ -76,6 +159,7 @@ Generated outputs are derived artifacts. They must never become the source of tr
 - Missing optional fields produce warnings when the field affects report quality.
 - Unknown dependency references are errors unless explicitly allowed by policy.
 - Report generation should be safe to rerun and overwrite only declared output paths.
+- Diagnostics use stable codes so CI, agents, and tests can key off them.
 
 ## Review Blockers
 
@@ -83,3 +167,5 @@ Generated outputs are derived artifacts. They must never become the source of tr
 - A change adds automatic cloud or source-code discovery without a new boundary decision.
 - A change stores credentials, account identifiers, customer data, or private URLs in examples.
 - A change weakens manifest validation without updating fixtures and docs.
+- A change adds portal editing, login, RBAC, live DB storage, network calls, or telemetry without a new
+  ADR.

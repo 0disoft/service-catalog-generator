@@ -4,14 +4,28 @@ Status: Draft
 
 ## Contract
 
-Performance budgets must track latency, payload size, query count, cache behavior, bundle size, background jobs, and UNDECIDED project-specific thresholds.
+Performance budgets track scan latency, generated output size, memory, package/action bundle size,
+and avoided background work.
 
 ## Required Evidence
 
-- Source of truth: UNDECIDED
-- Owner: UNASSIGNED
+- Source of truth: docs/architecture/03-quality-attributes.md
+- Owner: 0disoft
 - Merge-blocking validation: VALIDATION.md
 - Related checklist: CHECKLIST.md
+
+## Initial Budgets
+
+- 500 manifests under 2 seconds on a typical developer laptop.
+- 500 manifests under 5 seconds on a GitHub hosted runner.
+- 1,000 manifests with peak memory below 256 MB as an initial target.
+- No background workers, watchers, development servers, or autonomous loops in normal CLI behavior.
+- No network calls or remote fetches in the default scan path.
+
+## Measurement Rules
+
+Budgets may change after implementation evidence. Any change must update this document, quality
+attributes, and performance tests together.
 
 ## Review Blockers
 

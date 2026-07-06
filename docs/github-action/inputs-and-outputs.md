@@ -9,19 +9,50 @@ This repository type owns action inputs, outputs, permissions, token handling, a
 
 ## Source of Truth
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
+- Product decision: docs/product/02-spec.md
+- Technical owner: 0disoft
+- Related ADR: docs/adr/0006-diagnostics-and-exit-code-contract.md
 
 ## Required Decisions
 
-- GitHub Action ownership boundary: UNDECIDED
-- GitHub Action public contract: UNDECIDED
-- GitHub Action validation evidence: UNDECIDED
-- GitHub Action release or rollout policy: UNDECIDED
-- GitHub Action compatibility and migration policy: UNDECIDED
+- GitHub Action ownership boundary: CLI wrapper only.
+- GitHub Action public contract: draft inputs and outputs below.
+- GitHub Action validation evidence: action input mapping, CLI exit propagation, and output mapping
+  tests after implementation.
+- GitHub Action release or rollout policy: docs/ops/release.md.
+- GitHub Action compatibility and migration policy: Node.js 24 action runtime.
+
+## Inputs
+
+| Input | Required | Default | Meaning |
+| --- | --- | --- | --- |
+| `roots` | false | `.` | Newline or comma separated scan roots. |
+| `manifest-name` | false | `service.yaml` | Manifest filename to discover. |
+| `config` | false | none | Optional path to `scg.config.yaml`. |
+| `output-directory` | false | `.catalog` | Directory for generated report artifacts. |
+| `fail-on-warning` | false | `false` | Promote warnings to failing validation. |
+| `allow-unknown-dependencies` | false | `false` | Permit unresolved service dependency refs. |
+| `report` | false | `false` | Generate report artifacts in addition to validation. |
+| `format` | false | `json,dot,html` | Report formats when `report` is true. |
+
+Inputs map to CLI flags. The action must not invent different default validation policy.
+
+## Outputs
+
+| Output | Meaning |
+| --- | --- |
+| `service-count` | Number of normalized service records. |
+| `error-count` | Number of error diagnostics. |
+| `warning-count` | Number of warning diagnostics. |
+| `report-directory` | Directory containing generated artifacts when report generation ran. |
+
+## Exit Behavior
+
+The action propagates the CLI exit code. It may annotate or summarize diagnostics for GitHub UI, but
+the CLI result remains the contract source.
 
 ## Review Blockers
 
 - Action permission changes lack least-privilege review.
 - Outputs or exit behavior changes without workflow examples.
+- Input defaults diverge from docs/cli/configuration.md.

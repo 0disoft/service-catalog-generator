@@ -1,28 +1,25 @@
 # Environments
 
-Status: Draft
-Owner: UNASSIGNED
+Status: Deferred
+Owner: 0disoft
 
-## Purpose
+## Contract
 
-This document captures the durable design contract for Environments.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+The MVP has no hosted runtime environments.
 
-## Source of Truth
+Supported execution environments are local developer workspaces and GitHub Actions runners. Both run
+the CLI against checked-in manifests and generated local artifacts.
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
+## Non-Goals
 
-## Required Decisions
-
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+- Cloud deployment environments.
+- Kubernetes clusters.
+- Terraform workspaces.
+- Hosted databases.
+- Long-running servers.
+- Background workers.
 
 ## Review Blockers
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- A change requires hosted infrastructure before an ADR accepts that boundary.
+- A change changes catalog semantics based on environment variables rather than documented config.

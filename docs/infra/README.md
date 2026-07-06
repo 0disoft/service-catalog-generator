@@ -1,28 +1,27 @@
-# Infrastructure
+# Infrastructure Notes
 
-Status: Draft
-Owner: UNASSIGNED
+Status: Deferred
+Owner: 0disoft
 
-## Purpose
+## Boundary
 
-This document captures the durable design contract for Infrastructure.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+Service Catalog Generator is not an infrastructure module. The MVP does not own Docker, Kubernetes,
+Terraform, cloud accounts, deployment environments, hosted services, or runtime provisioning.
 
-## Source of Truth
+This directory exists only to prevent future infrastructure work from bypassing the product boundary.
+Infrastructure behavior requires a new ADR before implementation.
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
+## MVP Rules
 
-## Required Decisions
-
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+- Do not add cloud discovery.
+- Do not add Terraform state discovery.
+- Do not add Kubernetes discovery.
+- Do not add hosted portal infrastructure.
+- Do not require secrets or write permissions for the GitHub Action.
+- Do not make generated reports public infrastructure assets by default.
 
 ## Review Blockers
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- A change introduces infrastructure runtime behavior without a new ADR.
+- A change requires credentials, cloud accounts, or deployment secrets for the MVP.
+- A change treats generated catalog artifacts as deployed source truth.

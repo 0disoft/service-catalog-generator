@@ -1,24 +1,29 @@
 # Architecture Decisions
 
 Status: Draft
-Owner: UNASSIGNED
+Owner: 0disoft
 
 ## Purpose
 
-This document captures the durable design contract for Architecture Decisions.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+This directory records durable product and architecture decisions for Service Catalog Generator.
+
+## Accepted ADRs
+
+- 0001 Initial Architecture Boundaries
+- 0002 Contract Source of Truth
+- 0003 Single Public Monorepo
+- 0004 TypeScript Node 24 Runtime
+- 0005 Service Manifest Schema v1alpha1
+- 0006 Diagnostics and Exit Code Contract
+- 0007 No Network and No Telemetry by Default
+- 0008 Static Report Security Boundary
+- 0009 Release and Package Provenance
+- 0010 Generated Artifacts Are Never Source Truth
 
 ## Source of Truth
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
-
-## Required Decisions
-
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
+- Product decision: docs/product/02-spec.md
+- Technical owner: 0disoft
 - Validation needed before merge: VALIDATION.md
 
 ## Review Blockers

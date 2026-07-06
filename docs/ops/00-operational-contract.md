@@ -2,18 +2,27 @@
 
 Status: Draft
 
-## Operational Contract
+## Operational Boundary
 
-Define critical user journeys, operational priorities, SLO, RTO, RPO, release blocking conditions, ownership, and dependency tiers.
+The MVP is a local CLI, static report generator, and GitHub Action wrapper. It has no hosted service,
+database, background worker, runtime fleet, or live incident workflow.
 
 ## Owners
 
-- Primary owner: UNASSIGNED
-- Backup owner: UNASSIGNED
-- Escalation path: UNDECIDED
+- Primary owner: 0disoft
+- Backup owner: primary owner until a second maintainer is assigned
+- Escalation path: repository issue or release blocker
+
+## Operational Responsibilities
+
+- Keep validation commands honest.
+- Keep release and rollback docs current.
+- Keep generated reports local or synthetic unless a user explicitly publishes them.
+- Keep GitHub Action permissions read-only by default.
+- Keep network calls and telemetry disabled by default.
 
 ## Validation
 
-- Required validation names: VALIDATION.md
-- Release blocker status: UNDECIDED
-- Remaining operational risk: UNDECIDED
+- Required validation names: docs, smoke, check
+- Release blocker status: hosted-service requirements are blockers unless a new ADR accepts them
+- Remaining operational risk: first release still needs package, CI, and provenance verification

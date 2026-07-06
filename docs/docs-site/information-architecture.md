@@ -19,8 +19,10 @@ This repository type owns information architecture, publishing, search, content 
 - Docs site public contract: service list, missing metadata summary, dependency graph, and per-service
   detail pages or sections.
 - Docs site validation evidence: report output should be generated from fixtures once the CLI exists.
-- Docs site release or rollout policy: UNDECIDED.
-- Docs site compatibility and migration policy: UNDECIDED.
+- Docs site release or rollout policy: generated real reports are internal artifacts; only synthetic
+  examples may be published publicly by default.
+- Docs site compatibility and migration policy: report structure follows the normalized catalog and
+  CLI JSON contract.
 
 ## Draft Report Structure
 
@@ -30,7 +32,12 @@ This repository type owns information architecture, publishing, search, content 
 - Gaps: missing owner, runtime, deploy target, data policy, or dependency target.
 - Source: manifest path for each service record.
 
+The report must prioritize diagnosis and repair over visual polish. It must not include editing
+features, login, RBAC, remote fetches, external scripts, external fonts, telemetry, or full manifest
+contents.
+
 ## Review Blockers
 
 - Content structure changes break navigation or redirects.
 - Publishing behavior changes without preview or link validation.
+- Report output becomes the source of truth for catalog facts.

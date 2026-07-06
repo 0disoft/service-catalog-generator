@@ -4,9 +4,9 @@
 
 Scope: infra
 
-This repository owns a file-first service catalog generator. Its core contract is to read
-repository-owned service manifests such as `service.yaml`, validate the declared service metadata,
-and generate static service maps, dependency graphs, and machine-readable catalog exports.
+This repository owns a read-only `service.yaml` compiler and linter. Its core contract is to read
+repository-owned service manifests, validate the declared service metadata, and generate static
+service maps, dependency graphs, diagnostics, and machine-readable catalog exports.
 
 This repository does not own a live CMDB, hosted developer portal, runtime infrastructure
 provisioning, cloud cost billing, credentials, cloud resources, deployment secrets, or incident
@@ -56,6 +56,9 @@ Addons: github-action, docs-site
 - Application source scaffolding.
 - Runtime infrastructure such as Docker, Kubernetes, Terraform, or framework apps.
 - Project-specific credentials or deployment secrets.
+- Hosted developer portal behavior, live catalog database behavior, RBAC, cloud discovery, source
+  code dependency inference, telemetry, or network behavior unless a future ADR explicitly accepts
+  that boundary.
 
 ## Final Response Requirements
 

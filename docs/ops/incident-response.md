@@ -28,9 +28,16 @@ reporting or GitHub Security Advisories when available. If those channels are un
 public placeholder issue must omit exploit details, real secrets, private repository names, customer
 data, and full manifest contents.
 
+Repository private vulnerability reporting is enabled for `0disoft/service-catalog-generator`.
+Reverify before security-sensitive releases or ownership changes:
+
+```sh
+gh api repos/0disoft/service-catalog-generator/private-vulnerability-reporting
+```
+
 ## Validation
 
-- Required validation names: docs, smoke, check
+- Required validation names: docs, smoke, secret-scan, check
 - Release blocker status: sensitive data exposure blocks release
-- Remaining operational risk: `SECURITY.md` defines the advisory process; GitHub repository-level
-  private vulnerability reporting settings still need maintainer-side confirmation.
+- Remaining operational risk: GitHub-hosted advisory settings are provider-side repository
+  configuration and must be reverified before security-sensitive release promotion.

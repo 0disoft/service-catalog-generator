@@ -24,8 +24,9 @@ and avoided background work.
 
 ## Measurement Rules
 
-Budgets may change after implementation evidence. Any change must update this document, quality
-attributes, and performance tests together.
+The standard test suite measures the 500-manifest hosted-runner scan budget through a core compiler
+performance test. Budgets may change after implementation evidence. Any change must update this
+document, quality attributes, and performance tests together.
 
 ## Review Blockers
 

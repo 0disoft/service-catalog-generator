@@ -6,6 +6,7 @@
 - Added a dependency audit gate to the standard `check` command.
 - Added implementation coverage for human-readable CLI diagnostic formatting.
 - Added implementation coverage that environment variables cannot change validation policy.
+- Added a core performance test for the 500-manifest hosted-runner scan budget.
 
 ## 0.5.2
 

@@ -22,13 +22,15 @@ credentials, long-running services, write permissions, telemetry, or private cat
 - contract
 - smoke
 - docs
+- secret-scan
+- dependency-audit
 - check
 
 Unimplemented gates must fail clearly or be reported as skipped. Fake passing scripts are blockers.
 
 ## Validation
 
-- Required validation names: docs, smoke, check
+- Required validation names: docs, smoke, secret-scan, dependency-audit, check
 - Release blocker status: CI cannot publish releases if implemented gates are failing
-- Remaining operational risk: release publishing and tagged Action smoke validation are not yet
-  configured
+- Remaining operational risk: CI depends on the package registry being reachable for dependency
+  audit metadata.

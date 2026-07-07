@@ -17,6 +17,7 @@ This document owns stable validation names for this scaffold.
 - smoke
 - docs
 - secret-scan
+- dependency-audit
 - check
 
 ## Required Final Report

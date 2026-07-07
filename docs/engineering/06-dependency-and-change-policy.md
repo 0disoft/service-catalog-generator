@@ -72,7 +72,7 @@ Blocked by default:
 - NOASSERTION
 - UNKNOWN
 
-Dependency review should run in CI once package metadata exists.
+Dependency review runs through the `dependency-audit` validation in the standard `check` gate.
 
 ## Review Blockers
 

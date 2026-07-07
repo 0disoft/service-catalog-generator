@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Added a tracked-file secret scanner to the standard `check` gate.
+- Added a dependency audit gate to the standard `check` command.
 
 ## 0.5.2
 

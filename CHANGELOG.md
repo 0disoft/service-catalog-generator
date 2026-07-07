@@ -9,6 +9,7 @@
 - Added a core performance test for the 500-manifest hosted-runner scan budget.
 - Updated operational release docs with verified `0.5.2` package, GitHub Release, and Action tag
   evidence.
+- Added a public security policy for vulnerability reporting and supported versions.
 
 ## 0.5.2
 

@@ -21,8 +21,16 @@ repository content or release assets.
 - Release provenance or package metadata is wrong.
 - Documentation instructs users to publish real catalog reports publicly.
 
+## Security Advisory Path
+
+Security-sensitive reports follow `SECURITY.md`. Reports should use GitHub private vulnerability
+reporting or GitHub Security Advisories when available. If those channels are unavailable, the
+public placeholder issue must omit exploit details, real secrets, private repository names, customer
+data, and full manifest contents.
+
 ## Validation
 
 - Required validation names: docs, smoke, check
 - Release blocker status: sensitive data exposure blocks release
-- Remaining operational risk: no formal security advisory process is configured yet
+- Remaining operational risk: `SECURITY.md` defines the advisory process; GitHub repository-level
+  private vulnerability reporting settings still need maintainer-side confirmation.

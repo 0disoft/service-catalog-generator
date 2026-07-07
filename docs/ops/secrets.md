@@ -26,6 +26,8 @@ Normal CLI and GitHub Action usage requires no secrets.
 - Secret-like manifest values should produce diagnostics and redaction where output is allowed.
 - The standard `check` command runs `secret-scan`, which scans tracked files for high-confidence
   token, private key, and credential value patterns without printing matched secret values.
+- Vulnerability reports must follow `SECURITY.md` and must not include real credentials, private
+  manifests, or full secret values.
 
 ## Validation
 

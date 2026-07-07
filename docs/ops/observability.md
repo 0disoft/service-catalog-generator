@@ -25,4 +25,5 @@ diagnostics, JSON summaries, exit codes, and optional generated reports.
 
 - Required validation names: docs, smoke, check
 - Release blocker status: telemetry or external observability requires a new ADR
-- Remaining operational risk: diagnostic formatting still needs implementation tests
+- Remaining operational risk: human-readable CLI diagnostic formatting has implementation coverage;
+  broader report presentation regressions still rely on smoke and report tests.

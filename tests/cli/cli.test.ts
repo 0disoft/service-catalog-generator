@@ -60,6 +60,36 @@ describe("scg CLI", () => {
     );
   });
 
+  it("prints deterministic human diagnostics with field locations and hints", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(
+      workspace,
+      "services/billing/service.yaml",
+      serviceYaml(
+        "billing-api",
+        [
+          "dependencies:",
+          "  - type: service",
+          "    target: ghost-api",
+          "    direction: outbound",
+          "    criticality: required"
+        ].join("\n")
+      )
+    );
+
+    const io = createIo();
+    const exitCode = await runCli({ argv: ["check"], cwd: workspace, io });
+    const lines = io.stdoutText().trim().split(/\r?\n/);
+
+    expect(exitCode).toBe(1);
+    expect(lines).toEqual([
+      "scg check services=1 edges=1 errors=1 warnings=0",
+      "error dependency.unknown_target services/billing/service.yaml#dependencies.0.target: Service billing-api depends on unknown service ghost-api.",
+      "hint: Add a service.yaml for the target service or allow unknown dependencies in policy."
+    ]);
+    expect(io.stderrText()).toBe("");
+  });
+
   it("promotes warnings when --fail-on-warning is set", async () => {
     const workspace = await createWorkspace();
     await writeManifest(

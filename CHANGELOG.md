@@ -4,6 +4,7 @@
 
 - Added a tracked-file secret scanner to the standard `check` gate.
 - Added a dependency audit gate to the standard `check` command.
+- Added implementation coverage for human-readable CLI diagnostic formatting.
 
 ## 0.5.2
 

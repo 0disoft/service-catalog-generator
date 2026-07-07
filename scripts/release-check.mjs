@@ -30,6 +30,7 @@ assert(
 assert(rootPackage.files?.includes("dist"), "published files must include dist");
 assert(rootPackage.files?.includes("README.md"), "published files must include README.md");
 assert(rootPackage.files?.includes("CHANGELOG.md"), "published files must include CHANGELOG.md");
+assert(rootPackage.files?.includes("SECURITY.md"), "published files must include SECURITY.md");
 assert(rootPackage.files?.includes("LICENSE"), "published files must include LICENSE");
 assert(
   changelogText.includes(`## ${rootPackage.version}`),

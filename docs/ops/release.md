@@ -38,6 +38,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 | `0.5.0` | Security hardening, deterministic output, docs polish. |
 | `0.5.1` | Trusted Publishing release validation. |
 | `0.5.2` | npm bin metadata normalization. |
+| `0.5.3` | Public security policy and npm package security metadata. |
 | `1.0.0` | Manifest schema and CLI contract freeze. |
 
 Pre-1.0 breaking changes are allowed only with clear migration notes. After 1.0, manifest schema,

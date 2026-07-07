@@ -53,6 +53,23 @@ describe("report writers", () => {
     expect(html).not.toContain("<script");
   });
 
+  it("renders the static report contract without external resources", () => {
+    const html = renderStaticHtml(snapshot());
+
+    expect(html).toContain("<!doctype html>");
+    expect(html).toContain('<meta name="viewport" content="width=device-width, initial-scale=1">');
+    expect(html).toContain("<title>Service Catalog</title>");
+    expect(html).toContain('<section aria-label="Summary">');
+    expect(html).toContain("<h2>Services</h2>");
+    expect(html).toContain("<h2>Dependencies</h2>");
+    expect(html).toContain("<h2>Diagnostics</h2>");
+    expect(html).toContain("<td>services/billing/service.yaml</td>");
+    expect(html).toContain("<td>auth-api</td>");
+    expect(html).toContain("<td>Update metadata</td>");
+    expect(html).not.toMatch(/<(script|iframe|img|link|object|embed)\b/i);
+    expect(html).not.toMatch(/\b(?:src|href)=["'](?:https?:)?\/\//i);
+  });
+
   it("writes selected report formats under the output directory", async () => {
     const workspace = await createWorkspace();
     const result = await writeCatalogReports(snapshot(), {

@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -60,10 +60,13 @@ async function createWorkspace(): Promise<string> {
 async function writeFakePnpm(workspace: string, script: string): Promise<void> {
   const binDirectory = join(workspace, "bin");
   const cliPath = join(workspace, "node", "node_modules", "pnpm", "bin", "pnpm.mjs");
+  const posixPnpmPath = join(binDirectory, "pnpm");
   await mkdir(binDirectory, { recursive: true });
   await mkdir(dirname(cliPath), { recursive: true });
   await writeFile(join(binDirectory, "pnpm.cmd"), "@echo off\r\nexit /b 1\r\n", "utf8");
   await writeFile(cliPath, script, "utf8");
+  await writeFile(posixPnpmPath, `#!/usr/bin/env node\n${script}\n`, "utf8");
+  await chmod(posixPnpmPath, 0o755);
 }
 
 function testEnv(workspace: string): NodeJS.ProcessEnv {

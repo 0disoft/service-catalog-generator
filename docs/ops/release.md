@@ -36,6 +36,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 | `0.3.0` | DOT export and static HTML report. |
 | `0.4.0` | GitHub Action wrapper. |
 | `0.5.0` | Security hardening, deterministic output, docs polish. |
+| `0.5.1` | Trusted Publishing release validation. |
 | `1.0.0` | Manifest schema and CLI contract freeze. |
 
 Pre-1.0 breaking changes are allowed only with clear migration notes. After 1.0, manifest schema,
@@ -58,7 +59,7 @@ For npm CLI smoke tests, run from a temporary directory outside this repository 
 resolve the local workspace package instead of the published package:
 
 ```sh
-npm exec --yes --package @0disoft/service-catalog-generator@0.5.0 -- scg --version
+npm exec --yes --package @0disoft/service-catalog-generator@0.5.1 -- scg --version
 ```
 
 On Windows, a full install smoke test should also confirm `node_modules/.bin/scg.cmd` is created

@@ -24,7 +24,7 @@ assert(rootPackage.repository?.url === expectedRepository, "repository URL must 
 assert(rootPackage.publishConfig?.access === "public", "scoped package must publish as public");
 assert(isReleaseVersion(rootPackage.version), "package version must be a release semver");
 assert(
-  rootPackage.bin?.scg === "./dist/cli/index.js",
+  rootPackage.bin?.scg === "dist/cli/index.js",
   "package bin.scg must point at the published CLI entrypoint"
 );
 assert(rootPackage.files?.includes("dist"), "published files must include dist");

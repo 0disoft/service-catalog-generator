@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.2
+
+- Normalized the published `scg` bin path to match npm package metadata rules.
+
 ## 0.5.1
 
 - Switched the release workflow to npm Trusted Publishing through GitHub OIDC.

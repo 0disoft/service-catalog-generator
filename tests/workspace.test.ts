@@ -14,6 +14,6 @@ describe("workspace tooling", () => {
     expect(rootPackage.license).toBe("Apache-2.0");
     expect(rootPackage.packageManager).toBe("pnpm@11.7.0");
     expect(rootPackage.engines.node).toBe(">=24.0.0");
-    expect(rootPackage.bin.scg).toBe("./dist/cli/index.js");
+    expect(rootPackage.bin.scg).toBe("dist/cli/index.js");
   });
 });

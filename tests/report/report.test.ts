@@ -108,7 +108,7 @@ function snapshot(): CatalogSnapshot {
     schemaVersion: "scg.catalog/v1alpha1",
     tool: {
       name: "service-catalog-generator",
-      version: "0.5.1"
+      version: "0.5.2"
     },
     summary: {
       serviceCount: 1,

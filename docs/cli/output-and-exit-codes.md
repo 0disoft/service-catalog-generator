@@ -23,14 +23,14 @@ This repository type owns command behavior, arguments, flags, config loading, ex
 
 ## Exit Codes
 
-| Code | Meaning |
-| ---: | --- |
-| 0 | Success. |
-| 1 | Catalog validation error. |
-| 2 | CLI usage or config error. |
-| 3 | Input read or parse error. |
-| 4 | Output write error. |
-| 5 | Internal unexpected error. |
+| Code | Meaning                    |
+| ---: | -------------------------- |
+|    0 | Success.                   |
+|    1 | Catalog validation error.  |
+|    2 | CLI usage or config error. |
+|    3 | Input read or parse error. |
+|    4 | Output write error.        |
+|    5 | Internal unexpected error. |
 
 Warnings do not fail by default. `--fail-on-warning` promotes warning diagnostics to exit code 1.
 
@@ -64,7 +64,7 @@ Initial stable diagnostic codes include:
   "schemaVersion": "scg.catalog/v1alpha1",
   "tool": {
     "name": "service-catalog-generator",
-    "version": "0.5.2"
+    "version": "0.5.3"
   },
   "summary": {
     "serviceCount": 2,

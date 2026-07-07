@@ -17,8 +17,8 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 - Required validation names: format, lint, typecheck, test, contract, smoke, docs, check
 - Release blocker status: any missing implemented validation is a blocker unless documented as not
   yet configured
-- Remaining operational risk: package availability, provenance setup, and Action runtime support must
-  be reverified before first release
+- Remaining operational risk: package availability, Trusted Publishing, and Action runtime support
+  are verified for `0.5.2`; each future release must reverify the same evidence before promotion
 
 ## Release Units
 
@@ -77,17 +77,32 @@ The workflow must not use npm token secrets such as `NPM_PUBLISH_TOKEN`, `NPM_TO
 `0disoft/service-catalog-generator/.github/workflows/release.yml` and the workflow's
 `id-token: write` permission.
 
-## Trusted Publisher Setup
+## Latest Verified Release
 
-Before the first tag publish, an npm owner for the `@0disoft` scope must authenticate locally and
-create the trusted publisher relationship:
+Current verified release evidence:
+
+- npm package: `@0disoft/service-catalog-generator@0.5.2`.
+- GitHub Release: `v0.5.2`.
+- Release workflow run: `28838627667`, conclusion `success`.
+- Release commit: `9d92d6b79030f5fda6c2700cca25b2d51a5abdd6`.
+- Mutable Action tag: `v0` points to the `0.5.2` release commit.
+- Published CLI smoke: `npm exec --yes --package @0disoft/service-catalog-generator@0.5.2 -- scg --version` returned `0.5.2`.
+- Windows install smoke: `node_modules/.bin/scg.cmd --version` returned `0.5.2` from a clean
+  temporary project.
+- Trusted Publishing dry-run: `pnpm run release:trust:dry-run` returned publish permission for
+  `0disoft/service-catalog-generator/.github/workflows/release.yml`.
+
+## Trusted Publisher Setup and Verification
+
+For initial setup, recovery, or relationship repair, an npm owner for the `@0disoft` scope must
+authenticate locally and create the trusted publisher relationship:
 
 ```sh
 npm login
 npm trust github @0disoft/service-catalog-generator --file release.yml --repository 0disoft/service-catalog-generator --allow-publish
 ```
 
-Use this dry-run check before creating the relationship or pushing the release tag:
+Use this dry-run check before creating the relationship and before pushing each release tag:
 
 ```sh
 pnpm run release:trust:dry-run

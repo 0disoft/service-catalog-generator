@@ -24,4 +24,5 @@ repository recovery, package rollback, and Action tag rollback.
 
 - Required validation names: docs, smoke, check
 - Release blocker status: hosted DR requirements require a new ADR
-- Remaining operational risk: no first release exists yet
+- Remaining operational risk: package and Action rollback now apply to released versions; recovery
+  drills are not automated.

@@ -25,4 +25,5 @@ database, background worker, runtime fleet, or live incident workflow.
 
 - Required validation names: docs, smoke, check
 - Release blocker status: hosted-service requirements are blockers unless a new ADR accepts them
-- Remaining operational risk: first release still needs package, CI, and provenance verification
+- Remaining operational risk: release evidence for `0.5.2` is verified; future releases must rerun
+  package, CI, Trusted Publishing, and Action tag checks before promotion.

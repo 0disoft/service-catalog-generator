@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
-import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { delimiter, dirname, join } from "node:path";
+import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 const cleanupRoots: string[] = [];
@@ -18,12 +18,12 @@ describe("dependency-audit validation script", () => {
   it("retries transient pnpm audit failures that do not produce JSON", async () => {
     const workspace = await createWorkspace();
     const counterPath = join(workspace, "attempts.txt");
-    await writeFakePnpm(workspace, retryThenPassScript(counterPath));
+    const pnpmCliPath = await writeFakePnpm(workspace, retryThenPassScript(counterPath));
 
     const output = execFileSync(process.execPath, ["scripts/dependency-audit.mjs"], {
       cwd: process.cwd(),
       encoding: "utf8",
-      env: testEnv(workspace),
+      env: testEnv(pnpmCliPath),
       stdio: ["ignore", "pipe", "pipe"]
     });
     const attempts = await readFile(counterPath, "utf8");
@@ -35,13 +35,13 @@ describe("dependency-audit validation script", () => {
   it("fails immediately when pnpm audit reports vulnerabilities as JSON", async () => {
     const workspace = await createWorkspace();
     const counterPath = join(workspace, "attempts.txt");
-    await writeFakePnpm(workspace, vulnerabilityScript(counterPath));
+    const pnpmCliPath = await writeFakePnpm(workspace, vulnerabilityScript(counterPath));
 
     expect(() =>
       execFileSync(process.execPath, ["scripts/dependency-audit.mjs"], {
         cwd: process.cwd(),
         encoding: "utf8",
-        env: testEnv(workspace),
+        env: testEnv(pnpmCliPath),
         stdio: ["ignore", "pipe", "pipe"]
       })
     ).toThrow();
@@ -57,22 +57,17 @@ async function createWorkspace(): Promise<string> {
   return root;
 }
 
-async function writeFakePnpm(workspace: string, script: string): Promise<void> {
-  const binDirectory = join(workspace, "bin");
+async function writeFakePnpm(workspace: string, script: string): Promise<string> {
   const cliPath = join(workspace, "node", "node_modules", "pnpm", "bin", "pnpm.mjs");
-  const posixPnpmPath = join(binDirectory, "pnpm");
-  await mkdir(binDirectory, { recursive: true });
   await mkdir(dirname(cliPath), { recursive: true });
-  await writeFile(join(binDirectory, "pnpm.cmd"), "@echo off\r\nexit /b 1\r\n", "utf8");
   await writeFile(cliPath, script, "utf8");
-  await writeFile(posixPnpmPath, `#!/usr/bin/env node\n${script}\n`, "utf8");
-  await chmod(posixPnpmPath, 0o755);
+  return cliPath;
 }
 
-function testEnv(workspace: string): NodeJS.ProcessEnv {
+function testEnv(pnpmCliPath: string): NodeJS.ProcessEnv {
   return {
     ...process.env,
-    PATH: `${join(workspace, "bin")}${delimiter}${process.env.PATH ?? ""}`,
+    SCG_DEPENDENCY_AUDIT_PNPM_CLI: pnpmCliPath,
     SCG_DEPENDENCY_AUDIT_RETRY_DELAY_MS: "0"
   };
 }

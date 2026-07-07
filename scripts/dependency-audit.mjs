@@ -107,6 +107,14 @@ function getProcessOutput(error) {
 }
 
 function resolvePnpmCommand() {
+  const pnpmCliOverride = process.env.SCG_DEPENDENCY_AUDIT_PNPM_CLI;
+  if (pnpmCliOverride) {
+    return {
+      file: process.execPath,
+      prefixArgs: [pnpmCliOverride]
+    };
+  }
+
   if (process.platform === "win32") {
     const pnpmShim = findWindowsCommand("pnpm");
     const pnpmCli = pnpmShim ? findPnpmCliFromShim(pnpmShim) : undefined;

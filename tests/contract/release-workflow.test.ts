@@ -19,6 +19,7 @@ type ReleaseWorkflow = {
     publish: {
       steps: Array<{
         name?: string;
+        env?: Record<string, string>;
         run?: string;
         uses?: string;
         with?: Record<string, string | number | boolean>;
@@ -28,7 +29,7 @@ type ReleaseWorkflow = {
 };
 
 describe("release workflow contract", () => {
-  it("publishes through trusted publishing without npm tokens", () => {
+  it("publishes through the configured npm publish secret", () => {
     const workflowText = readFileSync(join(process.cwd(), ".github/workflows/release.yml"), "utf8");
     const workflow = parse(workflowText) as ReleaseWorkflow;
     const steps = workflow.jobs.publish.steps;
@@ -48,10 +49,17 @@ describe("release workflow contract", () => {
     expect(steps.some((step) => step.run === "node scripts/release-check.mjs")).toBe(true);
     expect(steps.some((step) => step.run === "pnpm run check")).toBe(true);
     expect(steps.some((step) => step.run === "pnpm pack --dry-run")).toBe(true);
-    expect(steps.some((step) => step.run === "npm publish --access public")).toBe(true);
+    expect(
+      steps.some(
+        (step) =>
+          step.name === "Publish npm package" &&
+          step.run === "npm publish --access public" &&
+          step.env?.NODE_AUTH_TOKEN === "${{ secrets.NPM_PUBLISH_TOKEN }}"
+      )
+    ).toBe(true);
     expect(workflowText).toContain("gh release create");
     expect(workflowText).toContain('git push --force origin "refs/tags/$MAJOR_TAG"');
-    expect(workflowText).not.toMatch(/NODE_AUTH_TOKEN|NPM_TOKEN|secrets\.NPM/i);
+    expect(workflowText).not.toMatch(/secrets\.NPM_TOKEN|secrets\.NODE_AUTH_TOKEN/i);
   });
 
   it("keeps scoped package metadata public-release ready", () => {

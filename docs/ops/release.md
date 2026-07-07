@@ -49,7 +49,7 @@ CLI JSON output, and exit codes are compatibility contracts.
 4. Confirm generated reports are not published as public assets unless synthetic.
 5. Confirm `package.json` repository metadata matches the public GitHub repository.
 6. Push an immutable `vX.Y.Z` tag that exactly matches `package.json.version`.
-7. Use the `release` workflow to publish with npm Trusted Publishing through GitHub OIDC.
+7. Use the `release` workflow to publish with the configured `NPM_PUBLISH_TOKEN` repository secret.
 8. Create the GitHub Release from the same version tag.
 9. Move or create the corresponding major Action tag, such as `v0`.
 10. Smoke test package installation and Action usage from the released tag.
@@ -57,11 +57,11 @@ CLI JSON output, and exit codes are compatibility contracts.
 ## Release Workflow
 
 The release workflow runs only for `v*.*.*` tags. It validates package metadata, runs `check`, runs
-`pnpm pack --dry-run`, publishes the scoped public package with Trusted Publishing, creates the
-GitHub Release, and moves the mutable major Action tag.
+`pnpm pack --dry-run`, publishes the scoped public package with the `NPM_PUBLISH_TOKEN` repository
+secret, creates the GitHub Release, and moves the mutable major Action tag.
 
-The workflow must not use long-lived npm tokens. If npm Trusted Publishing is not configured for the
-package and workflow, the publish step must fail rather than falling back to a repository secret.
+The workflow must not use generic token names such as `NPM_TOKEN` or `NODE_AUTH_TOKEN` as GitHub
+secret names. The only accepted token secret name is `NPM_PUBLISH_TOKEN`.
 
 ## Trusted Publisher Setup
 
@@ -81,6 +81,10 @@ pnpm run release:trust:dry-run
 
 The dry-run should report package creation or publish permission for
 `0disoft/service-catalog-generator/.github/release.yml`.
+
+If npm rejects trusted publisher creation for the current token or account policy, configure the
+GitHub repository secret `NPM_PUBLISH_TOKEN` with an npm token that can publish
+`@0disoft/service-catalog-generator`.
 
 ## Stop Conditions
 

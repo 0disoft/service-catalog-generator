@@ -20,6 +20,8 @@ Normal CLI and GitHub Action usage requires no secrets.
   Publishing through GitHub OIDC.
 - Local npm authentication may be used only to configure the trusted publisher relationship. It must
   not be copied into GitHub secrets, workflow files, examples, or repository docs.
+- If npm Trusted Publishing is blocked by package or account policy, `NPM_PUBLISH_TOKEN` is the only
+  accepted GitHub secret name for release publishing.
 - Do not expose full manifest contents in diagnostics or generated reports.
 - Secret-like manifest values should produce diagnostics and redaction where output is allowed.
 

@@ -25,5 +25,6 @@ The MVP has no hosted uptime SLA. Service levels describe local CLI and CI expec
 
 - Required validation names: docs, smoke, check
 - Release blocker status: hosted SLA claims are blocked until hosted behavior exists
-- Remaining operational risk: the 500-manifest hosted-runner scan target has implementation
-  coverage; peak-memory evidence for the 1,000-manifest target still needs dedicated measurement.
+- Remaining operational risk: the 500-manifest hosted-runner scan target and 1,000-manifest peak
+  RSS target have implementation coverage; hardware-specific performance drift still needs release
+  review when scan behavior changes.

@@ -24,8 +24,10 @@ and avoided background work.
 
 ## Measurement Rules
 
-The standard test suite measures the 500-manifest hosted-runner scan budget through a core compiler
-performance test. Budgets may change after implementation evidence. Any change must update this
+The standard test suite measures the 500-manifest scan budget and the 1,000-manifest peak RSS budget
+through core compiler performance tests. CI enforces the hosted-runner scan budget; local runs allow
+a wider filesystem ceiling so Windows antivirus and temporary-directory overhead do not hide the
+compile-path signal. Budgets may change after implementation evidence. Any change must update this
 document, quality attributes, and performance tests together.
 
 ## Review Blockers

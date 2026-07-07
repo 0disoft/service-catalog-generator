@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Updated the operational contract with verified `0.5.3` release evidence.
+- Added a peak RSS performance test for the 1,000-manifest memory budget.
 
 ## 0.5.3
 

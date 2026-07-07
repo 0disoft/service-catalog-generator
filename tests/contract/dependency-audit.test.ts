@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { delimiter, dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 const cleanupRoots: string[] = [];
@@ -72,7 +72,7 @@ async function writeFakePnpm(workspace: string, script: string): Promise<void> {
 function testEnv(workspace: string): NodeJS.ProcessEnv {
   return {
     ...process.env,
-    PATH: `${join(workspace, "bin")};${process.env.PATH ?? ""}`,
+    PATH: `${join(workspace, "bin")}${delimiter}${process.env.PATH ?? ""}`,
     SCG_DEPENDENCY_AUDIT_RETRY_DELAY_MS: "0"
   };
 }

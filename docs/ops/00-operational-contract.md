@@ -23,7 +23,8 @@ database, background worker, runtime fleet, or live incident workflow.
 
 ## Validation
 
-- Required validation names: docs, smoke, check
+- Required validation names: docs, smoke, release-evidence, check
 - Release blocker status: hosted-service requirements are blockers unless a new ADR accepts them
-- Remaining operational risk: release evidence for `0.5.3` is verified; future releases must rerun
-  package, CI, Trusted Publishing, and Action tag checks before promotion.
+- Remaining operational risk: `release-evidence` verifies current package, release workflow, GitHub
+  Release, published CLI, and Action tag evidence. Future releases must still rerun package
+  availability, Trusted Publishing, and Action tag checks before promotion.

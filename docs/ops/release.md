@@ -15,11 +15,12 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 ## Validation
 
 - Required validation names: format, lint, typecheck, test, contract, smoke, docs, recovery-drill,
-  check
+  release-evidence, check
 - Release blocker status: any missing implemented validation is a blocker unless documented as not
   yet configured
 - Remaining operational risk: package availability, Trusted Publishing, and Action runtime support
-  are verified for `0.5.3`; each future release must reverify the same evidence before promotion
+  are verified for `0.5.3`; each future release must rerun `release-evidence` and reverify Trusted
+  Publishing before promotion
 
 ## Release Units
 
@@ -59,6 +60,7 @@ CLI JSON output, and exit codes are compatibility contracts.
 9. Create the GitHub Release from the same version tag.
 10. Move or create the corresponding major Action tag, such as `v0`.
 11. Smoke test package installation and Action usage from the released tag.
+12. Run `pnpm run release-evidence -- <version>` after promotion.
 
 For npm CLI smoke tests, run from a temporary directory outside this repository so npm does not
 resolve the local workspace package instead of the published package:
@@ -117,6 +119,17 @@ The dry-run should report package creation or publish permission for
 
 If npm rejects trusted publisher creation for the current account policy, stop the release and fix
 the npm package access configuration before pushing the release tag.
+
+## Release Evidence Verification
+
+After a release is promoted, verify the published package and GitHub release evidence:
+
+```sh
+pnpm run release-evidence -- 0.5.3
+```
+
+The command checks the npm package metadata, GitHub Release, immutable version tag, mutable major
+Action tag, successful release workflow run, and published CLI version smoke.
 
 ## Stop Conditions
 

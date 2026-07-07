@@ -143,6 +143,46 @@ describe("scg CLI", () => {
     expect(snapshot.summary.serviceCount).toBe(1);
   });
 
+  it("does not let environment variables change validation policy", async () => {
+    const previousCi = process.env.CI;
+    const previousUnknownPolicy = process.env.SCG_ALLOW_UNKNOWN_DEPENDENCIES;
+    const workspace = await createWorkspace();
+    await writeManifest(
+      workspace,
+      "services/billing/service.yaml",
+      serviceYaml(
+        "billing-api",
+        [
+          "dependencies:",
+          "  - type: service",
+          "    target: ghost-api",
+          "    direction: outbound",
+          "    criticality: required"
+        ].join("\n")
+      )
+    );
+
+    process.env.CI = "true";
+    process.env.SCG_ALLOW_UNKNOWN_DEPENDENCIES = "true";
+
+    try {
+      const io = createIo();
+      const exitCode = await runCli({ argv: ["check", "--json"], cwd: workspace, io });
+      const snapshot = JSON.parse(io.stdoutText());
+
+      expect(exitCode).toBe(1);
+      expect(snapshot.diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: "dependency.unknown_target",
+          file: "services/billing/service.yaml"
+        })
+      );
+    } finally {
+      restoreEnv("CI", previousCi);
+      restoreEnv("SCG_ALLOW_UNKNOWN_DEPENDENCIES", previousUnknownPolicy);
+    }
+  });
+
   it("returns exit code 2 for invalid config YAML", async () => {
     const workspace = await createWorkspace();
     await writeFile(join(workspace, "scg.config.yaml"), "schemaVersion: [", "utf8");
@@ -321,4 +361,13 @@ function serviceYaml(
     "metadata:",
     `  lastReviewedAt: "${lastReviewedAt}"`
   ].join("\n");
+}
+
+function restoreEnv(name: string, previousValue: string | undefined): void {
+  if (previousValue === undefined) {
+    delete process.env[name];
+    return;
+  }
+
+  process.env[name] = previousValue;
 }

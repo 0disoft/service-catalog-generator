@@ -24,4 +24,6 @@ not secretly change validation policy.
 
 - Required validation names: docs, smoke, check
 - Release blocker status: hidden environment-driven behavior is a blocker
-- Remaining operational risk: config schema still needs implementation tests
+- Remaining operational risk: config schema defaults, invalid values, and environment policy are
+  covered by implementation tests; future environment-driven behavior must add a new explicit
+  contract test before shipping.

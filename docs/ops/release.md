@@ -14,7 +14,8 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 
 ## Validation
 
-- Required validation names: format, lint, typecheck, test, contract, smoke, docs, check
+- Required validation names: format, lint, typecheck, test, contract, smoke, docs, recovery-drill,
+  check
 - Release blocker status: any missing implemented validation is a blocker unless documented as not
   yet configured
 - Remaining operational risk: package availability, Trusted Publishing, and Action runtime support
@@ -51,11 +52,13 @@ CLI JSON output, and exit codes are compatibility contracts.
 3. Confirm examples and fixtures are synthetic.
 4. Confirm generated reports are not published as public assets unless synthetic.
 5. Confirm `package.json` repository metadata matches the public GitHub repository.
-6. Push an immutable `vX.Y.Z` tag that exactly matches `package.json.version`.
-7. Use the `release` workflow to publish through npm Trusted Publishing and GitHub OIDC.
-8. Create the GitHub Release from the same version tag.
-9. Move or create the corresponding major Action tag, such as `v0`.
-10. Smoke test package installation and Action usage from the released tag.
+6. Run `recovery-drill` to confirm release, rollback, and disaster-recovery contracts have not
+   drifted.
+7. Push an immutable `vX.Y.Z` tag that exactly matches `package.json.version`.
+8. Use the `release` workflow to publish through npm Trusted Publishing and GitHub OIDC.
+9. Create the GitHub Release from the same version tag.
+10. Move or create the corresponding major Action tag, such as `v0`.
+11. Smoke test package installation and Action usage from the released tag.
 
 For npm CLI smoke tests, run from a temporary directory outside this repository so npm does not
 resolve the local workspace package instead of the published package:

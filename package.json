@@ -45,9 +45,10 @@
     "docs": "node scripts/check-docs.mjs",
     "secret-scan": "node scripts/secret-scan.mjs",
     "dependency-audit": "node scripts/dependency-audit.mjs",
+    "recovery-drill": "node scripts/recovery-drill.mjs",
     "release:trust:dry-run": "node scripts/trusted-publisher-dry-run.mjs",
     "prepack": "pnpm run build",
-    "check": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run contract && pnpm run smoke && pnpm run docs && pnpm run secret-scan && pnpm run dependency-audit"
+    "check": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run contract && pnpm run smoke && pnpm run docs && pnpm run recovery-drill && pnpm run secret-scan && pnpm run dependency-audit"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

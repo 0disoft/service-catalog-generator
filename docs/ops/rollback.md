@@ -14,7 +14,7 @@ Provide a short actionable decision tree with triggers, procedure, database roll
 
 ## Validation
 
-- Required validation names: smoke, docs, check
+- Required validation names: smoke, docs, recovery-drill, check
 - Release blocker status: rollback is required when released package, CLI, or Action tag violates a
   documented contract
 - Remaining operational risk: npm unpublish windows, tag cache behavior, and downstream pinned users
@@ -54,3 +54,4 @@ before that implementation ships.
 - The CLI exit code, JSON contract, and generated artifacts match docs.
 - The Action tag points to the corrected commit.
 - The release notes identify affected versions and user action.
+- The `recovery-drill` validation passes before maintainer-executed rollback steps.

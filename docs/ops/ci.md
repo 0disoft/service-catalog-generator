@@ -22,6 +22,7 @@ credentials, long-running services, write permissions, telemetry, or private cat
 - contract
 - smoke
 - docs
+- recovery-drill
 - secret-scan
 - dependency-audit
 - check
@@ -30,7 +31,7 @@ Unimplemented gates must fail clearly or be reported as skipped. Fake passing sc
 
 ## Validation
 
-- Required validation names: docs, smoke, secret-scan, dependency-audit, check
+- Required validation names: docs, smoke, recovery-drill, secret-scan, dependency-audit, check
 - Release blocker status: CI cannot publish releases if implemented gates are failing
 - Remaining operational risk: dependency audit retries transient registry failures, but CI still
   depends on the package registry eventually returning audit metadata.

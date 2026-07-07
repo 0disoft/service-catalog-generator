@@ -19,10 +19,12 @@ repository recovery, package rollback, and Action tag rollback.
 - Regenerate reports from manifests.
 - Deprecate or replace broken npm releases.
 - Move floating Action tags back to a known-good commit when needed.
+- Run `recovery-drill` before release promotion and during rollback review to catch static recovery
+  contract drift.
 
 ## Validation
 
-- Required validation names: docs, smoke, check
+- Required validation names: docs, smoke, recovery-drill, check
 - Release blocker status: hosted DR requirements require a new ADR
-- Remaining operational risk: package and Action rollback now apply to released versions; recovery
-  drills are not automated.
+- Remaining operational risk: static recovery drill coverage is automated; live package
+  deprecation, npm unpublish decisions, and Action tag rollback remain maintainer-executed.

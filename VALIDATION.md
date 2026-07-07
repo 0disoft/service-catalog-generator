@@ -18,6 +18,7 @@ This document owns stable validation names for this scaffold.
 - docs
 - secret-scan
 - dependency-audit
+- recovery-drill
 - check
 
 ## Required Final Report

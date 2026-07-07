@@ -18,6 +18,8 @@ Normal CLI and GitHub Action usage requires no secrets.
   emails in examples or fixtures.
 - Do not require npm tokens for the default release path. Release publishing uses npm Trusted
   Publishing through GitHub OIDC.
+- Local npm authentication may be used only to configure the trusted publisher relationship. It must
+  not be copied into GitHub secrets, workflow files, examples, or repository docs.
 - Do not expose full manifest contents in diagnostics or generated reports.
 - Secret-like manifest values should produce diagnostics and redaction where output is allowed.
 

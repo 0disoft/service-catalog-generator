@@ -63,6 +63,25 @@ GitHub Release, and moves the mutable major Action tag.
 The workflow must not use long-lived npm tokens. If npm Trusted Publishing is not configured for the
 package and workflow, the publish step must fail rather than falling back to a repository secret.
 
+## Trusted Publisher Setup
+
+Before the first tag publish, an npm owner for the `@0disoft` scope must authenticate locally and
+create the trusted publisher relationship:
+
+```sh
+npm login
+npm trust github @0disoft/service-catalog-generator --file release.yml --repository 0disoft/service-catalog-generator --allow-publish
+```
+
+Use this dry-run check before creating the relationship or pushing the release tag:
+
+```sh
+pnpm run release:trust:dry-run
+```
+
+The dry-run should report package creation or publish permission for
+`0disoft/service-catalog-generator/.github/release.yml`.
+
 ## Stop Conditions
 
 - Validation scripts are fake passing or unconfigured but reported as passing.

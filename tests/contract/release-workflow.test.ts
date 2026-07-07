@@ -78,6 +78,21 @@ describe("release workflow contract", () => {
     expect(packageJson.publishConfig).toEqual({ access: "public" });
   });
 
+  it("documents the trusted publisher dry-run command", () => {
+    const packageJson = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8")) as {
+      scripts: Record<string, string>;
+    };
+    const releaseDocs = readFileSync(join(process.cwd(), "docs/ops/release.md"), "utf8");
+
+    expect(packageJson.scripts["release:trust:dry-run"]).toBe(
+      "node scripts/trusted-publisher-dry-run.mjs"
+    );
+    expect(releaseDocs).toContain(
+      "npm trust github @0disoft/service-catalog-generator --file release.yml --repository 0disoft/service-catalog-generator --allow-publish"
+    );
+    expect(releaseDocs).toContain("pnpm run release:trust:dry-run");
+  });
+
   it("keeps package, source, and changelog versions aligned", () => {
     const packageJson = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8")) as {
       version: string;

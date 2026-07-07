@@ -68,6 +68,9 @@ describe("release workflow contract", () => {
       version: string;
       license: string;
       files: string[];
+      bin: {
+        scg: string;
+      };
       publishConfig?: {
         access?: string;
       };
@@ -79,6 +82,7 @@ describe("release workflow contract", () => {
     expect(packageJson.name).toBe("@0disoft/service-catalog-generator");
     expect(packageJson.version).toBe("0.5.0");
     expect(packageJson.license).toBe("Apache-2.0");
+    expect(packageJson.bin).toEqual({ scg: "./dist/cli/index.js" });
     expect(packageJson.files).toEqual(["dist", "README.md", "CHANGELOG.md", "LICENSE"]);
     expect(packageJson.repository.url).toBe(
       "git+https://github.com/0disoft/service-catalog-generator.git"

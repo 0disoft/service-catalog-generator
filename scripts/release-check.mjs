@@ -23,6 +23,10 @@ assert(rootPackage.license === "Apache-2.0", "package license must be Apache-2.0
 assert(rootPackage.repository?.url === expectedRepository, "repository URL must match GitHub repo");
 assert(rootPackage.publishConfig?.access === "public", "scoped package must publish as public");
 assert(isReleaseVersion(rootPackage.version), "package version must be a release semver");
+assert(
+  rootPackage.bin?.scg === "./dist/cli/index.js",
+  "package bin.scg must point at the published CLI entrypoint"
+);
 assert(rootPackage.files?.includes("dist"), "published files must include dist");
 assert(rootPackage.files?.includes("README.md"), "published files must include README.md");
 assert(rootPackage.files?.includes("CHANGELOG.md"), "published files must include CHANGELOG.md");

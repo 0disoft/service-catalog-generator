@@ -54,6 +54,16 @@ CLI JSON output, and exit codes are compatibility contracts.
 9. Move or create the corresponding major Action tag, such as `v0`.
 10. Smoke test package installation and Action usage from the released tag.
 
+For npm CLI smoke tests, run from a temporary directory outside this repository so npm does not
+resolve the local workspace package instead of the published package:
+
+```sh
+npm exec --yes --package @0disoft/service-catalog-generator@0.5.0 -- scg --version
+```
+
+On Windows, a full install smoke test should also confirm `node_modules/.bin/scg.cmd` is created
+and runs from a clean temporary project.
+
 ## Release Workflow
 
 The release workflow runs only for `v*.*.*` tags. It validates package metadata, runs `check`, runs

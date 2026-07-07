@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added a tracked-file secret scanner to the standard `check` gate.
+
 ## 0.5.2
 
 - Normalized the published `scg` bin path to match npm package metadata rules.

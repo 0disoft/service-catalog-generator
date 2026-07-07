@@ -27,6 +27,7 @@ files, filesystem paths, generated outputs, CI permissions, examples, and releas
 | DOT injection | Escape DOT labels and reject raw DOT fragments from manifests. |
 | Terminal log pollution | Strip ANSI and control characters from manifest-derived strings. |
 | Secret leakage | Detect secret-like keys and values, redact where output is allowed, and fail where policy requires. |
+| Tracked secret files | Run `secret-scan` in the standard `check` gate and never print matched values. |
 | Real personal data in examples | Synthetic fixtures only, no real owner emails, customer names, or account IDs. |
 | Path traversal | Resolve real paths and reject paths outside configured roots. |
 | Symlink loop | Track real paths and do not follow symlinks by default. |

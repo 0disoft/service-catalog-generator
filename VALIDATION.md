@@ -16,6 +16,7 @@ This document owns stable validation names for this scaffold.
 - migration-check
 - smoke
 - docs
+- secret-scan
 - check
 
 ## Required Final Report
@@ -40,4 +41,3 @@ infra validation routes must stay stack-neutral unless a runner file explicitly 
 ## Repository Shape
 
 cli-tool, github-action, docs-site validation must stay repository-shape focused and must not imply generated application source code.
-

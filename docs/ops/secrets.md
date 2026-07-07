@@ -24,10 +24,12 @@ Normal CLI and GitHub Action usage requires no secrets.
   package access instead of adding an npm token secret to GitHub Actions.
 - Do not expose full manifest contents in diagnostics or generated reports.
 - Secret-like manifest values should produce diagnostics and redaction where output is allowed.
+- The standard `check` command runs `secret-scan`, which scans tracked files for high-confidence
+  token, private key, and credential value patterns without printing matched secret values.
 
 ## Validation
 
-- Required validation names: docs, smoke, check
+- Required validation names: docs, smoke, secret-scan, check
 - Release blocker status: secret exposure blocks release
-- Remaining operational risk: automated secret scanning is not configured yet, and npm Trusted
-  Publishing must be configured in npm before the first tag publish
+- Remaining operational risk: secret scanning is high-confidence pattern based and does not replace
+  provider-side secret protection for private credentials.

@@ -26,6 +26,18 @@ This repository type owns command behavior, arguments, flags, config loading, ex
 The CLI is the primary interface. It owns command parsing, help text, config precedence, output mode
 selection, and exit-code mapping. Validation policy belongs to the core engine and schema contracts.
 
+## Input Schemas
+
+The default input schema is `scg-v1`, which expects `schemaVersion: scg.service/v1alpha1`.
+Repositories that already own ZDP v2 manifests can select the first-party adapter explicitly:
+
+```powershell
+scg scan --json --input-schema zdp-v2
+```
+
+The CLI must not autodetect input schemas. Adapter-specific metadata is normalized into catalog
+records and retained under namespaced `extensions` fields where needed.
+
 ## Review Blockers
 
 - A command changes without updating help, examples, output, and exit-code expectations.

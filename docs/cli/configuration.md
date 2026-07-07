@@ -72,6 +72,7 @@ Environment variables must not override catalog semantics. `NO_COLOR` may affect
 
 - Root: current working directory.
 - Manifest name: `service.yaml`.
+- Input schema: `scg-v1`; use `--input-schema zdp-v2` for ZDP v2 manifests.
 - Output directory: `.catalog`.
 - Formats: JSON for `scan`, no write for `check`, JSON/DOT/HTML for `report`.
 - Unknown dependencies: failing diagnostic by default.

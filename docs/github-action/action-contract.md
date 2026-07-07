@@ -44,9 +44,13 @@ behavior rather than duplicating validation logic.
   with:
     roots: .
     manifest-name: service.yaml
+    input-schema: scg-v1
     fail-on-warning: false
     output-directory: .catalog
 ```
+
+Use `input-schema: zdp-v2` only when the checked-in manifests are ZDP v2 contracts. The action maps
+the value to the CLI and must not implement a separate schema or policy layer.
 
 ## Review Blockers
 

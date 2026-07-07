@@ -16,6 +16,24 @@ manifest in the owning repository.
 This is not a live CMDB, Backstage replacement, cloud discovery platform, permissions portal, or
 service editor. Its useful edge is manifest-first validation that can run locally and in CI.
 
+## Quick Usage
+
+```powershell
+scg scan --json
+scg check --fail-on-warning
+scg report --format json --format dot --format html
+```
+
+SCG manifests use `scg.service/v1alpha1` by default. Existing ZDP v2 manifests can be read through
+the explicit adapter:
+
+```powershell
+scg scan --json --input-schema zdp-v2 --allow-unknown-dependencies
+```
+
+The ZDP adapter normalizes records into SCG catalog output and preserves ZDP-specific fields under
+`extensions.zdp`. ZDP policy validation remains owned by `zdp-architecture-linter`.
+
 ## Source Files
 
 - AGENTS.md: agent working rules
@@ -38,6 +56,7 @@ service editor. Its useful edge is manifest-first validation that can run locall
 ## MVP Direction
 
 - Define `service.yaml` v1alpha1.
+- Read existing ZDP v2 `service.yaml` manifests through an explicit input adapter.
 - Scan one or more repositories or folders for manifests without network calls.
 - Validate required owner, runtime, repository, deploy target, data, review timestamp, and
   dependency fields.

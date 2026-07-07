@@ -8,6 +8,7 @@ import { compileCatalog } from "../../packages/core/src/index.js";
 const cleanupRoots: string[] = [];
 const manifestCount = 500;
 const hostedRunnerBudgetMs = 5000;
+const testHarnessTimeoutMs = 15000;
 
 afterEach(async () => {
   await Promise.all(
@@ -18,22 +19,29 @@ afterEach(async () => {
 });
 
 describe("core catalog compiler performance", () => {
-  it("scans 500 manifests within the hosted-runner budget", async () => {
-    const workspace = await createWorkspace();
-    for (let index = 0; index < manifestCount; index += 1) {
-      const id = `service-${index.toString().padStart(3, "0")}`;
-      await writeManifest(workspace, `services/${id}/service.yaml`, serviceYaml(id));
-    }
+  it(
+    "scans 500 manifests within the hosted-runner budget",
+    async () => {
+      const workspace = await createWorkspace();
+      for (let index = 0; index < manifestCount; index += 1) {
+        const id = `service-${index.toString().padStart(3, "0")}`;
+        await writeManifest(workspace, `services/${id}/service.yaml`, serviceYaml(id));
+      }
 
-    const startedAt = performance.now();
-    const result = await compileCatalog({ cwd: workspace, now: new Date("2026-07-07T00:00:00Z") });
-    const elapsedMs = performance.now() - startedAt;
+      const startedAt = performance.now();
+      const result = await compileCatalog({
+        cwd: workspace,
+        now: new Date("2026-07-07T00:00:00Z")
+      });
+      const elapsedMs = performance.now() - startedAt;
 
-    expect(result.snapshot.summary.serviceCount).toBe(manifestCount);
-    expect(result.snapshot.summary.errorCount).toBe(0);
-    expect(result.snapshot.summary.warningCount).toBe(0);
-    expect(elapsedMs).toBeLessThan(hostedRunnerBudgetMs);
-  });
+      expect(result.snapshot.summary.serviceCount).toBe(manifestCount);
+      expect(result.snapshot.summary.errorCount).toBe(0);
+      expect(result.snapshot.summary.warningCount).toBe(0);
+      expect(elapsedMs).toBeLessThan(hostedRunnerBudgetMs);
+    },
+    testHarnessTimeoutMs
+  );
 });
 
 async function createWorkspace(): Promise<string> {

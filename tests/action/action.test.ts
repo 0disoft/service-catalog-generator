@@ -41,6 +41,7 @@ describe("GitHub Action wrapper", () => {
       "config",
       "fail-on-warning",
       "format",
+      "input-schema",
       "manifest-name",
       "output-directory",
       "report",
@@ -113,6 +114,8 @@ describe("GitHub Action wrapper", () => {
       "libs",
       "--manifest",
       "catalog.yaml",
+      "--input-schema",
+      "scg-v1",
       "--config",
       "scg.config.yaml",
       "--fail-on-warning",
@@ -137,6 +140,8 @@ describe("GitHub Action wrapper", () => {
       ".",
       "--manifest",
       "service.yaml",
+      "--input-schema",
+      "scg-v1",
       "--out",
       "out/catalog",
       "--format",
@@ -144,6 +149,18 @@ describe("GitHub Action wrapper", () => {
       "--format",
       "html"
     ]);
+  });
+
+  it("maps explicit input schema values to CLI arguments", () => {
+    const argv = buildCliArguments(
+      {
+        INPUT_INPUT_SCHEMA: "zdp-v2"
+      },
+      "check"
+    );
+
+    expect(argv).toContain("--input-schema");
+    expect(argv).toContain("zdp-v2");
   });
 
   it("supports GitHub's hyphenated input environment names", () => {

@@ -1,4 +1,5 @@
 export { compileCatalog, resolveCatalogConfig } from "./scan.js";
+export { adaptParsedManifest } from "./adapters.js";
 export { discoverManifestFiles } from "./discovery.js";
 export { parseManifestFile } from "./parser.js";
 export { normalizeServiceRecord, sortServiceRecords } from "./normalizer.js";
@@ -12,6 +13,7 @@ export type {
   CorePackageBoundary,
   CoreSchemaDependency,
   DiscoveredManifest,
+  InputSchema,
   ParsedManifest,
   ValidatedManifest
 } from "./types.js";

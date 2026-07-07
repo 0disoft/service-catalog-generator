@@ -19,6 +19,7 @@ This directory records durable product and architecture decisions for Service Ca
 - 0008 Static Report Security Boundary
 - 0009 Release and Package Provenance
 - 0010 Generated Artifacts Are Never Source Truth
+- 0011 Input Schema Adapters
 
 ## Source of Truth
 

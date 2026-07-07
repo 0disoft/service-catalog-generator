@@ -62,4 +62,71 @@ describe("schema package contract", () => {
       }).success
     ).toBe(true);
   });
+
+  it("accepts catalog service records with namespaced extensions", () => {
+    expect(
+      CatalogSnapshotSchema.safeParse({
+        schemaVersion: "scg.catalog/v1alpha1",
+        tool: {
+          name: "service-catalog-generator",
+          version: "0.5.3"
+        },
+        summary: {
+          serviceCount: 1,
+          errorCount: 0,
+          warningCount: 0,
+          edgeCount: 0
+        },
+        services: [
+          {
+            id: "platform-runtime",
+            name: "Platform Runtime",
+            lifecycle: "production",
+            owner: {
+              type: "system",
+              ref: "system:id-0disoft"
+            },
+            repository: {
+              provider: "local",
+              slug: "zdp-platform-runtime"
+            },
+            runtime: {
+              language: "unknown",
+              platform: "deployment-contracts"
+            },
+            deploy: {
+              type: "unknown",
+              targets: [
+                {
+                  environment: "contract",
+                  provider: "zdp",
+                  ref: "platform-runtime-contract"
+                }
+              ]
+            },
+            data: {
+              storesPersonalData: false,
+              classification: "internal"
+            },
+            dependencies: [],
+            metadata: {
+              lastReviewedAt: "2026-07-01"
+            },
+            extensions: {
+              zdp: {
+                tier: "tier2"
+              }
+            },
+            source: {
+              path: "services/platform-runtime/service.yaml"
+            }
+          }
+        ],
+        diagnostics: [],
+        graph: {
+          edges: []
+        }
+      }).success
+    ).toBe(true);
+  });
 });

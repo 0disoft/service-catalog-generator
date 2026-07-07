@@ -28,6 +28,7 @@ This repository type owns action inputs, outputs, permissions, token handling, a
 | --- | --- | --- | --- |
 | `roots` | false | `.` | Newline or comma separated scan roots. |
 | `manifest-name` | false | `service.yaml` | Manifest filename to discover. |
+| `input-schema` | false | `scg-v1` | Input manifest schema adapter. Supported values are `scg-v1` and `zdp-v2`. |
 | `config` | false | none | Optional path to `scg.config.yaml`. |
 | `output-directory` | false | `.catalog` | Directory for generated report artifacts. |
 | `fail-on-warning` | false | `false` | Promote warnings to failing validation. |

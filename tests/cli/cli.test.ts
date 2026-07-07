@@ -143,6 +143,50 @@ describe("scg CLI", () => {
     expect(snapshot.summary.serviceCount).toBe(1);
   });
 
+  it("compiles ZDP v2 manifests when --input-schema zdp-v2 is selected", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(workspace, "services/runtime/service.yaml", zdpV2ServiceYaml());
+
+    const io = createIo();
+    const exitCode = await runCli({
+      argv: ["scan", "--json", "--input-schema", "zdp-v2"],
+      cwd: workspace,
+      io
+    });
+    const snapshot = JSON.parse(io.stdoutText());
+
+    expect(exitCode).toBe(0);
+    expect(snapshot.summary.serviceCount).toBe(1);
+    expect(snapshot.services[0]).toMatchObject({
+      id: "platform-runtime",
+      name: "Platform Runtime",
+      extensions: {
+        zdp: {
+          schemaVersion: 2,
+          contractVersion: 1
+        }
+      }
+    });
+  });
+
+  it("returns exit code 2 for unsupported input schemas", async () => {
+    const workspace = await createWorkspace();
+    const io = createIo();
+
+    const exitCode = await runCli({
+      argv: ["scan", "--json", "--input-schema", "nope"],
+      cwd: workspace,
+      io
+    });
+    const error = JSON.parse(io.stderrText());
+
+    expect(exitCode).toBe(2);
+    expect(error.diagnostics[0]).toMatchObject({
+      code: "config.invalid",
+      message: "Unsupported input schema. Use scg-v1 or zdp-v2."
+    });
+  });
+
   it("does not let environment variables change validation policy", async () => {
     const previousCi = process.env.CI;
     const previousUnknownPolicy = process.env.SCG_ALLOW_UNKNOWN_DEPENDENCIES;
@@ -360,6 +404,31 @@ function serviceYaml(
     dependencyBlock,
     "metadata:",
     `  lastReviewedAt: "${lastReviewedAt}"`
+  ].join("\n");
+}
+
+function zdpV2ServiceYaml(): string {
+  return [
+    "contract:",
+    "  schema_version: 2",
+    "  contract_version: 1",
+    '  last_reviewed_at: "2026-07-01"',
+    "service:",
+    "  id: platform-runtime",
+    "  display_name: Platform Runtime",
+    "  owner: 0disoft",
+    "  repo: zdp-platform-runtime",
+    "  status: active",
+    "runtime:",
+    "  core: deployment-contracts",
+    "data:",
+    "  pii_level: none",
+    "dependencies:",
+    "  services: []",
+    "  datastores: []",
+    "  queues: []",
+    "  workers: []",
+    "  internal_apis: []"
   ].join("\n");
 }
 

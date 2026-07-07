@@ -1,15 +1,28 @@
 import { ServiceManifestSchema, type Diagnostic } from "@scg/schema";
+import { adaptParsedManifest } from "./adapters.js";
 import { createDiagnostic, schemaIssueToDiagnostic } from "./diagnostics.js";
-import type { ParsedManifest, ServiceDependency, ValidatedManifest } from "./types.js";
+import type { InputSchema, ParsedManifest, ServiceDependency, ValidatedManifest } from "./types.js";
 
 const DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
 
-export function validateParsedManifest(parsed: ParsedManifest): ValidatedManifest {
+export function validateParsedManifest(
+  parsed: ParsedManifest,
+  inputSchema: InputSchema = "scg-v1"
+): ValidatedManifest {
   if (!parsed.ok) {
     return parsed;
   }
 
-  const result = ServiceManifestSchema.safeParse(parsed.value);
+  const adapted = adaptParsedManifest(parsed, inputSchema);
+  if (!adapted.ok) {
+    return {
+      ok: false,
+      file: parsed.file,
+      diagnostics: adapted.diagnostics
+    };
+  }
+
+  const result = ServiceManifestSchema.safeParse(adapted.value);
   if (!result.success) {
     return {
       ok: false,

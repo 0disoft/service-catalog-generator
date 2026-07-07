@@ -88,6 +88,11 @@ export function buildCliArguments(env: ActionEnv, command: "check" | "report"): 
     argv.push("--manifest", manifestName);
   }
 
+  const inputSchema = getInput(env, "input-schema", "scg-v1");
+  if (inputSchema) {
+    argv.push("--input-schema", inputSchema);
+  }
+
   const config = getInput(env, "config", "");
   if (config) {
     argv.push("--config", config);

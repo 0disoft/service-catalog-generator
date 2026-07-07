@@ -24,6 +24,7 @@ export {
   RepositoryRefSchema,
   RetirementSchema,
   RuntimeProfileSchema,
+  ServiceExtensionsSchema,
   ServiceManifestSchema,
   ServiceRecordSchema,
   ServiceSourceSchema,
@@ -34,6 +35,7 @@ export {
   type OwnerRef,
   type RepositoryRef,
   type RuntimeProfile,
+  type ServiceExtensions,
   type ServiceManifest,
   type ServiceRecord
 } from "./service-manifest.js";

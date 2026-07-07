@@ -107,6 +107,11 @@ metadata:
 
 The schema remains pre-1.0 until fixtures and contract tests lock the behavior.
 
+Existing manifest formats may be supported through explicit input schema adapters. These adapters
+must normalize external records into the SCG catalog model without turning those external policy
+contracts into the core SCG schema. Adapter-specific fields may be preserved under `extensions`, but
+policy validation remains owned by the source contract.
+
 ## CLI MVP
 
 The first CLI should expose these product-level actions:

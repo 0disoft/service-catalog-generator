@@ -44,8 +44,12 @@ enough for CI and should never include secrets or full source file contents.
 | `--fail-on-warning` | `check`, `report` | Promote warnings to a failing exit. |
 | `--allow-unknown-dependencies` | all | Permit dependency refs without matching service records. |
 | `--deterministic` | all | Force stable ordering and timestamps where output includes metadata. |
+| `--input-schema <schema>` | all | Select the input manifest adapter. Supported values are `scg-v1` and `zdp-v2`. Defaults to `scg-v1`. |
 | `--json` | all | Emit machine-readable diagnostics and summaries. |
 | `--no-color` | all | Disable terminal color and ANSI output. |
+
+Input schema adapters normalize existing manifest formats into the SCG catalog model. Adapter
+selection must be explicit; the CLI must not silently autodetect competing service manifest formats.
 
 Environment variables must not change product behavior except for terminal conventions such as
 `NO_COLOR` and CI detection.

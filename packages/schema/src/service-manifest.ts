@@ -98,6 +98,8 @@ export const ManifestMetadataSchema = z
   })
   .strict();
 
+export const ServiceExtensionsSchema = z.record(z.string().min(1).max(80), z.unknown());
+
 const ServiceManifestObjectSchema = z
   .object({
     schemaVersion: z.literal(SERVICE_MANIFEST_SCHEMA_VERSION),
@@ -112,7 +114,8 @@ const ServiceManifestObjectSchema = z
     dependencies: z.array(DependencyRefSchema).default([]),
     cost: CostRefSchema.optional(),
     retirement: RetirementSchema.optional(),
-    metadata: ManifestMetadataSchema
+    metadata: ManifestMetadataSchema,
+    extensions: ServiceExtensionsSchema.optional()
   })
   .strict();
 
@@ -141,3 +144,4 @@ export type DataProfile = z.infer<typeof DataProfileSchema>;
 export type DependencyRef = z.infer<typeof DependencyRefSchema>;
 export type ServiceManifest = z.infer<typeof ServiceManifestSchema>;
 export type ServiceRecord = z.infer<typeof ServiceRecordSchema>;
+export type ServiceExtensions = z.infer<typeof ServiceExtensionsSchema>;

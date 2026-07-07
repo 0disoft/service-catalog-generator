@@ -6,7 +6,8 @@ import {
   compileCatalog,
   resolveCatalogConfig,
   type CatalogConfigInput,
-  type CorePackageBoundary
+  type CorePackageBoundary,
+  type InputSchema
 } from "@scg/core";
 import {
   ReportWriteError,
@@ -52,6 +53,7 @@ type ParsedArgs = {
   failOnWarnings: boolean;
   allowUnknownDependencies: boolean;
   deterministic: boolean;
+  inputSchema: InputSchema;
 };
 
 type CliDiagnostic = {
@@ -99,7 +101,8 @@ export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> 
     const result = await compileCatalog({
       cwd,
       config,
-      toolVersion: cliVersion
+      toolVersion: cliVersion,
+      inputSchema: parsed.inputSchema
     });
     const exitCode = exitCodeForDiagnostics(
       result.snapshot.diagnostics,
@@ -180,7 +183,8 @@ function parseArgs(argv: string[]): ParsedArgs {
     formats: [],
     failOnWarnings: false,
     allowUnknownDependencies: false,
-    deterministic: false
+    deterministic: false,
+    inputSchema: "scg-v1"
   };
 
   const remaining = [...argv];
@@ -219,6 +223,9 @@ function parseArgs(argv: string[]): ParsedArgs {
       case "--deterministic":
         state.deterministic = true;
         break;
+      case "--input-schema":
+        state.inputSchema = parseInputSchema(readFlagValue(token, remaining));
+        break;
       case "--root":
         state.roots.push(readFlagValue(token, remaining));
         break;
@@ -252,6 +259,14 @@ function parseReportFormat(value: string): ReportFormat {
   }
 
   throw new CliUsageError("Unsupported format. Use json, dot, or html.");
+}
+
+function parseInputSchema(value: string): InputSchema {
+  if (value === "scg-v1" || value === "zdp-v2") {
+    return value;
+  }
+
+  throw new CliUsageError("Unsupported input schema. Use scg-v1 or zdp-v2.");
 }
 
 function readFlagValue(flag: string, remaining: string[]): string {
@@ -490,6 +505,7 @@ function helpText(): string {
     "  --fail-on-warning",
     "  --allow-unknown-dependencies",
     "  --deterministic",
+    "  --input-schema <scg-v1|zdp-v2>",
     "  --json",
     "  --no-color"
   ].join("\n");

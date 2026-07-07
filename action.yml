@@ -11,6 +11,10 @@ inputs:
     description: Manifest filename to discover.
     required: false
     default: service.yaml
+  input-schema:
+    description: Input manifest schema adapter to use.
+    required: false
+    default: scg-v1
   config:
     description: Optional path to scg.config.yaml.
     required: false

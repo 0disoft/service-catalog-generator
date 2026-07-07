@@ -24,6 +24,7 @@ export function normalizeServiceRecord(
     ...(manifest.cost ? { cost: manifest.cost } : {}),
     ...(manifest.retirement ? { retirement: manifest.retirement } : {}),
     metadata: manifest.metadata,
+    ...(manifest.extensions ? { extensions: manifest.extensions } : {}),
     source: {
       path: sourcePath
     }

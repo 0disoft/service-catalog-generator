@@ -44,7 +44,7 @@ export async function compileCatalog(
       discoveredManifest,
       options.maxManifestBytes ?? DEFAULT_MAX_MANIFEST_BYTES
     );
-    const validated = validateParsedManifest(parsed);
+    const validated = validateParsedManifest(parsed, options.inputSchema ?? "scg-v1");
     if (validated.ok) {
       validatedManifests.push(validated);
     } else {

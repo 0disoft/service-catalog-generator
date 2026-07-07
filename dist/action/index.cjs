@@ -22022,6 +22022,7 @@ var ManifestMetadataSchema = external_exports.object({
   lastReviewedAt: DateOnlySchema,
   annotations: external_exports.record(external_exports.string().min(1).max(120), external_exports.string().max(500)).optional()
 }).strict();
+var ServiceExtensionsSchema = external_exports.record(external_exports.string().min(1).max(80), external_exports.unknown());
 var ServiceManifestObjectSchema = external_exports.object({
   schemaVersion: external_exports.literal(SERVICE_MANIFEST_SCHEMA_VERSION),
   id: StableIdSchema,
@@ -22035,7 +22036,8 @@ var ServiceManifestObjectSchema = external_exports.object({
   dependencies: external_exports.array(DependencyRefSchema).default([]),
   cost: CostRefSchema.optional(),
   retirement: RetirementSchema.optional(),
-  metadata: ManifestMetadataSchema
+  metadata: ManifestMetadataSchema,
+  extensions: ServiceExtensionsSchema.optional()
 }).strict();
 var ServiceManifestSchema = ServiceManifestObjectSchema.superRefine((value, ctx) => addSecretLikeIssues(value, ctx));
 var ServiceSourceSchema = external_exports.object({
@@ -22415,6 +22417,7 @@ function normalizeServiceRecord(manifest, sourcePath, config2) {
     ...manifest.cost ? { cost: manifest.cost } : {},
     ...manifest.retirement ? { retirement: manifest.retirement } : {},
     metadata: manifest.metadata,
+    ...manifest.extensions ? { extensions: manifest.extensions } : {},
     source: {
       path: sourcePath
     }
@@ -22473,13 +22476,217 @@ function invalidYaml(file2, message) {
   };
 }
 
+// packages/core/dist/adapters.js
+function adaptParsedManifest(parsed, inputSchema) {
+  switch (inputSchema) {
+    case "scg-v1":
+      return {
+        ok: true,
+        value: parsed.value
+      };
+    case "zdp-v2":
+      return adaptZdpV2Manifest(parsed.value, parsed.file.relativePath);
+  }
+}
+function adaptZdpV2Manifest(value, file2) {
+  const root = asRecord(value);
+  const contract = asRecord(root?.contract);
+  const service = asRecord(root?.service);
+  if (!root || !contract || !service) {
+    return invalidAdapterInput(file2, "ZDP v2 input requires contract and service mappings.");
+  }
+  if (contract.schema_version !== 2) {
+    return invalidAdapterInput(file2, "ZDP v2 input requires contract.schema_version: 2.");
+  }
+  const id = readString(service.id);
+  const repo = readString(service.repo) ?? id;
+  const owner = readString(service.owner) ?? "unknown";
+  if (!id) {
+    return invalidAdapterInput(file2, "ZDP v2 input requires service.id.");
+  }
+  const runtime = asRecord(root.runtime);
+  const domain2 = asRecord(root.domain);
+  const lifecycle = asRecord(root.lifecycle);
+  const data = asRecord(root.data);
+  const cost = asRecord(root.cost);
+  const dependencies = asRecord(root.dependencies);
+  return {
+    ok: true,
+    value: {
+      schemaVersion: SERVICE_MANIFEST_SCHEMA_VERSION,
+      id,
+      name: readString(service.display_name) ?? id,
+      lifecycle: mapLifecycle(readString(service.status)),
+      owner: {
+        type: "system",
+        ref: toOwnerRef(owner)
+      },
+      repository: {
+        provider: "local",
+        slug: repo
+      },
+      runtime: {
+        language: "unknown",
+        platform: firstString(runtime?.core, runtime?.framework, runtime?.edge) ?? "unknown",
+        ...firstString(runtime?.framework, runtime?.core, runtime?.edge) ? { framework: firstString(runtime?.framework, runtime?.core, runtime?.edge) } : {}
+      },
+      deploy: {
+        type: "unknown",
+        targets: [
+          {
+            environment: "contract",
+            provider: "zdp",
+            ref: `${id}-contract`
+          }
+        ]
+      },
+      data: {
+        storesPersonalData: hasPersonalData(data),
+        classification: mapDataClassification(readString(data?.pii_level))
+      },
+      dependencies: mapDependencies(dependencies),
+      ...readString(cost?.owner) ? { cost: { owner: toOwnerRef(readString(cost?.owner)) } } : {},
+      metadata: {
+        lastReviewedAt: readDate(contract.last_reviewed_at) ?? "1970-01-01"
+      },
+      extensions: {
+        zdp: compactRecord({
+          contractVersion: readNumber(contract.contract_version),
+          schemaVersion: contract.schema_version,
+          tier: readString(service.tier),
+          riskLevel: readString(service.risk_level),
+          domainType: readString(domain2?.type),
+          stage: readString(lifecycle?.stage),
+          costCenter: readString(cost?.cost_center),
+          moneyMovement: readBoolean(domain2?.money_movement) ?? readBoolean(data?.money_movement),
+          userFacing: readBoolean(domain2?.user_facing),
+          publicApi: readBoolean(domain2?.public_api)
+        })
+      }
+    }
+  };
+}
+function mapLifecycle(status) {
+  switch (status) {
+    case "active":
+    case "scaling":
+      return "production";
+    case "maintenance":
+      return "deprecated";
+    case "sunset":
+      return "retired";
+    case "experiment":
+    default:
+      return "experimental";
+  }
+}
+function mapDataClassification(piiLevel) {
+  switch (piiLevel) {
+    case "regulated":
+    case "high":
+      return "confidential";
+    case "medium":
+      return "restricted";
+    case "low":
+    case "none":
+    default:
+      return "internal";
+  }
+}
+function mapDependencies(dependencies) {
+  if (!dependencies) {
+    return [];
+  }
+  return [
+    ...dependencyList(dependencies.services, "service"),
+    ...dependencyList(dependencies.datastores, "database"),
+    ...dependencyList(dependencies.queues, "queue"),
+    ...dependencyList(dependencies.internal_apis, "api"),
+    ...dependencyList(dependencies.workers, "external")
+  ];
+}
+function dependencyList(value, type) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.map((item) => readString(item)).filter((item) => Boolean(item)).map((target) => ({
+    type,
+    target: toStableId(target),
+    direction: "outbound",
+    criticality: "required"
+  }));
+}
+function hasPersonalData(data) {
+  return readString(data?.pii_level) !== "none" || readBoolean(data?.payment_data) === true || readBoolean(data?.message_content) === true || readBoolean(data?.ai_user_data) === true;
+}
+function invalidAdapterInput(file2, message) {
+  return {
+    ok: false,
+    diagnostics: [
+      createDiagnostic({
+        severity: "error",
+        code: "adapter.invalid_input",
+        file: file2,
+        message,
+        hint: "Use --input-schema scg-v1 for SCG manifests or provide a ZDP v2 service.yaml."
+      })
+    ]
+  };
+}
+function asRecord(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : void 0;
+}
+function readString(value) {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : void 0;
+}
+function readNumber(value) {
+  return typeof value === "number" && Number.isFinite(value) ? value : void 0;
+}
+function readBoolean(value) {
+  return typeof value === "boolean" ? value : void 0;
+}
+function readDate(value) {
+  const text = readString(value);
+  return text && /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : void 0;
+}
+function firstString(...values) {
+  for (const value of values) {
+    const text = readString(value);
+    if (text) {
+      return text;
+    }
+  }
+  return void 0;
+}
+function compactRecord(value) {
+  return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== void 0));
+}
+function toOwnerRef(value) {
+  return `system:${toStableId(value ?? "unknown")}`;
+}
+function toStableId(value) {
+  const normalized = value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  if (!normalized) {
+    return "unknown";
+  }
+  return /^[a-z]/.test(normalized) ? normalized : `id-${normalized}`;
+}
+
 // packages/core/dist/validator.js
 var DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1e3;
-function validateParsedManifest(parsed) {
+function validateParsedManifest(parsed, inputSchema = "scg-v1") {
   if (!parsed.ok) {
     return parsed;
   }
-  const result = ServiceManifestSchema.safeParse(parsed.value);
+  const adapted = adaptParsedManifest(parsed, inputSchema);
+  if (!adapted.ok) {
+    return {
+      ok: false,
+      file: parsed.file,
+      diagnostics: adapted.diagnostics
+    };
+  }
+  const result = ServiceManifestSchema.safeParse(adapted.value);
   if (!result.success) {
     return {
       ok: false,
@@ -22555,7 +22762,7 @@ async function compileCatalog(options = {}) {
   const validatedManifests = [];
   for (const discoveredManifest of discovery.manifests) {
     const parsed = await parseManifestFile(discoveredManifest, options.maxManifestBytes ?? DEFAULT_MAX_MANIFEST_BYTES);
-    const validated = validateParsedManifest(parsed);
+    const validated = validateParsedManifest(parsed, options.inputSchema ?? "scg-v1");
     if (validated.ok) {
       validatedManifests.push(validated);
     } else {
@@ -22901,7 +23108,8 @@ async function runCli(options = {}) {
     const result = await compileCatalog({
       cwd,
       config: config2,
-      toolVersion: cliVersion
+      toolVersion: cliVersion,
+      inputSchema: parsed.inputSchema
     });
     const exitCode = exitCodeForDiagnostics(result.snapshot.diagnostics, result.config.validation.failOnWarnings);
     if (parsed.command === "report") {
@@ -22961,7 +23169,8 @@ function parseArgs(argv) {
     formats: [],
     failOnWarnings: false,
     allowUnknownDependencies: false,
-    deterministic: false
+    deterministic: false,
+    inputSchema: "scg-v1"
   };
   const remaining = [...argv];
   const first = remaining[0];
@@ -22997,6 +23206,9 @@ function parseArgs(argv) {
       case "--deterministic":
         state.deterministic = true;
         break;
+      case "--input-schema":
+        state.inputSchema = parseInputSchema(readFlagValue(token, remaining));
+        break;
       case "--root":
         state.roots.push(readFlagValue(token, remaining));
         break;
@@ -23026,6 +23238,12 @@ function parseReportFormat(value) {
     return value;
   }
   throw new CliUsageError("Unsupported format. Use json, dot, or html.");
+}
+function parseInputSchema(value) {
+  if (value === "scg-v1" || value === "zdp-v2") {
+    return value;
+  }
+  throw new CliUsageError("Unsupported input schema. Use scg-v1 or zdp-v2.");
 }
 function readFlagValue(flag, remaining) {
   const value = remaining.shift();
@@ -23188,6 +23406,7 @@ function helpText() {
     "  --fail-on-warning",
     "  --allow-unknown-dependencies",
     "  --deterministic",
+    "  --input-schema <scg-v1|zdp-v2>",
     "  --json",
     "  --no-color"
   ].join("\n");
@@ -23263,6 +23482,10 @@ function buildCliArguments(env, command) {
   const manifestName = getInput(env, "manifest-name", "service.yaml");
   if (manifestName) {
     argv.push("--manifest", manifestName);
+  }
+  const inputSchema = getInput(env, "input-schema", "scg-v1");
+  if (inputSchema) {
+    argv.push("--input-schema", inputSchema);
   }
   const config2 = getInput(env, "config", "");
   if (config2) {

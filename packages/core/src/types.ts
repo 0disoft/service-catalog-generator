@@ -8,6 +8,8 @@ import type {
   ServiceRecord
 } from "@scg/schema";
 
+export type InputSchema = "scg-v1" | "zdp-v2";
+
 export type CatalogConfigInput = {
   schemaVersion?: CatalogConfig["schemaVersion"];
   scan?: Partial<CatalogConfig["scan"]>;
@@ -24,6 +26,7 @@ export type CompileCatalogOptions = {
   maxManifestBytes?: number;
   maxManifests?: number;
   followSymlinks?: boolean;
+  inputSchema?: InputSchema;
 };
 
 export type DiscoveredManifest = {
@@ -59,7 +62,8 @@ export type ValidatedManifest =
 
 export type ServiceDependency = DependencyRef;
 
-export type CorePackageBoundary = "discovery" | "parser" | "normalizer" | "validator" | "graph";
+export type CorePackageBoundary =
+  "adapter" | "discovery" | "parser" | "normalizer" | "validator" | "graph";
 
 export type CoreSchemaDependency = import("@scg/schema").SchemaPackageBoundary;
 

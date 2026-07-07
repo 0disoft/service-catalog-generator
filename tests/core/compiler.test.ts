@@ -160,6 +160,77 @@ describe("core catalog compiler", () => {
     );
   });
 
+  it("normalizes ZDP v2 manifests through the explicit input adapter", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(workspace, "platform/runtime/service.yaml", zdpV2ServiceYaml());
+
+    const result = await compileCatalog({
+      cwd: workspace,
+      inputSchema: "zdp-v2",
+      config: {
+        validation: {
+          allowUnknownDependencies: true
+        }
+      }
+    });
+
+    expect(result.snapshot.diagnostics).toEqual([]);
+    expect(result.snapshot.services).toHaveLength(1);
+    expect(result.snapshot.services[0]).toMatchObject({
+      id: "platform-runtime",
+      name: "Platform Runtime",
+      lifecycle: "experimental",
+      owner: {
+        type: "system",
+        ref: "system:id-0disoft"
+      },
+      repository: {
+        provider: "local",
+        slug: "zdp-platform-runtime"
+      },
+      runtime: {
+        language: "unknown",
+        platform: "deployment-contracts",
+        framework: "docker-coolify-contracts"
+      },
+      data: {
+        storesPersonalData: false,
+        classification: "internal"
+      },
+      dependencies: [
+        {
+          type: "service",
+          target: "platform-infra",
+          direction: "outbound",
+          criticality: "required"
+        },
+        {
+          type: "database",
+          target: "runtime-postgres",
+          direction: "outbound",
+          criticality: "required"
+        }
+      ],
+      metadata: {
+        lastReviewedAt: "2026-07-01"
+      },
+      extensions: {
+        zdp: {
+          contractVersion: 1,
+          schemaVersion: 2,
+          tier: "tier2",
+          riskLevel: "high",
+          domainType: "platform",
+          stage: "foundation",
+          costCenter: "platform-runtime",
+          moneyMovement: false,
+          userFacing: false,
+          publicApi: false
+        }
+      }
+    });
+  });
+
   it("warns when metadata.lastReviewedAt is stale", async () => {
     const workspace = await createWorkspace();
     await writeManifest(
@@ -332,6 +403,49 @@ function serviceYaml(options: {
     "metadata:",
     `  lastReviewedAt: "${options.lastReviewedAt ?? "2026-07-01"}"`,
     ...(options.annotations ? ["  annotations:", options.annotations] : [])
+  ].join("\n");
+}
+
+function zdpV2ServiceYaml(): string {
+  return [
+    "contract:",
+    "  schema_version: 2",
+    "  contract_version: 1",
+    '  last_reviewed_at: "2026-07-01"',
+    "service:",
+    "  id: platform-runtime",
+    "  display_name: Platform Runtime",
+    "  owner: 0disoft",
+    "  repo: zdp-platform-runtime",
+    "  status: experiment",
+    "  tier: tier2",
+    "  risk_level: high",
+    "lifecycle:",
+    "  stage: foundation",
+    "domain:",
+    "  type: platform",
+    "  user_facing: false",
+    "  public_api: false",
+    "  money_movement: false",
+    "runtime:",
+    "  core: deployment-contracts",
+    "  framework: docker-coolify-contracts",
+    "cost:",
+    "  cost_center: platform-runtime",
+    "  owner: 0disoft",
+    "data:",
+    "  pii_level: none",
+    "  payment_data: false",
+    "  message_content: false",
+    "  ai_user_data: false",
+    "dependencies:",
+    "  services:",
+    "    - platform-infra",
+    "  datastores:",
+    "    - runtime-postgres",
+    "  queues: []",
+    "  workers: []",
+    "  internal_apis: []"
   ].join("\n");
 }
 

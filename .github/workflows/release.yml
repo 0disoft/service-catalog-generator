@@ -35,8 +35,6 @@ jobs:
       - run: pnpm run check
       - run: pnpm pack --dry-run
       - name: Publish npm package
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
         run: npm publish --access public
 
       - name: Create GitHub release

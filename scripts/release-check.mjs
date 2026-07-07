@@ -68,12 +68,12 @@ assert(
   "release workflow needs id-token: write"
 );
 assert(
-  releaseWorkflowText.includes("secrets.NPM_PUBLISH_TOKEN"),
-  "release workflow must use the configured npm publish secret"
+  !releaseWorkflowText.includes("secrets.NPM_PUBLISH_TOKEN"),
+  "release workflow must use trusted publishing instead of NPM_PUBLISH_TOKEN"
 );
 assert(
-  !/secrets\.NPM_TOKEN|secrets\.NODE_AUTH_TOKEN/i.test(releaseWorkflowText),
-  "release workflow must not use generic npm token secret names"
+  !/secrets\.(NPM_TOKEN|NODE_AUTH_TOKEN)|NODE_AUTH_TOKEN/i.test(releaseWorkflowText),
+  "release workflow must not use npm token secrets or NODE_AUTH_TOKEN"
 );
 
 if (process.env.GITHUB_REF_TYPE === "tag") {

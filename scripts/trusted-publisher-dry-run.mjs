@@ -36,7 +36,7 @@ assert(result.repository === repository, "trusted publisher repository mismatch"
 assert(allowsPublish, "trusted publisher dry-run does not allow publish or package creation");
 
 console.log(
-  `trusted-publisher-dry-run: ok ${packageName} via ${repository}/.github/${workflowFile}`
+  `trusted-publisher-dry-run: ok ${packageName} via ${repository}/.github/workflows/${workflowFile}`
 );
 
 function assert(condition, message) {

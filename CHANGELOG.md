@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Updated the operational contract with verified `0.5.3` release evidence.
+
 ## 0.5.3
 
 - Added a tracked-file secret scanner to the standard `check` gate.
@@ -9,7 +11,7 @@
 - Added implementation coverage for human-readable CLI diagnostic formatting.
 - Added implementation coverage that environment variables cannot change validation policy.
 - Added a core performance test for the 500-manifest hosted-runner scan budget.
-- Updated operational release docs with verified `0.5.2` package, GitHub Release, and Action tag
+- Updated operational release docs with verified package, GitHub Release, and Action tag
   evidence.
 - Added a public security policy for vulnerability reporting and supported versions.
 

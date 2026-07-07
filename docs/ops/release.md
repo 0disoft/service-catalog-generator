@@ -18,7 +18,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 - Release blocker status: any missing implemented validation is a blocker unless documented as not
   yet configured
 - Remaining operational risk: package availability, Trusted Publishing, and Action runtime support
-  are verified for `0.5.2`; each future release must reverify the same evidence before promotion
+  are verified for `0.5.3`; each future release must reverify the same evidence before promotion
 
 ## Release Units
 
@@ -29,17 +29,17 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 
 ## Version Plan
 
-| Version | Scope |
-| --- | --- |
-| `0.1.0` | Schema, fixtures, docs, empty CLI skeleton. |
-| `0.2.0` | `scan`, `check`, JSON diagnostics. |
-| `0.3.0` | DOT export and static HTML report. |
-| `0.4.0` | GitHub Action wrapper. |
-| `0.5.0` | Security hardening, deterministic output, docs polish. |
-| `0.5.1` | Trusted Publishing release validation. |
-| `0.5.2` | npm bin metadata normalization. |
+| Version | Scope                                                     |
+| ------- | --------------------------------------------------------- |
+| `0.1.0` | Schema, fixtures, docs, empty CLI skeleton.               |
+| `0.2.0` | `scan`, `check`, JSON diagnostics.                        |
+| `0.3.0` | DOT export and static HTML report.                        |
+| `0.4.0` | GitHub Action wrapper.                                    |
+| `0.5.0` | Security hardening, deterministic output, docs polish.    |
+| `0.5.1` | Trusted Publishing release validation.                    |
+| `0.5.2` | npm bin metadata normalization.                           |
 | `0.5.3` | Public security policy and npm package security metadata. |
-| `1.0.0` | Manifest schema and CLI contract freeze. |
+| `1.0.0` | Manifest schema and CLI contract freeze.                  |
 
 Pre-1.0 breaking changes are allowed only with clear migration notes. After 1.0, manifest schema,
 CLI JSON output, and exit codes are compatibility contracts.
@@ -61,7 +61,7 @@ For npm CLI smoke tests, run from a temporary directory outside this repository 
 resolve the local workspace package instead of the published package:
 
 ```sh
-npm exec --yes --package @0disoft/service-catalog-generator@0.5.2 -- scg --version
+npm exec --yes --package @0disoft/service-catalog-generator@0.5.3 -- scg --version
 ```
 
 On Windows, a full install smoke test should also confirm `node_modules/.bin/scg.cmd` is created
@@ -82,13 +82,13 @@ The workflow must not use npm token secrets such as `NPM_PUBLISH_TOKEN`, `NPM_TO
 
 Current verified release evidence:
 
-- npm package: `@0disoft/service-catalog-generator@0.5.2`.
-- GitHub Release: `v0.5.2`.
-- Release workflow run: `28838627667`, conclusion `success`.
-- Release commit: `9d92d6b79030f5fda6c2700cca25b2d51a5abdd6`.
-- Mutable Action tag: `v0` points to the `0.5.2` release commit.
-- Published CLI smoke: `npm exec --yes --package @0disoft/service-catalog-generator@0.5.2 -- scg --version` returned `0.5.2`.
-- Windows install smoke: `node_modules/.bin/scg.cmd --version` returned `0.5.2` from a clean
+- npm package: `@0disoft/service-catalog-generator@0.5.3`.
+- GitHub Release: `v0.5.3`.
+- Release workflow run: `28841205734`, conclusion `success`.
+- Release commit: `9db95e45d55fccf25b068f6692677449a1065fb8`.
+- Mutable Action tag: `v0` points to the `0.5.3` release commit.
+- Published CLI smoke: `npm exec --yes --package @0disoft/service-catalog-generator@0.5.3 -- scg --version` returned `0.5.3`.
+- Windows install smoke: `node_modules/.bin/scg.cmd --version` returned `0.5.3` from a clean
   temporary project.
 - Trusted Publishing dry-run: `pnpm run release:trust:dry-run` returned publish permission for
   `0disoft/service-catalog-generator/.github/workflows/release.yml`.

@@ -18,7 +18,7 @@ import {
   validateParsedManifest
 } from "./validator.js";
 
-const DEFAULT_TOOL_VERSION = "0.1.0";
+const DEFAULT_TOOL_VERSION = "0.5.0";
 const DEFAULT_MAX_MANIFEST_BYTES = 256 * 1024;
 const DEFAULT_MAX_MANIFESTS = 1000;
 

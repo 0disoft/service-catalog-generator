@@ -57,7 +57,9 @@ describe("release workflow contract", () => {
   it("keeps scoped package metadata public-release ready", () => {
     const packageJson = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8")) as {
       name: string;
+      version: string;
       license: string;
+      files: string[];
       publishConfig?: {
         access?: string;
       };
@@ -67,10 +69,25 @@ describe("release workflow contract", () => {
     };
 
     expect(packageJson.name).toBe("@0disoft/service-catalog-generator");
+    expect(packageJson.version).toBe("0.5.0");
     expect(packageJson.license).toBe("Apache-2.0");
+    expect(packageJson.files).toEqual(["dist", "README.md", "CHANGELOG.md", "LICENSE"]);
     expect(packageJson.repository.url).toBe(
       "git+https://github.com/0disoft/service-catalog-generator.git"
     );
     expect(packageJson.publishConfig).toEqual({ access: "public" });
+  });
+
+  it("keeps package, source, and changelog versions aligned", () => {
+    const packageJson = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8")) as {
+      version: string;
+    };
+    const cliSource = readFileSync(join(process.cwd(), "packages/cli/src/index.ts"), "utf8");
+    const coreSource = readFileSync(join(process.cwd(), "packages/core/src/scan.ts"), "utf8");
+    const changelog = readFileSync(join(process.cwd(), "CHANGELOG.md"), "utf8");
+
+    expect(cliSource).toContain(`export const cliVersion = "${packageJson.version}"`);
+    expect(coreSource).toContain(`const DEFAULT_TOOL_VERSION = "${packageJson.version}"`);
+    expect(changelog).toContain(`## ${packageJson.version}`);
   });
 });

@@ -8,6 +8,9 @@ const expectedRepository = "git+https://github.com/0disoft/service-catalog-gener
 
 const rootPackage = await readJson("package.json");
 const actionMetadata = parse(await readText("action.yml"));
+const changelogText = await readText("CHANGELOG.md");
+const cliSource = await readText("packages/cli/src/index.ts");
+const coreScanSource = await readText("packages/core/src/scan.ts");
 const releaseWorkflowText = await readText(".github/workflows/release.yml");
 const releaseWorkflow = parse(releaseWorkflowText);
 
@@ -22,7 +25,20 @@ assert(rootPackage.publishConfig?.access === "public", "scoped package must publ
 assert(isReleaseVersion(rootPackage.version), "package version must be a release semver");
 assert(rootPackage.files?.includes("dist"), "published files must include dist");
 assert(rootPackage.files?.includes("README.md"), "published files must include README.md");
+assert(rootPackage.files?.includes("CHANGELOG.md"), "published files must include CHANGELOG.md");
 assert(rootPackage.files?.includes("LICENSE"), "published files must include LICENSE");
+assert(
+  changelogText.includes(`## ${rootPackage.version}`),
+  "CHANGELOG.md must document package version"
+);
+assert(
+  cliSource.includes(`export const cliVersion = "${rootPackage.version}"`),
+  "CLI version constant must match package version"
+);
+assert(
+  coreScanSource.includes(`const DEFAULT_TOOL_VERSION = "${rootPackage.version}"`),
+  "core default tool version must match package version"
+);
 
 for (const packageName of workspacePackages) {
   const packageJson = await readJson(join("packages", packageName, "package.json"));

@@ -64,7 +64,7 @@ Initial stable diagnostic codes include:
   "schemaVersion": "scg.catalog/v1alpha1",
   "tool": {
     "name": "service-catalog-generator",
-    "version": "0.1.0"
+    "version": "0.5.0"
   },
   "summary": {
     "serviceCount": 2,

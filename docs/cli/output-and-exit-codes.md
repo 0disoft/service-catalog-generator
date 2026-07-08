@@ -47,6 +47,7 @@ Diagnostics must include:
 
 Initial stable diagnostic codes include:
 
+- `manifest.invalid`;
 - `manifest.missing_required_field`;
 - `manifest.invalid_schema_version`;
 - `manifest.invalid_yaml`;

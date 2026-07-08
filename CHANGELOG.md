@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Classified unrecognized schema validation issues as `manifest.invalid` instead of reporting them
+  as missing required fields.
 - Updated the operational contract with verified `0.5.8` release evidence.
 
 ## 0.5.8

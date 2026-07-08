@@ -113,7 +113,7 @@ function schemaIssueCode(issue: SchemaIssue, field: string | undefined): Diagnos
     return "manifest.invalid_format";
   }
 
-  return "manifest.missing_required_field";
+  return "manifest.invalid";
 }
 
 function schemaIssueMessage(code: Diagnostic["code"], field: string | undefined): string {

@@ -2,6 +2,7 @@ import { mkdir, mkdtemp, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import { schemaIssueToDiagnostic } from "../../packages/core/src/diagnostics.js";
 import {
   compileCatalog,
   redactSecretLikeValue,
@@ -71,6 +72,24 @@ describe("core catalog compiler", () => {
         field: "owner"
       })
     );
+  });
+
+  it("maps unclassified schema issues to generic invalid manifest diagnostics", () => {
+    expect(
+      schemaIssueToDiagnostic(
+        {
+          code: "unknown_schema_issue",
+          path: ["metadata", "annotations"],
+          message: "Unexpected schema validation failure."
+        },
+        "services/odd/service.yaml"
+      )
+    ).toMatchObject({
+      severity: "error",
+      code: "manifest.invalid",
+      file: "services/odd/service.yaml",
+      field: "metadata.annotations"
+    });
   });
 
   it("reports duplicate service ids across different manifests", async () => {

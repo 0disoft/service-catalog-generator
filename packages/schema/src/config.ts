@@ -22,27 +22,23 @@ export const CatalogConfigSchema = z
       .object({
         failOnWarnings: z.boolean().default(false),
         allowUnknownDependencies: z.boolean().default(false),
-        requireLastReviewedAt: z.boolean().default(true),
         staleAfterDays: z.number().int().positive().default(90)
       })
       .strict()
       .default({
         failOnWarnings: false,
         allowUnknownDependencies: false,
-        requireLastReviewedAt: true,
         staleAfterDays: 90
       }),
     output: z
       .object({
         directory: z.string().min(1).default(".catalog"),
-        formats: z.array(z.enum(["json", "dot", "html"])).default(["json", "dot", "html"]),
-        deterministic: z.boolean().default(true)
+        formats: z.array(z.enum(["json", "dot", "html"])).default(["json", "dot", "html"])
       })
       .strict()
       .default({
         directory: ".catalog",
-        formats: ["json", "dot", "html"],
-        deterministic: true
+        formats: ["json", "dot", "html"]
       }),
     privacy: z
       .object({

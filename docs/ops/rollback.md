@@ -36,6 +36,8 @@ Provide a short actionable decision tree with triggers, procedure, database roll
 - Prefer a new patch release over unpublish when possible.
 - Deprecate broken versions with a message pointing to the fixed version.
 - Keep changelog and migration notes honest about pre-1.0 breaking changes.
+- If release automation fails before npm publish completes, let the workflow recovery step delete
+  the GitHub Release and restore or remove the mutable major Action tag before retrying.
 
 ## Action Tag Rollback
 

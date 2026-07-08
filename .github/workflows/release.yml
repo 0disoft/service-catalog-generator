@@ -34,8 +34,26 @@ jobs:
       - run: node scripts/release-check.mjs
       - run: pnpm run check
       - run: node scripts/pack-smoke.mjs
-      - name: Publish npm package
-        run: npm publish --access public
+
+      - name: Capture release recovery state
+        id: release-preflight
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          MAJOR_TAG="v${VERSION%%.*}"
+          PREVIOUS_MAJOR_TARGET="$(git rev-parse -q --verify "refs/tags/$MAJOR_TAG" || true)"
+
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "::error::GitHub Release $GITHUB_REF_NAME already exists."
+            exit 1
+          fi
+
+          {
+            echo "major-tag=$MAJOR_TAG"
+            echo "previous-major-target=$PREVIOUS_MAJOR_TARGET"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub release
         env:
@@ -48,9 +66,37 @@ jobs:
 
       - name: Move major Action tag
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          MAJOR_TAG="v${VERSION%%.*}"
+          MAJOR_TAG="${{ steps.release-preflight.outputs.major-tag }}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -f "$MAJOR_TAG" "$GITHUB_SHA"
           git push --force origin "refs/tags/$MAJOR_TAG"
+
+      - name: Publish npm package
+        run: npm publish --access public
+
+      - name: Recover GitHub release state when npm publish fails
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAJOR_TAG: ${{ steps.release-preflight.outputs.major-tag }}
+          PREVIOUS_MAJOR_TARGET: ${{ steps.release-preflight.outputs.previous-major-target }}
+        run: |
+          set -euo pipefail
+          echo "::warning::Release workflow failed before npm publish completed. Restoring GitHub release state where possible."
+          gh release delete "$GITHUB_REF_NAME" --yes --cleanup-tag=false || true
+
+          if [ -z "$MAJOR_TAG" ]; then
+            echo "::warning::Major Action tag was not computed; skipping Action tag recovery."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ -n "$PREVIOUS_MAJOR_TARGET" ]; then
+            git tag -f "$MAJOR_TAG" "$PREVIOUS_MAJOR_TARGET"
+            git push --force origin "refs/tags/$MAJOR_TAG"
+          else
+            git push --delete origin "$MAJOR_TAG" || true
+          fi

@@ -18,9 +18,10 @@ import {
   validateParsedManifest
 } from "./validator.js";
 
-const DEFAULT_TOOL_VERSION = "0.5.7";
+const DEFAULT_TOOL_VERSION = "0.5.8";
 const DEFAULT_MAX_MANIFEST_BYTES = 256 * 1024;
 const DEFAULT_MAX_MANIFESTS = 1000;
+const DEFAULT_PARSE_CONCURRENCY = 16;
 
 export async function compileCatalog(
   options: CompileCatalogOptions = {}
@@ -38,12 +39,18 @@ export async function compileCatalog(
   });
   const diagnostics: Diagnostic[] = [...discovery.diagnostics];
   const validatedManifests = [];
+  const parseConcurrency = normalizeConcurrency(
+    options.parseConcurrency ?? DEFAULT_PARSE_CONCURRENCY
+  );
 
-  for (const discoveredManifest of discovery.manifests) {
-    const parsed = await parseManifestFile(
-      discoveredManifest,
-      options.maxManifestBytes ?? DEFAULT_MAX_MANIFEST_BYTES
-    );
+  const parsedManifests = await mapWithConcurrency(
+    discovery.manifests,
+    parseConcurrency,
+    async (discoveredManifest) =>
+      parseManifestFile(discoveredManifest, options.maxManifestBytes ?? DEFAULT_MAX_MANIFEST_BYTES)
+  );
+
+  for (const parsed of parsedManifests) {
     const validated = validateParsedManifest(parsed, options.inputSchema ?? "scg-v1");
     if (validated.ok) {
       validatedManifests.push(validated);
@@ -112,6 +119,35 @@ export async function compileCatalog(
     graphEdges,
     discoveredManifests: discovery.manifests
   };
+}
+
+async function mapWithConcurrency<TInput, TOutput>(
+  items: TInput[],
+  concurrency: number,
+  worker: (item: TInput) => Promise<TOutput>
+): Promise<TOutput[]> {
+  const results = new Array<TOutput>(items.length);
+  let nextIndex = 0;
+
+  async function runWorker(): Promise<void> {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      results[currentIndex] = await worker(items[currentIndex]);
+    }
+  }
+
+  const workerCount = Math.min(concurrency, items.length);
+  await Promise.all(Array.from({ length: workerCount }, () => runWorker()));
+  return results;
+}
+
+function normalizeConcurrency(value: number): number {
+  if (!Number.isFinite(value)) {
+    return DEFAULT_PARSE_CONCURRENCY;
+  }
+
+  return Math.max(1, Math.min(64, Math.trunc(value)));
 }
 
 function duplicateServiceIdDiagnostics(services: CompileCatalogResult["services"]): Diagnostic[] {

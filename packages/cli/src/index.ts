@@ -18,7 +18,7 @@ import {
 import { parseDocument } from "yaml";
 
 export const packageName = "@scg/cli";
-export const cliVersion = "0.5.7";
+export const cliVersion = "0.5.8";
 
 export type CliPackageBoundary =
   "commands" | "flags" | "config-precedence" | "human-output" | "json-output" | "exit-codes";
@@ -52,7 +52,6 @@ type ParsedArgs = {
   out?: string;
   failOnWarnings: boolean;
   allowUnknownDependencies: boolean;
-  deterministic: boolean;
   inputSchema: InputSchema;
 };
 
@@ -183,7 +182,6 @@ function parseArgs(argv: string[]): ParsedArgs {
     formats: [],
     failOnWarnings: false,
     allowUnknownDependencies: false,
-    deterministic: false,
     inputSchema: "scg-v1"
   };
 
@@ -219,9 +217,6 @@ function parseArgs(argv: string[]): ParsedArgs {
         break;
       case "--allow-unknown-dependencies":
         state.allowUnknownDependencies = true;
-        break;
-      case "--deterministic":
-        state.deterministic = true;
         break;
       case "--input-schema":
         state.inputSchema = parseInputSchema(readFlagValue(token, remaining));
@@ -377,8 +372,7 @@ function mergeCliFlags(config: CatalogConfigInput, parsed: ParsedArgs): CatalogC
     output: {
       ...config.output,
       ...(parsed.out ? { directory: parsed.out } : {}),
-      ...(parsed.formats.length > 0 ? { formats: parsed.formats } : {}),
-      ...(parsed.deterministic ? { deterministic: true } : {})
+      ...(parsed.formats.length > 0 ? { formats: parsed.formats } : {})
     }
   };
 }
@@ -504,7 +498,6 @@ function helpText(): string {
     "  --out <path>",
     "  --fail-on-warning",
     "  --allow-unknown-dependencies",
-    "  --deterministic",
     "  --input-schema <scg-v1|zdp-v2>",
     "  --json",
     "  --no-color"

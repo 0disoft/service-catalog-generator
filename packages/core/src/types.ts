@@ -25,6 +25,7 @@ export type CompileCatalogOptions = {
   now?: Date;
   maxManifestBytes?: number;
   maxManifests?: number;
+  parseConcurrency?: number;
   followSymlinks?: boolean;
   inputSchema?: InputSchema;
 };

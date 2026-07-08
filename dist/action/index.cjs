@@ -22132,22 +22132,18 @@ var CatalogConfigSchema = external_exports.object({
   validation: external_exports.object({
     failOnWarnings: external_exports.boolean().default(false),
     allowUnknownDependencies: external_exports.boolean().default(false),
-    requireLastReviewedAt: external_exports.boolean().default(true),
     staleAfterDays: external_exports.number().int().positive().default(90)
   }).strict().default({
     failOnWarnings: false,
     allowUnknownDependencies: false,
-    requireLastReviewedAt: true,
     staleAfterDays: 90
   }),
   output: external_exports.object({
     directory: external_exports.string().min(1).default(".catalog"),
-    formats: external_exports.array(external_exports.enum(["json", "dot", "html"])).default(["json", "dot", "html"]),
-    deterministic: external_exports.boolean().default(true)
+    formats: external_exports.array(external_exports.enum(["json", "dot", "html"])).default(["json", "dot", "html"])
   }).strict().default({
     directory: ".catalog",
-    formats: ["json", "dot", "html"],
-    deterministic: true
+    formats: ["json", "dot", "html"]
   }),
   privacy: external_exports.object({
     redactRepositoryUrls: external_exports.boolean().default(false),
@@ -22861,9 +22857,10 @@ function parseDateOnly(value) {
 }
 
 // packages/core/dist/scan.js
-var DEFAULT_TOOL_VERSION = "0.5.7";
+var DEFAULT_TOOL_VERSION = "0.5.8";
 var DEFAULT_MAX_MANIFEST_BYTES = 256 * 1024;
 var DEFAULT_MAX_MANIFESTS = 1e3;
+var DEFAULT_PARSE_CONCURRENCY = 16;
 async function compileCatalog(options = {}) {
   const cwd = options.cwd ?? process.cwd();
   const config2 = resolveCatalogConfig(options.config);
@@ -22878,8 +22875,9 @@ async function compileCatalog(options = {}) {
   });
   const diagnostics = [...discovery.diagnostics];
   const validatedManifests = [];
-  for (const discoveredManifest of discovery.manifests) {
-    const parsed = await parseManifestFile(discoveredManifest, options.maxManifestBytes ?? DEFAULT_MAX_MANIFEST_BYTES);
+  const parseConcurrency = normalizeConcurrency(options.parseConcurrency ?? DEFAULT_PARSE_CONCURRENCY);
+  const parsedManifests = await mapWithConcurrency(discovery.manifests, parseConcurrency, async (discoveredManifest) => parseManifestFile(discoveredManifest, options.maxManifestBytes ?? DEFAULT_MAX_MANIFEST_BYTES));
+  for (const parsed of parsedManifests) {
     const validated = validateParsedManifest(parsed, options.inputSchema ?? "scg-v1");
     if (validated.ok) {
       validatedManifests.push(validated);
@@ -22926,6 +22924,26 @@ async function compileCatalog(options = {}) {
     graphEdges,
     discoveredManifests: discovery.manifests
   };
+}
+async function mapWithConcurrency(items, concurrency, worker) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  async function runWorker() {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      results[currentIndex] = await worker(items[currentIndex]);
+    }
+  }
+  const workerCount = Math.min(concurrency, items.length);
+  await Promise.all(Array.from({ length: workerCount }, () => runWorker()));
+  return results;
+}
+function normalizeConcurrency(value) {
+  if (!Number.isFinite(value)) {
+    return DEFAULT_PARSE_CONCURRENCY;
+  }
+  return Math.max(1, Math.min(64, Math.trunc(value)));
 }
 function duplicateServiceIdDiagnostics(services) {
   const sourcePathsById = /* @__PURE__ */ new Map();
@@ -23222,7 +23240,7 @@ function throwWriteError(file2, message, hint) {
 
 // packages/cli/dist/index.js
 var import_yaml2 = __toESM(require_dist(), 1);
-var cliVersion = "0.5.7";
+var cliVersion = "0.5.8";
 var DEFAULT_CONFIG_FILE = "scg.config.yaml";
 async function runCli(options = {}) {
   const argv = options.argv ?? process.argv.slice(2);
@@ -23314,7 +23332,6 @@ function parseArgs(argv) {
     formats: [],
     failOnWarnings: false,
     allowUnknownDependencies: false,
-    deterministic: false,
     inputSchema: "scg-v1"
   };
   const remaining = [...argv];
@@ -23347,9 +23364,6 @@ function parseArgs(argv) {
         break;
       case "--allow-unknown-dependencies":
         state.allowUnknownDependencies = true;
-        break;
-      case "--deterministic":
-        state.deterministic = true;
         break;
       case "--input-schema":
         state.inputSchema = parseInputSchema(readFlagValue(token, remaining));
@@ -23460,8 +23474,7 @@ function mergeCliFlags(config2, parsed) {
     output: {
       ...config2.output,
       ...parsed.out ? { directory: parsed.out } : {},
-      ...parsed.formats.length > 0 ? { formats: parsed.formats } : {},
-      ...parsed.deterministic ? { deterministic: true } : {}
+      ...parsed.formats.length > 0 ? { formats: parsed.formats } : {}
     }
   };
 }
@@ -23550,7 +23563,6 @@ function helpText() {
     "  --out <path>",
     "  --fail-on-warning",
     "  --allow-unknown-dependencies",
-    "  --deterministic",
     "  --input-schema <scg-v1|zdp-v2>",
     "  --json",
     "  --no-color"

@@ -43,7 +43,6 @@ scan:
 validation:
   failOnWarnings: false
   allowUnknownDependencies: false
-  requireLastReviewedAt: true
   staleAfterDays: 90
 
 output:
@@ -52,7 +51,6 @@ output:
     - json
     - dot
     - html
-  deterministic: true
 
 privacy:
   redactRepositoryUrls: false
@@ -81,6 +79,8 @@ Environment variables must not override catalog semantics. `NO_COLOR` may affect
 - Formats: JSON for `scan`, no write for `check`, JSON/DOT/HTML for `report`.
 - Unknown dependencies: failing diagnostic by default.
 - Warnings: non-failing unless `--fail-on-warning` is set.
+- Determinism: JSON, DOT, and report outputs are always sorted for stable CI diffs; this is not a
+  configurable mode.
 - Network calls: none.
 - Telemetry: none.
 

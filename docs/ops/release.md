@@ -44,6 +44,8 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 | `0.5.4` | Catalog integrity and release hardening.                  |
 | `0.5.5` | Discovery exclude glob fix and catalog hardening release. |
 | `0.5.6` | Linux packed CLI entrypoint fix.                          |
+| `0.5.7` | Action output integrity and redacted repository cleanup.  |
+| `0.5.8` | Release recovery, parse throughput, and config cleanup.   |
 | `1.0.0` | Manifest schema and CLI contract freeze.                  |
 
 Pre-1.0 breaking changes are allowed only with clear migration notes. After 1.0, manifest schema,
@@ -59,11 +61,15 @@ CLI JSON output, and exit codes are compatibility contracts.
 6. Run `recovery-drill` to confirm release, rollback, and disaster-recovery contracts have not
    drifted.
 7. Push an immutable `vX.Y.Z` tag that exactly matches `package.json.version`.
-8. Use the `release` workflow to publish through npm Trusted Publishing and GitHub OIDC.
-9. Create the GitHub Release from the same version tag.
-10. Move or create the corresponding major Action tag, such as `v0`.
-11. Smoke test package installation and Action usage from the released tag.
-12. Run `pnpm run release-evidence -- <version>` after promotion.
+8. Use the `release` workflow to create the GitHub Release.
+9. Move or create the corresponding major Action tag through the workflow, then publish through npm
+   Trusted Publishing and GitHub OIDC.
+10. If the workflow fails before npm publish completes, confirm the automatic recovery step removed
+   the GitHub Release and restored or deleted the mutable major Action tag.
+11. If npm publish succeeds but downstream evidence later fails, treat the package as immutable and
+   cut a forward-fix patch release rather than trying to rewrite the published version.
+12. Smoke test package installation and Action usage from the released tag.
+13. Run `pnpm run release-evidence -- <version>` after promotion.
 
 For npm CLI smoke tests, run from a temporary directory outside this repository so npm does not
 resolve the local workspace package instead of the published package:
@@ -78,8 +84,14 @@ and runs from a clean temporary project.
 ## Release Workflow
 
 The release workflow runs only for `v*.*.*` tags. It validates package metadata, runs `check`, runs
-a packed tarball install smoke, publishes the scoped public package through npm Trusted Publishing,
-creates the GitHub Release, and moves the mutable major Action tag.
+a packed tarball install smoke, creates the GitHub Release, moves the mutable major Action tag, and
+then publishes the scoped public package through npm Trusted Publishing.
+
+The workflow captures the previous mutable major tag target before changing release state. If the
+workflow fails before npm publish completes, the recovery step deletes the just-created GitHub
+Release and restores the previous major Action tag target, or deletes the major tag when no previous
+target existed. Once npm publish succeeds, recovery switches to forward-fix mode because npm package
+publication is treated as immutable.
 
 Release jobs are serialized across the repository, not per tag, so two patch tags cannot race while
 moving the same mutable major Action tag.

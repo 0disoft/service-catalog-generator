@@ -57,10 +57,32 @@ describe("release workflow contract", () => {
           step.env === undefined
       )
     ).toBe(true);
+    expect(steps.some((step) => step.name === "Capture release recovery state")).toBe(true);
+    expect(
+      steps.some((step) => step.name === "Recover GitHub release state when npm publish fails")
+    ).toBe(true);
     expect(workflowText).toContain("gh release create");
+    expect(workflowText).toContain("gh release delete");
     expect(workflowText).toContain('git push --force origin "refs/tags/$MAJOR_TAG"');
     expect(workflowText).not.toContain("secrets.NPM_PUBLISH_TOKEN");
     expect(workflowText).not.toMatch(/secrets\.(NPM_TOKEN|NODE_AUTH_TOKEN)|NODE_AUTH_TOKEN/i);
+  });
+
+  it("keeps npm publish as the last irreversible release step", () => {
+    const workflow = parse(
+      readFileSync(join(process.cwd(), ".github/workflows/release.yml"), "utf8")
+    ) as ReleaseWorkflow;
+    const stepNames = workflow.jobs.publish.steps.map((step) => step.name ?? step.run ?? step.uses);
+
+    const releaseIndex = stepNames.indexOf("Create GitHub release");
+    const tagIndex = stepNames.indexOf("Move major Action tag");
+    const publishIndex = stepNames.indexOf("Publish npm package");
+    const recoveryIndex = stepNames.indexOf("Recover GitHub release state when npm publish fails");
+
+    expect(releaseIndex).toBeGreaterThan(-1);
+    expect(tagIndex).toBeGreaterThan(releaseIndex);
+    expect(publishIndex).toBeGreaterThan(tagIndex);
+    expect(recoveryIndex).toBeGreaterThan(publishIndex);
   });
 
   it("keeps scoped package metadata public-release ready", () => {
@@ -81,7 +103,7 @@ describe("release workflow contract", () => {
     };
 
     expect(packageJson.name).toBe("@0disoft/service-catalog-generator");
-    expect(packageJson.version).toBe("0.5.7");
+    expect(packageJson.version).toBe("0.5.8");
     expect(packageJson.license).toBe("Apache-2.0");
     expect(packageJson.bin).toEqual({ scg: "dist/cli/index.js" });
     expect(packageJson.files).toEqual([

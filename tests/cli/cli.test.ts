@@ -187,6 +187,24 @@ describe("scg CLI", () => {
     });
   });
 
+  it("returns exit code 2 for removed deterministic flag", async () => {
+    const workspace = await createWorkspace();
+    const io = createIo();
+
+    const exitCode = await runCli({
+      argv: ["scan", "--json", "--deterministic"],
+      cwd: workspace,
+      io
+    });
+    const error = JSON.parse(io.stderrText());
+
+    expect(exitCode).toBe(2);
+    expect(error.diagnostics[0]).toMatchObject({
+      code: "config.invalid",
+      message: "Unknown argument: --deterministic"
+    });
+  });
+
   it("does not let environment variables change validation policy", async () => {
     const previousCi = process.env.CI;
     const previousUnknownPolicy = process.env.SCG_ALLOW_UNKNOWN_DEPENDENCIES;

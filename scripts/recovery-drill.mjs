@@ -30,9 +30,12 @@ assert(
 );
 assertText(releaseWorkflowText, ".github/workflows/release.yml", [
   "node scripts/pack-smoke.mjs",
+  "Capture release recovery state",
   "gh release create",
+  "gh release delete",
   'git tag -f "$MAJOR_TAG" "$GITHUB_SHA"',
-  'git push --force origin "refs/tags/$MAJOR_TAG"'
+  'git push --force origin "refs/tags/$MAJOR_TAG"',
+  "Recover GitHub release state when npm publish fails"
 ]);
 
 assertText(disasterRecoveryText, "docs/ops/disaster-recovery.md", [
@@ -56,6 +59,7 @@ assertText(releaseText, "docs/ops/release.md", [
   "pnpm run release:trust:dry-run",
   "packed tarball install smoke",
   "Move or create the corresponding major Action tag",
+  "restores the previous major Action tag target",
   "Smoke test package installation and Action usage from the released tag.",
   "recovery-drill"
 ]);

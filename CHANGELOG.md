@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.5.8
+
+- Moved npm publish to the final release step and added GitHub Release / major Action tag recovery
+  when release automation fails before publish completes.
+- Parsed manifests with bounded concurrency while preserving deterministic catalog ordering.
+- Removed no-op `requireLastReviewedAt`, `output.deterministic`, and `--deterministic` contracts.
+
 ## 0.5.7
 
 - Fixed GitHub Action summary parsing so missing or malformed CLI JSON no longer produces fabricated

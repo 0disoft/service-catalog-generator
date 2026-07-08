@@ -36,7 +36,9 @@ describe("schema package contract", () => {
     expect(result.scan.roots).toEqual(["."]);
     expect(result.scan.manifestNames).toEqual(["service.yaml"]);
     expect(result.validation.allowUnknownDependencies).toBe(false);
+    expect("requireLastReviewedAt" in result.validation).toBe(false);
     expect(result.output.directory).toBe(".catalog");
+    expect("deterministic" in result.output).toBe(false);
     expect(result.privacy.redactOwnerEmails).toBe(true);
   });
 

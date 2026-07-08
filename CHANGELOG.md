@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Updated the operational contract with verified `0.5.8` release evidence.
+
 ## 0.5.8
 
 - Moved npm publish to the final release step and added GitHub Release / major Action tag recovery

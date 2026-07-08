@@ -1,8 +1,8 @@
-import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { runCli } from "../../packages/cli/src/index.js";
+import { isCliEntrypoint, runCli } from "../../packages/cli/src/index.js";
 
 const cleanupRoots: string[] = [];
 
@@ -327,6 +327,31 @@ describe("scg CLI", () => {
       code: "output.write_failed",
       file: "../outside"
     });
+  });
+
+  it("recognizes npm bin symlinks as CLI entrypoints", async () => {
+    const workspace = await createWorkspace();
+    const cliPath = join(
+      workspace,
+      "node_modules",
+      "@0disoft",
+      "service-catalog-generator",
+      "dist",
+      "cli",
+      "index.js"
+    );
+    const binPath = join(workspace, "node_modules", ".bin", "scg");
+    await mkdir(dirname(cliPath), { recursive: true });
+    await mkdir(dirname(binPath), { recursive: true });
+    await writeFile(cliPath, "#!/usr/bin/env node\n", "utf8");
+
+    try {
+      await symlink(cliPath, binPath);
+    } catch {
+      return;
+    }
+
+    expect(isCliEntrypoint(binPath)).toBe(true);
   });
 });
 

@@ -22861,7 +22861,7 @@ function parseDateOnly(value) {
 }
 
 // packages/core/dist/scan.js
-var DEFAULT_TOOL_VERSION = "0.5.5";
+var DEFAULT_TOOL_VERSION = "0.5.6";
 var DEFAULT_MAX_MANIFEST_BYTES = 256 * 1024;
 var DEFAULT_MAX_MANIFESTS = 1e3;
 async function compileCatalog(options = {}) {
@@ -23222,7 +23222,7 @@ function throwWriteError(file2, message, hint) {
 
 // packages/cli/dist/index.js
 var import_yaml2 = __toESM(require_dist(), 1);
-var cliVersion = "0.5.5";
+var cliVersion = "0.5.6";
 var DEFAULT_CONFIG_FILE = "scg.config.yaml";
 async function runCli(options = {}) {
   const argv = options.argv ?? process.argv.slice(2);
@@ -23573,8 +23573,16 @@ if (process.argv[1] && isCliEntrypoint(process.argv[1])) {
   });
 }
 function isCliEntrypoint(path) {
-  const normalized = (0, import_node_path4.resolve)(path).replaceAll("\\", "/");
+  const normalized = normalizeCliPath(path);
   return normalized.endsWith("/dist/cli/index.js") || normalized.endsWith("/packages/cli/dist/index.js") || normalized.endsWith("/packages/cli/src/index.ts");
+}
+function normalizeCliPath(path) {
+  const resolved = (0, import_node_path4.resolve)(path);
+  try {
+    return (0, import_node_fs.realpathSync)(resolved).replaceAll("\\", "/");
+  } catch {
+    return resolved.replaceAll("\\", "/");
+  }
 }
 
 // packages/action/src/index.ts

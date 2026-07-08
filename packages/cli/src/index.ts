@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import {
@@ -18,7 +18,7 @@ import {
 import { parseDocument } from "yaml";
 
 export const packageName = "@scg/cli";
-export const cliVersion = "0.5.5";
+export const cliVersion = "0.5.6";
 
 export type CliPackageBoundary =
   "commands" | "flags" | "config-precedence" | "human-output" | "json-output" | "exit-codes";
@@ -531,11 +531,20 @@ if (process.argv[1] && isCliEntrypoint(process.argv[1])) {
     });
 }
 
-function isCliEntrypoint(path: string): boolean {
-  const normalized = resolve(path).replaceAll("\\", "/");
+export function isCliEntrypoint(path: string): boolean {
+  const normalized = normalizeCliPath(path);
   return (
     normalized.endsWith("/dist/cli/index.js") ||
     normalized.endsWith("/packages/cli/dist/index.js") ||
     normalized.endsWith("/packages/cli/src/index.ts")
   );
+}
+
+function normalizeCliPath(path: string): string {
+  const resolved = resolve(path);
+  try {
+    return realpathSync(resolved).replaceAll("\\", "/");
+  } catch {
+    return resolved.replaceAll("\\", "/");
+  }
 }

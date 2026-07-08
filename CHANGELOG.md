@@ -7,11 +7,12 @@
 - Added a peak RSS performance test for the 1,000-manifest memory budget.
 - Added retry coverage for transient dependency audit registry failures.
 
-## 0.5.5
+## 0.5.6
 
 - Added duplicate service id diagnostics to prevent silent catalog key collisions.
 - Fixed nested discovery exclude globs so `services/legacy/**` no longer drops sibling service
   manifests.
+- Fixed Linux npm bin symlink entrypoint detection for packed CLI installs.
 - Hardened review date validation, future-date diagnostics, and snapshot summary consistency.
 - Applied repository URL redaction before JSON, DOT, and HTML report generation.
 - Rejected symlinked report output directories that resolve outside the workspace.

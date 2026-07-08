@@ -41,7 +41,7 @@ function normalizeRepositoryRef(repository: RepositoryRef, config: CatalogConfig
   }
 
   return {
-    provider: repository.provider,
+    provider: repository.provider === "url" ? "unknown" : repository.provider,
     slug: repository.slug ?? "[redacted-repository]"
   };
 }

@@ -252,6 +252,34 @@ describe("GitHub Action wrapper", () => {
     expect(exitCode).toBe(1);
     expect(outputs.get("error-count")).toBe("1");
   });
+
+  it("does not emit fabricated zero outputs when the CLI produces no JSON summary", async () => {
+    const workspace = await createWorkspace();
+    const outputs = new Map<string, string>();
+    const stderrChunks: string[] = [];
+
+    const exitCode = await runAction({
+      cwd: workspace,
+      env: {
+        GITHUB_WORKSPACE: workspace,
+        INPUT_CONFIG: "missing-scg.config.yaml"
+      },
+      stdout: {
+        write: () => true
+      },
+      stderr: {
+        write: (chunk: string) => {
+          stderrChunks.push(chunk);
+          return true;
+        }
+      },
+      writeOutput: (name, value) => outputs.set(name, value)
+    });
+
+    expect(exitCode).toBe(2);
+    expect(outputs.size).toBe(0);
+    expect(stderrChunks.join("")).toContain("Action could not parse scg JSON summary");
+  });
 });
 
 function createIo(): {

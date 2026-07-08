@@ -32,6 +32,16 @@ type CliPayload = {
   summary?: Partial<CliSummary>;
 };
 
+type SummaryParseResult =
+  | {
+      ok: true;
+      summary: CliSummary;
+    }
+  | {
+      ok: false;
+      reason: string;
+    };
+
 export async function runAction(options: RunActionOptions = {}): Promise<number> {
   const env = options.env ?? process.env;
   const cwd = options.cwd ?? env.GITHUB_WORKSPACE ?? process.cwd();
@@ -63,7 +73,13 @@ export async function runAction(options: RunActionOptions = {}): Promise<number>
     }
   });
 
-  const summary = extractSummary(stdoutChunks.join(""));
+  const summaryResult = extractSummary(stdoutChunks.join(""));
+  if (!summaryResult.ok) {
+    stderr.write(`Action could not parse scg JSON summary: ${summaryResult.reason}\n`);
+    return exitCode === 0 ? 5 : exitCode;
+  }
+
+  const summary = summaryResult.summary;
   const output = options.writeOutput ?? createGitHubOutputWriter(env);
   output("service-count", String(summary.serviceCount));
   output("error-count", String(summary.errorCount));
@@ -133,27 +149,71 @@ export function parseBooleanInput(env: ActionEnv, name: string): boolean {
   return getInput(env, name, "false").toLowerCase() === "true";
 }
 
-function extractSummary(stdout: string): CliSummary {
-  try {
-    const payload = JSON.parse(stdout) as CliPayload;
+function extractSummary(stdout: string): SummaryParseResult {
+  if (!stdout.trim()) {
     return {
-      serviceCount: numberOrZero(payload.summary?.serviceCount),
-      errorCount: numberOrZero(payload.summary?.errorCount),
-      warningCount: numberOrZero(payload.summary?.warningCount),
-      edgeCount: numberOrZero(payload.summary?.edgeCount)
-    };
-  } catch {
-    return {
-      serviceCount: 0,
-      errorCount: 0,
-      warningCount: 0,
-      edgeCount: 0
+      ok: false,
+      reason: "stdout was empty"
     };
   }
+
+  let payload: CliPayload;
+  try {
+    payload = JSON.parse(stdout) as CliPayload;
+  } catch (error) {
+    return {
+      ok: false,
+      reason: error instanceof Error ? error.message : "stdout was not valid JSON"
+    };
+  }
+
+  const summary = payload.summary;
+  if (!summary) {
+    return {
+      ok: false,
+      reason: "summary field was missing"
+    };
+  }
+
+  const serviceCount = readSummaryNumber(summary.serviceCount, "serviceCount");
+  const errorCount = readSummaryNumber(summary.errorCount, "errorCount");
+  const warningCount = readSummaryNumber(summary.warningCount, "warningCount");
+  const edgeCount = readSummaryNumber(summary.edgeCount, "edgeCount");
+
+  if (!serviceCount.ok || !errorCount.ok || !warningCount.ok || !edgeCount.ok) {
+    const invalidFields = [serviceCount, errorCount, warningCount, edgeCount].filter(
+      (result): result is { ok: false; reason: string } => !result.ok
+    );
+
+    return {
+      ok: false,
+      reason: invalidFields.map((result) => result.reason).join("; ")
+    };
+  }
+
+  return {
+    ok: true,
+    summary: {
+      serviceCount: serviceCount.value,
+      errorCount: errorCount.value,
+      warningCount: warningCount.value,
+      edgeCount: edgeCount.value
+    }
+  };
 }
 
-function numberOrZero(value: unknown): number {
-  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+function readSummaryNumber(
+  value: unknown,
+  field: keyof CliSummary
+): { ok: true; value: number } | { ok: false; reason: string } {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return { ok: true, value };
+  }
+
+  return {
+    ok: false,
+    reason: `summary.${field} was missing or not finite`
+  };
 }
 
 function createGitHubOutputWriter(env: ActionEnv): ActionOutputWriter {

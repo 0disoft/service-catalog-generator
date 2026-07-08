@@ -72,6 +72,27 @@ describe("ServiceManifestSchema fixtures", () => {
     expect(issuePaths(result)).toContain("metadata.annotations.supportRef");
   });
 
+  it("rejects repeated secret-like values without stateful regex misses", () => {
+    const manifest = loadFixture("valid-minimal.service.yaml") as Record<string, unknown>;
+    const token = ["ghp", "1".repeat(36)].join("_");
+    manifest.metadata = {
+      ...(manifest.metadata as Record<string, unknown>),
+      annotations: {
+        firstToken: token,
+        secondToken: token
+      }
+    };
+
+    const result = ServiceManifestSchema.safeParse(manifest);
+    expect(result.success).toBe(false);
+    expect(issuePaths(result)).toEqual(
+      expect.arrayContaining([
+        "metadata.annotations.firstToken",
+        "metadata.annotations.secondToken"
+      ])
+    );
+  });
+
   it("keeps unknown dependency resolution outside the schema package", () => {
     const result = ServiceManifestSchema.safeParse(
       loadFixture("invalid-unknown-dependency.service.yaml")

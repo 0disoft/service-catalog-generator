@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.5.7
+
+- Fixed GitHub Action summary parsing so missing or malformed CLI JSON no longer produces fabricated
+  zero-count outputs.
+- Normalized redacted `repository.provider: url` records to `provider: unknown` after removing the
+  URL value.
+- Added regression coverage for repeated secret-like manifest values.
 - Added the explicit `zdp-v2` input schema adapter for ZDP service manifests.
 - Updated the operational contract with verified `0.5.6` release evidence.
 - Added a peak RSS performance test for the 1,000-manifest memory budget.

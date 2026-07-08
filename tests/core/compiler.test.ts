@@ -335,7 +335,7 @@ describe("core catalog compiler", () => {
     });
 
     expect(result.snapshot.services[0]?.repository).toEqual({
-      provider: "url",
+      provider: "unknown",
       slug: "[redacted-repository]"
     });
     expect(JSON.stringify(result.snapshot)).not.toContain("git.example.internal");

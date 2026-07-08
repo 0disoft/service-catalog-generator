@@ -34,6 +34,20 @@ scg scan --json --input-schema zdp-v2 --allow-unknown-dependencies
 The ZDP adapter normalizes records into SCG catalog output and preserves ZDP-specific fields under
 `extensions.zdp`. ZDP policy validation remains owned by `zdp-architecture-linter`.
 
+For a ZDP platform catalog run, materialize each repository root `service.yaml` under a temporary
+manifest directory and build a derived report from that directory:
+
+```powershell
+scg report `
+  --root .tmp/service-catalog/manifests `
+  --input-schema zdp-v2 `
+  --allow-unknown-dependencies `
+  --format json `
+  --format dot `
+  --format html `
+  --out .tmp/service-catalog/catalog
+```
+
 ## Source Files
 
 - AGENTS.md: agent working rules

@@ -84,6 +84,20 @@ Environment variables must not override catalog semantics. `NO_COLOR` may affect
 - Network calls: none.
 - Telemetry: none.
 
+## Migrating From Removed No-Op Settings
+
+Version `0.5.8` removed the legacy no-op `--deterministic` flag and these config keys:
+
+- `validation.requireLastReviewedAt`
+- `output.deterministic`
+
+Catalog JSON, DOT, and HTML outputs are always deterministic, so there is no opt-in
+deterministic mode to configure. `metadata.lastReviewedAt` remains required by the service
+manifest schema; the config file cannot disable that schema requirement.
+
+Remove those keys from old `scg.config.yaml` files before upgrading. The config parser is strict,
+so keeping removed keys is treated as an invalid config instead of being silently ignored.
+
 ## Review Blockers
 
 - A new config field bypasses the documented precedence order.

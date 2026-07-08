@@ -22295,14 +22295,19 @@ function normalizeForComparison(path) {
 }
 
 // packages/core/dist/discovery.js
-var DEFAULT_EXCLUDED_SEGMENTS = /* @__PURE__ */ new Set([".git", "node_modules", "dist", "coverage", ".catalog"]);
+var DEFAULT_EXCLUDE_PATTERNS = [
+  ".git/**",
+  "node_modules/**",
+  "dist/**",
+  "coverage/**",
+  ".catalog/**"
+];
 async function discoverManifestFiles(options) {
   const cwd = normalizeAbsolutePath(options.cwd);
   const cwdRealPath = await (0, import_promises.realpath)(cwd);
   const diagnostics = [];
   const manifests = [];
   const visitedDirectories = /* @__PURE__ */ new Set();
-  const excludedSegments = excludedPathSegments(options.exclude, options.outputDirectory);
   for (const root of options.roots) {
     const rootPath = (0, import_node_path2.resolve)(cwd, root);
     if (!isPathInside(cwd, rootPath)) {
@@ -22314,12 +22319,13 @@ async function discoverManifestFiles(options) {
       diagnostics.push(outsideScanRootDiagnostic(toPosixPath(root)));
       continue;
     }
+    const excludeRules = createExcludeRules(options.exclude, options.outputDirectory, cwdRealPath, rootRealPath);
     await walkDirectory({
       directory: rootRealPath,
       rootRealPath,
       cwdRealPath,
       manifestNames: new Set(options.manifestNames),
-      excludedSegments,
+      excludeRules,
       followSymlinks: options.followSymlinks,
       maxManifests: options.maxManifests,
       visitedDirectories,
@@ -22347,7 +22353,7 @@ async function walkDirectory(state) {
   for (const entry of entries) {
     const absolutePath = (0, import_node_path2.resolve)(directoryRealPath, entry.name);
     const relativeToRoot = relativePathFrom(state.rootRealPath, absolutePath);
-    if (!relativeToRoot || shouldExclude(relativeToRoot, state.excludedSegments)) {
+    if (!relativeToRoot || shouldExclude(relativeToRoot, state.excludeRules)) {
       continue;
     }
     const linkStats = await (0, import_promises.lstat)(absolutePath);
@@ -22392,20 +22398,55 @@ async function walkDirectory(state) {
     });
   }
 }
-function excludedPathSegments(exclude, outputDirectory) {
-  const segments = new Set(DEFAULT_EXCLUDED_SEGMENTS);
-  for (const pattern of [...exclude, `${outputDirectory}/**`]) {
-    const normalized = pattern.replaceAll("\\", "/").replace(/\/\*\*$/, "");
-    for (const segment of normalized.split("/")) {
-      if (segment && segment !== "**" && !segment.includes("*")) {
-        segments.add(segment);
+function createExcludeRules(exclude, outputDirectory, cwdRealPath, rootRealPath) {
+  const patterns = [...DEFAULT_EXCLUDE_PATTERNS, ...exclude];
+  const outputDirectoryPath = (0, import_node_path2.resolve)(cwdRealPath, outputDirectory);
+  const outputDirectoryRelativeToRoot = relativePathFrom(rootRealPath, outputDirectoryPath);
+  if (outputDirectoryRelativeToRoot) {
+    patterns.push(`${outputDirectoryRelativeToRoot}/**`);
+  }
+  return [...new Set(patterns)].map(normalizeExcludePattern).filter((pattern) => pattern.length > 0).map((pattern) => ({
+    segments: pattern.split("/")
+  }));
+}
+function normalizeExcludePattern(pattern) {
+  return pattern.replaceAll("\\", "/").replace(/^\.\/+/, "").replace(/\/+/g, "/").replace(/\/$/, "");
+}
+function shouldExclude(relativePath, excludeRules) {
+  const normalized = normalizeExcludePattern(relativePath);
+  const pathSegments = normalized.split("/");
+  return excludeRules.some((rule) => matchGlobSegments(rule.segments, pathSegments));
+}
+function matchGlobSegments(patternSegments, pathSegments) {
+  return matchGlobSegmentAt(patternSegments, pathSegments, 0, 0);
+}
+function matchGlobSegmentAt(patternSegments, pathSegments, patternIndex, pathIndex) {
+  if (patternIndex === patternSegments.length) {
+    return pathIndex === pathSegments.length;
+  }
+  const patternSegment = patternSegments[patternIndex];
+  if (patternSegment === "**") {
+    if (patternIndex === patternSegments.length - 1) {
+      return true;
+    }
+    for (let nextPathIndex = pathIndex; nextPathIndex <= pathSegments.length; nextPathIndex += 1) {
+      if (matchGlobSegmentAt(patternSegments, pathSegments, patternIndex + 1, nextPathIndex)) {
+        return true;
       }
     }
+    return false;
   }
-  return segments;
+  if (pathIndex >= pathSegments.length) {
+    return false;
+  }
+  return matchGlobSegment(patternSegment, pathSegments[pathIndex]) && matchGlobSegmentAt(patternSegments, pathSegments, patternIndex + 1, pathIndex + 1);
 }
-function shouldExclude(relativePath, excludedSegments) {
-  return relativePath.split("/").some((segment) => excludedSegments.has(segment));
+function matchGlobSegment(patternSegment, pathSegment) {
+  const source = [...patternSegment].map((character) => character === "*" ? "[^/]*" : character === "?" ? "[^/]" : escapeRegExp(character)).join("");
+  return new RegExp(`^${source}$`).test(pathSegment);
+}
+function escapeRegExp(value) {
+  return value.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&");
 }
 async function safeRealpath(path) {
   try {

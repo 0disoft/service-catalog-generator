@@ -10,7 +10,13 @@ import {
 } from "./path-policy.js";
 import type { DiscoveredManifest } from "./types.js";
 
-const DEFAULT_EXCLUDED_SEGMENTS = new Set([".git", "node_modules", "dist", "coverage", ".catalog"]);
+const DEFAULT_EXCLUDE_PATTERNS = [
+  ".git/**",
+  "node_modules/**",
+  "dist/**",
+  "coverage/**",
+  ".catalog/**"
+];
 
 export type DiscoverManifestOptions = {
   cwd: string;
@@ -35,7 +41,6 @@ export async function discoverManifestFiles(
   const diagnostics: Diagnostic[] = [];
   const manifests: DiscoveredManifest[] = [];
   const visitedDirectories = new Set<string>();
-  const excludedSegments = excludedPathSegments(options.exclude, options.outputDirectory);
 
   for (const root of options.roots) {
     const rootPath = resolve(cwd, root);
@@ -49,13 +54,19 @@ export async function discoverManifestFiles(
       diagnostics.push(outsideScanRootDiagnostic(toPosixPath(root)));
       continue;
     }
+    const excludeRules = createExcludeRules(
+      options.exclude,
+      options.outputDirectory,
+      cwdRealPath,
+      rootRealPath
+    );
 
     await walkDirectory({
       directory: rootRealPath,
       rootRealPath,
       cwdRealPath,
       manifestNames: new Set(options.manifestNames),
-      excludedSegments,
+      excludeRules,
       followSymlinks: options.followSymlinks,
       maxManifests: options.maxManifests,
       visitedDirectories,
@@ -75,7 +86,7 @@ type WalkState = {
   rootRealPath: string;
   cwdRealPath: string;
   manifestNames: Set<string>;
-  excludedSegments: Set<string>;
+  excludeRules: ExcludeRule[];
   followSymlinks: boolean;
   maxManifests: number;
   visitedDirectories: Set<string>;
@@ -102,7 +113,7 @@ async function walkDirectory(state: WalkState): Promise<void> {
   for (const entry of entries) {
     const absolutePath = resolve(directoryRealPath, entry.name);
     const relativeToRoot = relativePathFrom(state.rootRealPath, absolutePath);
-    if (!relativeToRoot || shouldExclude(relativeToRoot, state.excludedSegments)) {
+    if (!relativeToRoot || shouldExclude(relativeToRoot, state.excludeRules)) {
       continue;
     }
 
@@ -158,23 +169,94 @@ async function walkDirectory(state: WalkState): Promise<void> {
   }
 }
 
-function excludedPathSegments(exclude: string[], outputDirectory: string): Set<string> {
-  const segments = new Set(DEFAULT_EXCLUDED_SEGMENTS);
+type ExcludeRule = {
+  segments: string[];
+};
 
-  for (const pattern of [...exclude, `${outputDirectory}/**`]) {
-    const normalized = pattern.replaceAll("\\", "/").replace(/\/\*\*$/, "");
-    for (const segment of normalized.split("/")) {
-      if (segment && segment !== "**" && !segment.includes("*")) {
-        segments.add(segment);
-      }
-    }
+function createExcludeRules(
+  exclude: string[],
+  outputDirectory: string,
+  cwdRealPath: string,
+  rootRealPath: string
+): ExcludeRule[] {
+  const patterns = [...DEFAULT_EXCLUDE_PATTERNS, ...exclude];
+  const outputDirectoryPath = resolve(cwdRealPath, outputDirectory);
+  const outputDirectoryRelativeToRoot = relativePathFrom(rootRealPath, outputDirectoryPath);
+  if (outputDirectoryRelativeToRoot) {
+    patterns.push(`${outputDirectoryRelativeToRoot}/**`);
   }
 
-  return segments;
+  return [...new Set(patterns)]
+    .map(normalizeExcludePattern)
+    .filter((pattern) => pattern.length > 0)
+    .map((pattern) => ({
+      segments: pattern.split("/")
+    }));
 }
 
-function shouldExclude(relativePath: string, excludedSegments: Set<string>): boolean {
-  return relativePath.split("/").some((segment) => excludedSegments.has(segment));
+function normalizeExcludePattern(pattern: string): string {
+  return pattern
+    .replaceAll("\\", "/")
+    .replace(/^\.\/+/, "")
+    .replace(/\/+/g, "/")
+    .replace(/\/$/, "");
+}
+
+function shouldExclude(relativePath: string, excludeRules: ExcludeRule[]): boolean {
+  const normalized = normalizeExcludePattern(relativePath);
+  const pathSegments = normalized.split("/");
+  return excludeRules.some((rule) => matchGlobSegments(rule.segments, pathSegments));
+}
+
+function matchGlobSegments(patternSegments: string[], pathSegments: string[]): boolean {
+  return matchGlobSegmentAt(patternSegments, pathSegments, 0, 0);
+}
+
+function matchGlobSegmentAt(
+  patternSegments: string[],
+  pathSegments: string[],
+  patternIndex: number,
+  pathIndex: number
+): boolean {
+  if (patternIndex === patternSegments.length) {
+    return pathIndex === pathSegments.length;
+  }
+
+  const patternSegment = patternSegments[patternIndex];
+  if (patternSegment === "**") {
+    if (patternIndex === patternSegments.length - 1) {
+      return true;
+    }
+
+    for (let nextPathIndex = pathIndex; nextPathIndex <= pathSegments.length; nextPathIndex += 1) {
+      if (matchGlobSegmentAt(patternSegments, pathSegments, patternIndex + 1, nextPathIndex)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  if (pathIndex >= pathSegments.length) {
+    return false;
+  }
+
+  return (
+    matchGlobSegment(patternSegment, pathSegments[pathIndex]) &&
+    matchGlobSegmentAt(patternSegments, pathSegments, patternIndex + 1, pathIndex + 1)
+  );
+}
+
+function matchGlobSegment(patternSegment: string, pathSegment: string): boolean {
+  const source = [...patternSegment]
+    .map((character) =>
+      character === "*" ? "[^/]*" : character === "?" ? "[^/]" : escapeRegExp(character)
+    )
+    .join("");
+  return new RegExp(`^${source}$`).test(pathSegment);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&");
 }
 
 async function safeRealpath(path: string): Promise<string | undefined> {

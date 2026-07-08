@@ -408,6 +408,92 @@ describe("core catalog compiler", () => {
     expect(result.snapshot.services).toEqual([]);
   });
 
+  it("applies nested exclude globs without dropping sibling manifests", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(
+      workspace,
+      "services/current/service.yaml",
+      serviceYaml({ id: "current-api" })
+    );
+    await writeManifest(
+      workspace,
+      "services/legacy/service.yaml",
+      serviceYaml({ id: "legacy-api" })
+    );
+
+    const result = await compileCatalog({
+      cwd: workspace,
+      config: {
+        scan: {
+          exclude: ["services/legacy/**"]
+        }
+      }
+    });
+
+    expect(result.snapshot.summary.serviceCount).toBe(1);
+    expect(result.snapshot.services.map((service) => service.id)).toEqual(["current-api"]);
+    expect(result.snapshot.diagnostics).toEqual([]);
+  });
+
+  it("applies recursive exclude globs across nested path segments", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(
+      workspace,
+      "services/current/service.yaml",
+      serviceYaml({ id: "current-api" })
+    );
+    await writeManifest(
+      workspace,
+      "services/team-a/legacy/service.yaml",
+      serviceYaml({ id: "team-a-legacy-api" })
+    );
+    await writeManifest(
+      workspace,
+      "services/team-b/nested/legacy/service.yaml",
+      serviceYaml({ id: "team-b-legacy-api" })
+    );
+
+    const result = await compileCatalog({
+      cwd: workspace,
+      config: {
+        scan: {
+          exclude: ["services/**/legacy/**"]
+        }
+      }
+    });
+
+    expect(result.snapshot.summary.serviceCount).toBe(1);
+    expect(result.snapshot.services.map((service) => service.id)).toEqual(["current-api"]);
+    expect(result.snapshot.diagnostics).toEqual([]);
+  });
+
+  it("excludes only the configured output directory when it sits below a scan root", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(
+      workspace,
+      "services/billing/service.yaml",
+      serviceYaml({ id: "billing-api" })
+    );
+    await writeManifest(
+      workspace,
+      "services/.catalog/ghost/service.yaml",
+      serviceYaml({ id: "ghost-api" })
+    );
+
+    const result = await compileCatalog({
+      cwd: workspace,
+      config: {
+        output: {
+          directory: "services/.catalog"
+        }
+      }
+    });
+
+    expect(result.snapshot.summary.serviceCount).toBe(1);
+    expect(result.snapshot.services.map((service) => service.id)).toEqual(["billing-api"]);
+    expect(result.snapshot.diagnostics).toEqual([]);
+  });
+
   it("creates graph edges for declared dependencies with stable ordering", async () => {
     const workspace = await createWorkspace();
     await writeManifest(workspace, "services/auth/service.yaml", serviceYaml({ id: "auth-api" }));

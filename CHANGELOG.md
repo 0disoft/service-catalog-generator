@@ -10,6 +10,8 @@
 ## 0.5.4
 
 - Added duplicate service id diagnostics to prevent silent catalog key collisions.
+- Fixed nested discovery exclude globs so `services/legacy/**` no longer drops sibling service
+  manifests.
 - Hardened review date validation, future-date diagnostics, and snapshot summary consistency.
 - Applied repository URL redaction before JSON, DOT, and HTML report generation.
 - Rejected symlinked report output directories that resolve outside the workspace.

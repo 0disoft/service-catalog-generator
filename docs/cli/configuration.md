@@ -72,8 +72,12 @@ Environment variables must not override catalog semantics. `NO_COLOR` may affect
 
 - Root: current working directory.
 - Manifest name: `service.yaml`.
+- Scan excludes: POSIX-style glob patterns matched against paths relative to each scan root.
+  `services/legacy/**` excludes only that subtree, not sibling manifests under `services/`.
 - Input schema: `scg-v1`; use `--input-schema zdp-v2` for ZDP v2 manifests.
 - Output directory: `.catalog`.
+  When the configured output directory resolves below a scan root, only that generated subtree is
+  skipped during discovery.
 - Formats: JSON for `scan`, no write for `check`, JSON/DOT/HTML for `report`.
 - Unknown dependencies: failing diagnostic by default.
 - Warnings: non-failing unless `--fail-on-warning` is set.

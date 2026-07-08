@@ -46,6 +46,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 | `0.5.6` | Linux packed CLI entrypoint fix.                          |
 | `0.5.7` | Action output integrity and redacted repository cleanup.  |
 | `0.5.8` | Release recovery, parse throughput, and config cleanup.   |
+| `0.5.9` | Diagnostic fallback and migration-note cleanup.           |
 | `1.0.0` | Manifest schema and CLI contract freeze.                  |
 
 Pre-1.0 breaking changes are allowed only with clear migration notes. After 1.0, manifest schema,

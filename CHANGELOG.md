@@ -2,11 +2,15 @@
 
 ## Unreleased
 
+## 0.5.9
+
 - Classified unrecognized schema validation issues as `manifest.invalid` instead of reporting them
   as missing required fields.
-- Updated the operational contract with verified `0.5.8` release evidence.
+- Added a `0.5.8` config migration note for removed no-op deterministic and review-date settings.
 
 ## 0.5.8
+
+- Updated the operational contract with verified `0.5.8` release evidence.
 
 - Moved npm publish to the final release step and added GitHub Release / major Action tag recovery
   when release automation fails before publish completes.

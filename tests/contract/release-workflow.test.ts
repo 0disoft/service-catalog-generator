@@ -41,14 +41,14 @@ describe("release workflow contract", () => {
       "id-token": "write"
     });
     expect(workflow.concurrency).toEqual({
-      group: "release-${{ github.ref }}",
+      group: "release-${{ github.repository }}",
       "cancel-in-progress": false
     });
     expect(steps.some((step) => step.uses === "actions/checkout@v7")).toBe(true);
     expect(steps.some((step) => step.uses === "actions/setup-node@v6")).toBe(true);
     expect(steps.some((step) => step.run === "node scripts/release-check.mjs")).toBe(true);
     expect(steps.some((step) => step.run === "pnpm run check")).toBe(true);
-    expect(steps.some((step) => step.run === "pnpm pack --dry-run")).toBe(true);
+    expect(steps.some((step) => step.run === "node scripts/pack-smoke.mjs")).toBe(true);
     expect(
       steps.some(
         (step) =>
@@ -81,7 +81,7 @@ describe("release workflow contract", () => {
     };
 
     expect(packageJson.name).toBe("@0disoft/service-catalog-generator");
-    expect(packageJson.version).toBe("0.5.3");
+    expect(packageJson.version).toBe("0.5.4");
     expect(packageJson.license).toBe("Apache-2.0");
     expect(packageJson.bin).toEqual({ scg: "dist/cli/index.js" });
     expect(packageJson.files).toEqual([

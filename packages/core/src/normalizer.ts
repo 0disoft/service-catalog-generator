@@ -1,4 +1,4 @@
-import type { CatalogConfig, ServiceManifest, ServiceRecord } from "@scg/schema";
+import type { CatalogConfig, RepositoryRef, ServiceManifest, ServiceRecord } from "@scg/schema";
 import { redactOwnerRef } from "./redaction.js";
 
 export function normalizeServiceRecord(
@@ -16,7 +16,7 @@ export function normalizeServiceRecord(
         ? redactOwnerRef(manifest.owner.ref)
         : manifest.owner.ref
     },
-    repository: manifest.repository,
+    repository: normalizeRepositoryRef(manifest.repository, config),
     runtime: manifest.runtime,
     deploy: manifest.deploy,
     data: manifest.data,
@@ -33,4 +33,15 @@ export function normalizeServiceRecord(
 
 export function sortServiceRecords(services: ServiceRecord[]): ServiceRecord[] {
   return [...services].sort((left, right) => left.id.localeCompare(right.id));
+}
+
+function normalizeRepositoryRef(repository: RepositoryRef, config: CatalogConfig): RepositoryRef {
+  if (!config.privacy.redactRepositoryUrls || !repository.url) {
+    return repository;
+  }
+
+  return {
+    provider: repository.provider,
+    slug: repository.slug ?? "[redacted-repository]"
+  };
 }

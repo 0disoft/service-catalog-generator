@@ -1,4 +1,5 @@
-import { mkdir, rename, rm, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { mkdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, relative, resolve } from "node:path";
 import type { CorePackageBoundary } from "@scg/core";
 import type { CatalogSnapshot, Diagnostic } from "@scg/schema";
@@ -41,6 +42,7 @@ export async function writeCatalogReports(
   options: WriteCatalogReportsOptions
 ): Promise<WriteCatalogReportsResult> {
   const cwd = resolve(options.cwd ?? process.cwd());
+  const cwdRealPath = await realpath(cwd);
   const outputDirectory = resolve(cwd, options.outputDirectory);
 
   if (!isPathInside(cwd, outputDirectory)) {
@@ -56,11 +58,19 @@ export async function writeCatalogReports(
 
   try {
     await mkdir(outputDirectory, { recursive: true });
+    const outputDirectoryRealPath = await realpath(outputDirectory);
+    if (!isPathInside(cwdRealPath, outputDirectoryRealPath)) {
+      throwWriteError(
+        options.outputDirectory,
+        "Output directory resolves outside the current workspace.",
+        "Choose an --out path inside the current workspace and avoid symlinked output directories."
+      );
+    }
 
     for (const format of formats) {
       const fileName = reportFileName(format);
-      const absolutePath = resolve(outputDirectory, fileName);
-      if (!isPathInside(outputDirectory, absolutePath)) {
+      const absolutePath = resolve(outputDirectoryRealPath, fileName);
+      if (!isPathInside(outputDirectoryRealPath, absolutePath)) {
         throwWriteError(
           fileName,
           "Report file resolves outside the output directory.",
@@ -71,7 +81,7 @@ export async function writeCatalogReports(
       await writeAtomic(absolutePath, renderReport(snapshot, format));
       files.push({
         format,
-        path: toPosixPath(relative(cwd, absolutePath))
+        path: toPosixPath(relative(cwdRealPath, absolutePath))
       });
     }
   } catch (error) {
@@ -210,10 +220,13 @@ function reportFileName(format: ReportFormat): string {
 }
 
 async function writeAtomic(path: string, contents: string): Promise<void> {
-  const temporaryPath = resolve(dirname(path), `.${basename(path)}.${process.pid}.tmp`);
+  const temporaryPath = resolve(
+    dirname(path),
+    `.${basename(path)}.${process.pid}.${randomUUID()}.tmp`
+  );
 
   try {
-    await writeFile(temporaryPath, contents, "utf8");
+    await writeFile(temporaryPath, contents, { encoding: "utf8", flag: "wx" });
     await rename(temporaryPath, path);
   } catch (error) {
     await rm(temporaryPath, { force: true });

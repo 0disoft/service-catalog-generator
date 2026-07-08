@@ -7,6 +7,14 @@
 - Added a peak RSS performance test for the 1,000-manifest memory budget.
 - Added retry coverage for transient dependency audit registry failures.
 
+## 0.5.4
+
+- Added duplicate service id diagnostics to prevent silent catalog key collisions.
+- Hardened review date validation, future-date diagnostics, and snapshot summary consistency.
+- Applied repository URL redaction before JSON, DOT, and HTML report generation.
+- Rejected symlinked report output directories that resolve outside the workspace.
+- Serialized release jobs across tags and added packed tarball install smoke before npm publish.
+
 ## 0.5.3
 
 - Added a tracked-file secret scanner to the standard `check` gate.

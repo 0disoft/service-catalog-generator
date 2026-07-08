@@ -1,6 +1,6 @@
 {
   "name": "@0disoft/service-catalog-generator",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Read-only service.yaml compiler and linter for deterministic service catalog artifacts.",
   "license": "Apache-2.0",
   "type": "module",

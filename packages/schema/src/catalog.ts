@@ -42,7 +42,46 @@ export const CatalogSnapshotSchema = z
       })
       .strict()
   })
-  .strict();
+  .strict()
+  .superRefine((snapshot, ctx) => {
+    if (snapshot.summary.serviceCount !== snapshot.services.length) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["summary", "serviceCount"],
+        message: "summary.serviceCount must match services.length."
+      });
+    }
+
+    if (snapshot.summary.edgeCount !== snapshot.graph.edges.length) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["summary", "edgeCount"],
+        message: "summary.edgeCount must match graph.edges.length."
+      });
+    }
+
+    const errorCount = snapshot.diagnostics.filter(
+      (diagnostic) => diagnostic.severity === "error"
+    ).length;
+    if (snapshot.summary.errorCount !== errorCount) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["summary", "errorCount"],
+        message: "summary.errorCount must match error diagnostics."
+      });
+    }
+
+    const warningCount = snapshot.diagnostics.filter(
+      (diagnostic) => diagnostic.severity === "warning"
+    ).length;
+    if (snapshot.summary.warningCount !== warningCount) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["summary", "warningCount"],
+        message: "summary.warningCount must match warning diagnostics."
+      });
+    }
+  });
 
 export type GraphEdge = z.infer<typeof GraphEdgeSchema>;
 export type CatalogSnapshot = z.infer<typeof CatalogSnapshotSchema>;

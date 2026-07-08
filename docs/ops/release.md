@@ -41,6 +41,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 | `0.5.1` | Trusted Publishing release validation.                    |
 | `0.5.2` | npm bin metadata normalization.                           |
 | `0.5.3` | Public security policy and npm package security metadata. |
+| `0.5.4` | Catalog integrity and release hardening.                  |
 | `1.0.0` | Manifest schema and CLI contract freeze.                  |
 
 Pre-1.0 breaking changes are allowed only with clear migration notes. After 1.0, manifest schema,
@@ -75,8 +76,11 @@ and runs from a clean temporary project.
 ## Release Workflow
 
 The release workflow runs only for `v*.*.*` tags. It validates package metadata, runs `check`, runs
-`pnpm pack --dry-run`, publishes the scoped public package through npm Trusted Publishing, creates
-the GitHub Release, and moves the mutable major Action tag.
+a packed tarball install smoke, publishes the scoped public package through npm Trusted Publishing,
+creates the GitHub Release, and moves the mutable major Action tag.
+
+Release jobs are serialized across the repository, not per tag, so two patch tags cannot race while
+moving the same mutable major Action tag.
 
 The workflow must not use npm token secrets such as `NPM_PUBLISH_TOKEN`, `NPM_TOKEN`, or
 `NODE_AUTH_TOKEN`. Publishing is authorized by the trusted publisher relationship for

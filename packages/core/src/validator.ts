@@ -51,6 +51,17 @@ export function staleReviewDiagnostic(
     return undefined;
   }
 
+  if (reviewedAt.getTime() > now.getTime()) {
+    return createDiagnostic({
+      severity: "warning",
+      code: "metadata.future_review",
+      file,
+      field: "metadata.lastReviewedAt",
+      message: "Manifest review date is in the future.",
+      hint: "Use the date when the service metadata was actually verified."
+    });
+  }
+
   const elapsedDays = Math.floor((now.getTime() - reviewedAt.getTime()) / DAY_IN_MILLISECONDS);
   if (elapsedDays <= staleAfterDays) {
     return undefined;
@@ -104,5 +115,14 @@ function parseDateOnly(value: string): Date | undefined {
     return undefined;
   }
 
-  return new Date(Date.UTC(year, month - 1, day));
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return undefined;
+  }
+
+  return date;
 }

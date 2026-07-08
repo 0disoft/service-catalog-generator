@@ -2,7 +2,7 @@ import type { RefinementCtx } from "zod";
 
 const SECRET_KEY_PATTERN = /(?:api[_-]?key|token|secret|password|credential|private[_-]?key)/i;
 const SECRET_VALUE_PATTERN =
-  /(?:sk_(?:live|test)_[a-z0-9_]{12,}|gh[pousr]_[a-z0-9_]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)/i;
+  /(?:sk-(?:proj-)?[a-z0-9_-]{20,}|sk_(?:live|test)_[a-z0-9_]{12,}|github_pat_[a-z0-9_]{20,}|gh[pousr]_[a-z0-9_]{20,}|npm_[a-z0-9_]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)/i;
 
 export function addSecretLikeIssues(
   value: unknown,

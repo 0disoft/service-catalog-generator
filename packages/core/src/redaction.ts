@@ -1,6 +1,6 @@
 const EMAIL_PATTERN = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
 const SECRET_VALUE_PATTERN =
-  /(?:sk_(?:live|test)_[a-z0-9_]{12,}|gh[pousr]_[a-z0-9_]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)/gi;
+  /(?:sk-(?:proj-)?[a-z0-9_-]{20,}|sk_(?:live|test)_[a-z0-9_]{12,}|github_pat_[a-z0-9_]{20,}|gh[pousr]_[a-z0-9_]{20,}|npm_[a-z0-9_]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)/gi;
 
 export function redactOwnerRef(value: string): string {
   return value.replace(EMAIL_PATTERN, "[redacted-email]");

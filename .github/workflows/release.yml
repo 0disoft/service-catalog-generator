@@ -10,7 +10,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: node scripts/release-check.mjs
       - run: pnpm run check
-      - run: pnpm pack --dry-run
+      - run: node scripts/pack-smoke.mjs
       - name: Publish npm package
         run: npm publish --access public
 

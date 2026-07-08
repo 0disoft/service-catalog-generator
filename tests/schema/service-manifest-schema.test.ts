@@ -46,6 +46,32 @@ describe("ServiceManifestSchema fixtures", () => {
     expect(issuePaths(result)).toContain("metadata.annotations.apiToken");
   });
 
+  it("rejects impossible calendar dates", () => {
+    const manifest = loadFixture("valid-minimal.service.yaml") as Record<string, unknown>;
+    manifest.metadata = {
+      ...(manifest.metadata as Record<string, unknown>),
+      lastReviewedAt: "2026-02-31"
+    };
+
+    const result = ServiceManifestSchema.safeParse(manifest);
+    expect(result.success).toBe(false);
+    expect(issuePaths(result)).toContain("metadata.lastReviewedAt");
+  });
+
+  it("rejects common provider token formats in manifest values", () => {
+    const manifest = loadFixture("valid-minimal.service.yaml") as Record<string, unknown>;
+    manifest.metadata = {
+      ...(manifest.metadata as Record<string, unknown>),
+      annotations: {
+        supportRef: ["sk", "proj", "a".repeat(32)].join("-")
+      }
+    };
+
+    const result = ServiceManifestSchema.safeParse(manifest);
+    expect(result.success).toBe(false);
+    expect(issuePaths(result)).toContain("metadata.annotations.supportRef");
+  });
+
   it("keeps unknown dependency resolution outside the schema package", () => {
     const result = ServiceManifestSchema.safeParse(
       loadFixture("invalid-unknown-dependency.service.yaml")

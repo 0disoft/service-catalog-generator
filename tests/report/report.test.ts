@@ -1,4 +1,4 @@
-import { mkdtemp, readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -109,6 +109,33 @@ describe("report writers", () => {
       diagnostic: expect.objectContaining({
         code: "output.write_failed",
         file: "../outside"
+      })
+    });
+  });
+
+  it("rejects symlinked output directories that resolve outside the workspace", async () => {
+    const parent = await createWorkspace();
+    const workspace = join(parent, "inside");
+    const outside = join(parent, "outside");
+    await mkdir(workspace, { recursive: true });
+    await mkdir(outside, { recursive: true });
+
+    try {
+      await symlink(outside, join(workspace, ".catalog"), "junction");
+    } catch {
+      return;
+    }
+
+    await expect(
+      writeCatalogReports(snapshot(), {
+        cwd: workspace,
+        outputDirectory: ".catalog",
+        formats: ["json"]
+      })
+    ).rejects.toMatchObject({
+      diagnostic: expect.objectContaining({
+        code: "output.write_failed",
+        file: ".catalog"
       })
     });
   });

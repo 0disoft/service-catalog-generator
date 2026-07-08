@@ -18,7 +18,7 @@ import {
   validateParsedManifest
 } from "./validator.js";
 
-const DEFAULT_TOOL_VERSION = "0.5.3";
+const DEFAULT_TOOL_VERSION = "0.5.4";
 const DEFAULT_MAX_MANIFEST_BYTES = 256 * 1024;
 const DEFAULT_MAX_MANIFESTS = 1000;
 
@@ -57,6 +57,7 @@ export async function compileCatalog(
       normalizeServiceRecord(validated.manifest, validated.file.relativePath, config)
     )
   );
+  diagnostics.push(...duplicateServiceIdDiagnostics(services));
   const knownServiceIds = new Set(services.map((service) => service.id));
 
   for (const service of services) {
@@ -110,6 +111,40 @@ export async function compileCatalog(
     services,
     graphEdges,
     discoveredManifests: discovery.manifests
+  };
+}
+
+function duplicateServiceIdDiagnostics(services: CompileCatalogResult["services"]): Diagnostic[] {
+  const sourcePathsById = new Map<string, string[]>();
+
+  for (const service of services) {
+    sourcePathsById.set(service.id, [
+      ...(sourcePathsById.get(service.id) ?? []),
+      service.source.path
+    ]);
+  }
+
+  return [...sourcePathsById.entries()]
+    .filter(([, sourcePaths]) => sourcePaths.length > 1)
+    .flatMap(([serviceId, sourcePaths]) =>
+      sourcePaths.map((sourcePath) =>
+        createDuplicateServiceIdDiagnostic(serviceId, sourcePath, sourcePaths)
+      )
+    );
+}
+
+function createDuplicateServiceIdDiagnostic(
+  serviceId: string,
+  sourcePath: string,
+  sourcePaths: string[]
+): Diagnostic {
+  return {
+    severity: "error",
+    code: "manifest.duplicate_id",
+    file: sourcePath,
+    field: "id",
+    message: `Service id ${serviceId} is declared by multiple manifests.`,
+    hint: `Use a unique service id. Duplicate sources: ${sourcePaths.join(", ")}.`
   };
 }
 

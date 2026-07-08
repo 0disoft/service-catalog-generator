@@ -84,6 +84,35 @@ function schemaIssueCode(issue: SchemaIssue, field: string | undefined): Diagnos
     return "security.secret_like_value";
   }
 
+  if (
+    issue.code === "invalid_type" &&
+    (issue.message.toLowerCase().includes("required") ||
+      issue.message.toLowerCase().includes("undefined"))
+  ) {
+    return "manifest.missing_required_field";
+  }
+
+  if (issue.code === "invalid_type") {
+    return "manifest.invalid_type";
+  }
+
+  if (
+    issue.code === "invalid_enum_value" ||
+    issue.code === "invalid_literal" ||
+    issue.code === "unrecognized_keys"
+  ) {
+    return "manifest.invalid_value";
+  }
+
+  if (
+    issue.code === "invalid_string" ||
+    issue.code === "too_small" ||
+    issue.code === "too_big" ||
+    issue.code === "custom"
+  ) {
+    return "manifest.invalid_format";
+  }
+
   return "manifest.missing_required_field";
 }
 

@@ -129,4 +129,27 @@ describe("schema package contract", () => {
       }).success
     ).toBe(true);
   });
+
+  it("rejects catalog snapshots whose summary counts do not match payload arrays", () => {
+    expect(
+      CatalogSnapshotSchema.safeParse({
+        schemaVersion: "scg.catalog/v1alpha1",
+        tool: {
+          name: "service-catalog-generator",
+          version: "0.5.3"
+        },
+        summary: {
+          serviceCount: 1,
+          errorCount: 0,
+          warningCount: 0,
+          edgeCount: 0
+        },
+        services: [],
+        diagnostics: [],
+        graph: {
+          edges: []
+        }
+      }).success
+    ).toBe(false);
+  });
 });

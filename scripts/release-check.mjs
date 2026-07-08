@@ -76,6 +76,14 @@ assert(
   !/secrets\.(NPM_TOKEN|NODE_AUTH_TOKEN)|NODE_AUTH_TOKEN/i.test(releaseWorkflowText),
   "release workflow must not use npm token secrets or NODE_AUTH_TOKEN"
 );
+assert(
+  releaseWorkflow?.concurrency?.group === "release-${{ github.repository }}",
+  "release workflow must serialize releases across tags before moving the major Action tag"
+);
+assert(
+  releaseWorkflowText.includes("node scripts/pack-smoke.mjs"),
+  "release workflow must smoke test the packed tarball before npm publish"
+);
 
 if (process.env.GITHUB_REF_TYPE === "tag") {
   const expectedTag = `v${rootPackage.version}`;

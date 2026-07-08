@@ -29,6 +29,7 @@ assert(
   "release workflow must retain id-token: write for Trusted Publishing"
 );
 assertText(releaseWorkflowText, ".github/workflows/release.yml", [
+  "node scripts/pack-smoke.mjs",
   "gh release create",
   'git tag -f "$MAJOR_TAG" "$GITHUB_SHA"',
   'git push --force origin "refs/tags/$MAJOR_TAG"'
@@ -53,6 +54,7 @@ assertText(rollbackText, "docs/ops/rollback.md", [
 
 assertText(releaseText, "docs/ops/release.md", [
   "pnpm run release:trust:dry-run",
+  "packed tarball install smoke",
   "Move or create the corresponding major Action tag",
   "Smoke test package installation and Action usage from the released tag.",
   "recovery-drill"

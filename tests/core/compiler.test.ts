@@ -73,6 +73,33 @@ describe("core catalog compiler", () => {
     );
   });
 
+  it("reports duplicate service ids across different manifests", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(workspace, "services/one/service.yaml", serviceYaml({ id: "billing-api" }));
+    await writeManifest(workspace, "services/two/service.yaml", serviceYaml({ id: "billing-api" }));
+
+    const result = await compileCatalog({ cwd: workspace });
+
+    expect(result.snapshot.summary.serviceCount).toBe(2);
+    expect(result.snapshot.summary.errorCount).toBe(2);
+    expect(result.snapshot.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: "error",
+          code: "manifest.duplicate_id",
+          file: "services/one/service.yaml",
+          field: "id"
+        }),
+        expect.objectContaining({
+          severity: "error",
+          code: "manifest.duplicate_id",
+          file: "services/two/service.yaml",
+          field: "id"
+        })
+      ])
+    );
+  });
+
   it("maps unsupported schema versions to stable manifest diagnostics", async () => {
     const workspace = await createWorkspace();
     await writeManifest(
@@ -250,6 +277,70 @@ describe("core catalog compiler", () => {
     );
   });
 
+  it("rejects impossible calendar dates before stale policy checks", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(
+      workspace,
+      "services/bad-date/service.yaml",
+      serviceYaml({ id: "bad-date-api", lastReviewedAt: "2026-02-31" })
+    );
+
+    const result = await compileCatalog({ cwd: workspace, now: date("2026-07-06") });
+
+    expect(result.snapshot.diagnostics).toContainEqual(
+      expect.objectContaining({
+        severity: "error",
+        code: "manifest.invalid_format",
+        file: "services/bad-date/service.yaml",
+        field: "metadata.lastReviewedAt"
+      })
+    );
+  });
+
+  it("warns when metadata.lastReviewedAt is in the future", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(
+      workspace,
+      "services/future/service.yaml",
+      serviceYaml({ id: "future-api", lastReviewedAt: "2026-12-31" })
+    );
+
+    const result = await compileCatalog({ cwd: workspace, now: date("2026-07-06") });
+
+    expect(result.snapshot.diagnostics).toContainEqual(
+      expect.objectContaining({
+        severity: "warning",
+        code: "metadata.future_review",
+        file: "services/future/service.yaml",
+        field: "metadata.lastReviewedAt"
+      })
+    );
+  });
+
+  it("redacts repository URLs before JSON, DOT, or HTML report consumers see records", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(
+      workspace,
+      "services/private/service.yaml",
+      serviceYaml({ id: "private-api", repositoryUrl: "https://git.example.internal/private-api" })
+    );
+
+    const result = await compileCatalog({
+      cwd: workspace,
+      config: {
+        privacy: {
+          redactRepositoryUrls: true
+        }
+      }
+    });
+
+    expect(result.snapshot.services[0]?.repository).toEqual({
+      provider: "url",
+      slug: "[redacted-repository]"
+    });
+    expect(JSON.stringify(result.snapshot)).not.toContain("git.example.internal");
+  });
+
   it("maps secret-like manifest values to security diagnostics", async () => {
     const workspace = await createWorkspace();
     await writeManifest(
@@ -374,6 +465,7 @@ function serviceYaml(options: {
   dependencies?: string;
   lastReviewedAt?: string;
   annotations?: string;
+  repositoryUrl?: string;
 }): string {
   return [
     "schemaVersion: scg.service/v1alpha1",
@@ -384,8 +476,9 @@ function serviceYaml(options: {
     "  type: team",
     "  ref: team:platform",
     "repository:",
-    "  provider: github",
-    `  slug: example/${options.id}`,
+    ...(options.repositoryUrl
+      ? ["  provider: url", `  url: ${options.repositoryUrl}`]
+      : ["  provider: github", `  slug: example/${options.id}`]),
     "runtime:",
     "  language: typescript",
     "  platform: node",

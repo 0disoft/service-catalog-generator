@@ -21902,7 +21902,18 @@ config(en_default());
 // packages/schema/dist/shared.js
 var StableIdSchema = external_exports.string().min(1).max(128).regex(/^[a-z][a-z0-9-]*[a-z0-9]$/, "Use lowercase kebab-case ids.");
 var DisplayNameSchema = external_exports.string().min(1).max(160);
-var DateOnlySchema = external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD dates.");
+var DateOnlySchema = external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD dates.").refine(isCalendarDateOnly, "Use a valid calendar date.");
+function isCalendarDateOnly(value) {
+  const [yearText, monthText, dayText] = value.split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+    return false;
+  }
+  const date5 = new Date(Date.UTC(year, month - 1, day));
+  return date5.getUTCFullYear() === year && date5.getUTCMonth() === month - 1 && date5.getUTCDate() === day;
+}
 var ReferenceValueSchema = external_exports.string().min(1).max(128).regex(/^[a-z][a-z0-9:-]*[a-z0-9]$/, "Use stable refs such as team:platform.").refine((value) => !value.includes("@"), "Owner references must not be email addresses.");
 var LifecycleSchema = external_exports.enum([
   "experimental",
@@ -21936,7 +21947,7 @@ var DiagnosticSchema = external_exports.object({
 
 // packages/schema/dist/secret-scan.js
 var SECRET_KEY_PATTERN = /(?:api[_-]?key|token|secret|password|credential|private[_-]?key)/i;
-var SECRET_VALUE_PATTERN = /(?:sk_(?:live|test)_[a-z0-9_]{12,}|gh[pousr]_[a-z0-9_]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)/i;
+var SECRET_VALUE_PATTERN = /(?:sk-(?:proj-)?[a-z0-9_-]{20,}|sk_(?:live|test)_[a-z0-9_]{12,}|github_pat_[a-z0-9_]{20,}|gh[pousr]_[a-z0-9_]{20,}|npm_[a-z0-9_]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)/i;
 function addSecretLikeIssues(value, ctx, path = []) {
   if (typeof value === "string") {
     if (SECRET_VALUE_PATTERN.test(value)) {
@@ -22073,7 +22084,38 @@ var CatalogSnapshotSchema = external_exports.object({
   graph: external_exports.object({
     edges: external_exports.array(GraphEdgeSchema)
   }).strict()
-}).strict();
+}).strict().superRefine((snapshot, ctx) => {
+  if (snapshot.summary.serviceCount !== snapshot.services.length) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["summary", "serviceCount"],
+      message: "summary.serviceCount must match services.length."
+    });
+  }
+  if (snapshot.summary.edgeCount !== snapshot.graph.edges.length) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["summary", "edgeCount"],
+      message: "summary.edgeCount must match graph.edges.length."
+    });
+  }
+  const errorCount = snapshot.diagnostics.filter((diagnostic) => diagnostic.severity === "error").length;
+  if (snapshot.summary.errorCount !== errorCount) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["summary", "errorCount"],
+      message: "summary.errorCount must match error diagnostics."
+    });
+  }
+  const warningCount = snapshot.diagnostics.filter((diagnostic) => diagnostic.severity === "warning").length;
+  if (snapshot.summary.warningCount !== warningCount) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["summary", "warningCount"],
+      message: "summary.warningCount must match warning diagnostics."
+    });
+  }
+});
 
 // packages/schema/dist/config.js
 var CatalogConfigSchema = external_exports.object({
@@ -22173,6 +22215,18 @@ function schemaIssueCode(issue2, field) {
   }
   if (issue2.message.toLowerCase().includes("secret-like")) {
     return "security.secret_like_value";
+  }
+  if (issue2.code === "invalid_type" && (issue2.message.toLowerCase().includes("required") || issue2.message.toLowerCase().includes("undefined"))) {
+    return "manifest.missing_required_field";
+  }
+  if (issue2.code === "invalid_type") {
+    return "manifest.invalid_type";
+  }
+  if (issue2.code === "invalid_enum_value" || issue2.code === "invalid_literal" || issue2.code === "unrecognized_keys") {
+    return "manifest.invalid_value";
+  }
+  if (issue2.code === "invalid_string" || issue2.code === "too_small" || issue2.code === "too_big" || issue2.code === "custom") {
+    return "manifest.invalid_format";
   }
   return "manifest.missing_required_field";
 }
@@ -22409,7 +22463,7 @@ function normalizeServiceRecord(manifest, sourcePath, config2) {
       type: manifest.owner.type,
       ref: config2.privacy.redactOwnerEmails ? redactOwnerRef(manifest.owner.ref) : manifest.owner.ref
     },
-    repository: manifest.repository,
+    repository: normalizeRepositoryRef(manifest.repository, config2),
     runtime: manifest.runtime,
     deploy: manifest.deploy,
     data: manifest.data,
@@ -22425,6 +22479,15 @@ function normalizeServiceRecord(manifest, sourcePath, config2) {
 }
 function sortServiceRecords(services) {
   return [...services].sort((left, right) => left.id.localeCompare(right.id));
+}
+function normalizeRepositoryRef(repository, config2) {
+  if (!config2.privacy.redactRepositoryUrls || !repository.url) {
+    return repository;
+  }
+  return {
+    provider: repository.provider,
+    slug: repository.slug ?? "[redacted-repository]"
+  };
 }
 
 // packages/core/dist/parser.js
@@ -22705,6 +22768,16 @@ function staleReviewDiagnostic(file2, lastReviewedAt, now, staleAfterDays) {
   if (!reviewedAt) {
     return void 0;
   }
+  if (reviewedAt.getTime() > now.getTime()) {
+    return createDiagnostic({
+      severity: "warning",
+      code: "metadata.future_review",
+      file: file2,
+      field: "metadata.lastReviewedAt",
+      message: "Manifest review date is in the future.",
+      hint: "Use the date when the service metadata was actually verified."
+    });
+  }
   const elapsedDays = Math.floor((now.getTime() - reviewedAt.getTime()) / DAY_IN_MILLISECONDS);
   if (elapsedDays <= staleAfterDays) {
     return void 0;
@@ -22739,11 +22812,15 @@ function parseDateOnly(value) {
   if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
     return void 0;
   }
-  return new Date(Date.UTC(year, month - 1, day));
+  const date5 = new Date(Date.UTC(year, month - 1, day));
+  if (date5.getUTCFullYear() !== year || date5.getUTCMonth() !== month - 1 || date5.getUTCDate() !== day) {
+    return void 0;
+  }
+  return date5;
 }
 
 // packages/core/dist/scan.js
-var DEFAULT_TOOL_VERSION = "0.5.3";
+var DEFAULT_TOOL_VERSION = "0.5.4";
 var DEFAULT_MAX_MANIFEST_BYTES = 256 * 1024;
 var DEFAULT_MAX_MANIFESTS = 1e3;
 async function compileCatalog(options = {}) {
@@ -22770,6 +22847,7 @@ async function compileCatalog(options = {}) {
     }
   }
   const services = sortServiceRecords(validatedManifests.map((validated) => normalizeServiceRecord(validated.manifest, validated.file.relativePath, config2)));
+  diagnostics.push(...duplicateServiceIdDiagnostics(services));
   const knownServiceIds = new Set(services.map((service) => service.id));
   for (const service of services) {
     const staleDiagnostic = staleReviewDiagnostic(service.source.path, service.metadata.lastReviewedAt, options.now ?? /* @__PURE__ */ new Date(), config2.validation.staleAfterDays);
@@ -22808,6 +22886,26 @@ async function compileCatalog(options = {}) {
     discoveredManifests: discovery.manifests
   };
 }
+function duplicateServiceIdDiagnostics(services) {
+  const sourcePathsById = /* @__PURE__ */ new Map();
+  for (const service of services) {
+    sourcePathsById.set(service.id, [
+      ...sourcePathsById.get(service.id) ?? [],
+      service.source.path
+    ]);
+  }
+  return [...sourcePathsById.entries()].filter(([, sourcePaths]) => sourcePaths.length > 1).flatMap(([serviceId, sourcePaths]) => sourcePaths.map((sourcePath) => createDuplicateServiceIdDiagnostic(serviceId, sourcePath, sourcePaths)));
+}
+function createDuplicateServiceIdDiagnostic(serviceId, sourcePath, sourcePaths) {
+  return {
+    severity: "error",
+    code: "manifest.duplicate_id",
+    file: sourcePath,
+    field: "id",
+    message: `Service id ${serviceId} is declared by multiple manifests.`,
+    hint: `Use a unique service id. Duplicate sources: ${sourcePaths.join(", ")}.`
+  };
+}
 function resolveCatalogConfig(input = {}) {
   const defaults = CatalogConfigSchema.parse({
     schemaVersion: CATALOG_CONFIG_SCHEMA_VERSION
@@ -22834,6 +22932,7 @@ function resolveCatalogConfig(input = {}) {
 }
 
 // packages/report/dist/index.js
+var import_node_crypto = require("crypto");
 var import_promises3 = require("fs/promises");
 var import_node_path3 = require("path");
 var ReportWriteError = class extends Error {
@@ -22846,6 +22945,7 @@ var ReportWriteError = class extends Error {
 };
 async function writeCatalogReports(snapshot, options) {
   const cwd = (0, import_node_path3.resolve)(options.cwd ?? process.cwd());
+  const cwdRealPath = await (0, import_promises3.realpath)(cwd);
   const outputDirectory = (0, import_node_path3.resolve)(cwd, options.outputDirectory);
   if (!isPathInside2(cwd, outputDirectory)) {
     throwWriteError(options.outputDirectory, "Output directory resolves outside the current workspace.", "Choose an --out path inside the current workspace.");
@@ -22854,16 +22954,20 @@ async function writeCatalogReports(snapshot, options) {
   const files = [];
   try {
     await (0, import_promises3.mkdir)(outputDirectory, { recursive: true });
+    const outputDirectoryRealPath = await (0, import_promises3.realpath)(outputDirectory);
+    if (!isPathInside2(cwdRealPath, outputDirectoryRealPath)) {
+      throwWriteError(options.outputDirectory, "Output directory resolves outside the current workspace.", "Choose an --out path inside the current workspace and avoid symlinked output directories.");
+    }
     for (const format of formats) {
       const fileName = reportFileName(format);
-      const absolutePath = (0, import_node_path3.resolve)(outputDirectory, fileName);
-      if (!isPathInside2(outputDirectory, absolutePath)) {
+      const absolutePath = (0, import_node_path3.resolve)(outputDirectoryRealPath, fileName);
+      if (!isPathInside2(outputDirectoryRealPath, absolutePath)) {
         throwWriteError(fileName, "Report file resolves outside the output directory.", "Use a safe output format.");
       }
       await writeAtomic(absolutePath, renderReport(snapshot, format));
       files.push({
         format,
-        path: toPosixPath2((0, import_node_path3.relative)(cwd, absolutePath))
+        path: toPosixPath2((0, import_node_path3.relative)(cwdRealPath, absolutePath))
       });
     }
   } catch (error51) {
@@ -22971,9 +23075,9 @@ function reportFileName(format) {
   }
 }
 async function writeAtomic(path, contents) {
-  const temporaryPath = (0, import_node_path3.resolve)((0, import_node_path3.dirname)(path), `.${(0, import_node_path3.basename)(path)}.${process.pid}.tmp`);
+  const temporaryPath = (0, import_node_path3.resolve)((0, import_node_path3.dirname)(path), `.${(0, import_node_path3.basename)(path)}.${process.pid}.${(0, import_node_crypto.randomUUID)()}.tmp`);
   try {
-    await (0, import_promises3.writeFile)(temporaryPath, contents, "utf8");
+    await (0, import_promises3.writeFile)(temporaryPath, contents, { encoding: "utf8", flag: "wx" });
     await (0, import_promises3.rename)(temporaryPath, path);
   } catch (error51) {
     await (0, import_promises3.rm)(temporaryPath, { force: true });
@@ -23077,7 +23181,7 @@ function throwWriteError(file2, message, hint) {
 
 // packages/cli/dist/index.js
 var import_yaml2 = __toESM(require_dist(), 1);
-var cliVersion = "0.5.3";
+var cliVersion = "0.5.4";
 var DEFAULT_CONFIG_FILE = "scg.config.yaml";
 async function runCli(options = {}) {
   const argv = options.argv ?? process.argv.slice(2);

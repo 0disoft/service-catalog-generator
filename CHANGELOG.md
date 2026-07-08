@@ -7,7 +7,7 @@
 - Added a peak RSS performance test for the 1,000-manifest memory budget.
 - Added retry coverage for transient dependency audit registry failures.
 
-## 0.5.4
+## 0.5.5
 
 - Added duplicate service id diagnostics to prevent silent catalog key collisions.
 - Fixed nested discovery exclude globs so `services/legacy/**` no longer drops sibling service

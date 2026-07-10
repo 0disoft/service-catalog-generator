@@ -68,6 +68,7 @@ describe("GitHub Action wrapper", () => {
           steps: Array<{
             id?: string;
             uses?: string;
+            "continue-on-error"?: boolean;
             with?: Record<string, string>;
           }>;
         };
@@ -76,6 +77,8 @@ describe("GitHub Action wrapper", () => {
 
     const steps = workflow.jobs["self-smoke"].steps;
     const actionStep = steps.find((step) => step.id === "scg");
+    const zdpActionStep = steps.find((step) => step.id === "scg_zdp");
+    const zdpWarningStep = steps.find((step) => step.id === "scg_zdp_warning");
 
     expect(workflow.name).toBe("action-self-smoke");
     expect(workflow.permissions).toEqual({ contents: "read" });
@@ -88,6 +91,29 @@ describe("GitHub Action wrapper", () => {
           report: "true",
           format: "json,dot,html",
           "output-directory": ".tmp/action-smoke/.catalog"
+        }
+      })
+    );
+    expect(zdpActionStep).toEqual(
+      expect.objectContaining({
+        uses: "./",
+        with: {
+          roots: ".tmp/action-smoke/zdp-valid/client-surfaces/zdp-web-apps",
+          "input-schema": "zdp-v2",
+          "allow-unknown-dependencies": "true",
+          "fail-on-warning": "true"
+        }
+      })
+    );
+    expect(zdpWarningStep).toEqual(
+      expect.objectContaining({
+        uses: "./",
+        "continue-on-error": true,
+        with: {
+          roots: ".tmp/action-smoke/zdp-warning/client-surfaces/zdp-web-apps",
+          "input-schema": "zdp-v2",
+          "allow-unknown-dependencies": "true",
+          "fail-on-warning": "true"
         }
       })
     );

@@ -52,6 +52,26 @@ behavior rather than duplicating validation logic.
 Use `input-schema: zdp-v2` only when the checked-in manifests are ZDP v2 contracts. The action maps
 the value to the CLI and must not implement a separate schema or policy layer.
 
+## ZDP Repository Gate
+
+A repository-local ZDP check should point `roots` at the checkout path and run before private
+dependency checkout or heavier build steps:
+
+```yaml
+- name: Validate service catalog manifest
+  uses: 0disoft/service-catalog-generator@v0.5.9
+  with:
+    roots: projects/zdp-platforms/client-surfaces/example-app
+    input-schema: zdp-v2
+    allow-unknown-dependencies: "true"
+    fail-on-warning: "true"
+```
+
+`allow-unknown-dependencies` is appropriate at this boundary when referenced services are owned by
+other repositories and are unavailable in the current checkout. It does not prove the complete
+dependency graph. A central catalog run should resolve those edges across all selected manifests,
+while ZDP-specific architecture policy remains owned by `zdp-architecture-linter`.
+
 ## Review Blockers
 
 - Action permission changes lack least-privilege review.

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.5.10
+
+- Added GitHub Action self-smoke coverage for nested-root ZDP v2 manifests and fail-on-warning
+  behavior.
+- Documented the boundary between repository-local ZDP checks, central dependency graph builds,
+  and `zdp-architecture-linter` policy validation.
+
 ## 0.5.9
 
 - Classified unrecognized schema validation issues as `manifest.invalid` instead of reporting them

@@ -63,3 +63,77 @@ jobs:
           test -f .tmp/action-smoke/.catalog/catalog.json
           test -f .tmp/action-smoke/.catalog/graph.dot
           test -f .tmp/action-smoke/.catalog/report.html
+
+      - name: Create synthetic ZDP service manifests
+        run: |
+          mkdir -p .tmp/action-smoke/zdp-valid/client-surfaces/zdp-web-apps
+          cat > .tmp/action-smoke/zdp-valid/client-surfaces/zdp-web-apps/service.yaml <<'YAML'
+          contract:
+            schema_version: 2
+            contract_version: 1
+            last_reviewed_at: 2026-07-07
+          service:
+            id: app-console
+            owner: 0disoft
+            repo: zdp-web-apps
+            status: experiment
+            tier: tier2
+            risk_level: medium
+          lifecycle:
+            stage: foundation
+          domain:
+            type: admin
+            user_facing: true
+            public_api: false
+            money_movement: false
+          runtime:
+            core: sveltekit
+            framework: sveltekit-contracts
+          cost:
+            cost_center: web-apps
+            owner: 0disoft
+          data:
+            pii_level: none
+            payment_data: false
+            message_content: false
+            ai_user_data: false
+            money_movement: false
+          dependencies:
+            services:
+              - core-api
+            datastores: []
+            queues: []
+            workers: []
+            internal_apis: []
+          YAML
+          mkdir -p .tmp/action-smoke/zdp-warning/client-surfaces/zdp-web-apps
+          cp .tmp/action-smoke/zdp-valid/client-surfaces/zdp-web-apps/service.yaml .tmp/action-smoke/zdp-warning/client-surfaces/zdp-web-apps/service.yaml
+          sed -i 's/2026-07-07/2099-12-31/' .tmp/action-smoke/zdp-warning/client-surfaces/zdp-web-apps/service.yaml
+
+      - id: scg_zdp
+        uses: ./
+        with:
+          roots: .tmp/action-smoke/zdp-valid/client-surfaces/zdp-web-apps
+          input-schema: zdp-v2
+          allow-unknown-dependencies: "true"
+          fail-on-warning: "true"
+
+      - name: Assert ZDP action outputs
+        run: |
+          test "${{ steps.scg_zdp.outputs.service-count }}" = "1"
+          test "${{ steps.scg_zdp.outputs.error-count }}" = "0"
+          test "${{ steps.scg_zdp.outputs.warning-count }}" = "0"
+
+      - id: scg_zdp_warning
+        continue-on-error: true
+        uses: ./
+        with:
+          roots: .tmp/action-smoke/zdp-warning/client-surfaces/zdp-web-apps
+          input-schema: zdp-v2
+          allow-unknown-dependencies: "true"
+          fail-on-warning: "true"
+
+      - name: Assert ZDP warning failure
+        if: always()
+        run: |
+          test "${{ steps.scg_zdp_warning.outcome }}" = "failure"

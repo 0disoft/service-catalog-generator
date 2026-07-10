@@ -28,6 +28,9 @@ The action is a CI wrapper around the CLI. It maps inputs to CLI flags, exposes 
 propagates the CLI exit code. It must not duplicate manifest validation policy or require write
 permissions by default.
 
+For ZDP repositories, use the repository-local gate in `action-contract.md` to validate one
+checkout and use a separate central catalog run to resolve cross-repository dependency edges.
+
 ## Review Blockers
 
 - Action permission changes lack least-privilege review.

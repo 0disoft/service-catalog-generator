@@ -1,14 +1,20 @@
 ---
 name: Architecture Question
-about: Track a architecture question without inventing product facts.
+about: Discuss a boundary or compatibility decision before implementation.
+labels: question
 ---
 
-## Context
+## Decision Needed
 
-## Source of truth
+## Current Contract
 
-## Expected behavior
+Link the relevant product spec, ADR, schema, CLI contract, Action contract, or operations document.
 
-## Risk
+## Options And Tradeoffs
 
-## Validation
+## Compatibility Impact
+
+Cover manifests, config, diagnostics, exit codes, generated artifacts, package layout, security, and
+rollback where relevant.
+
+## Recommendation

@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync, statSync } from "node:fs";
-import { relative, resolve } from "node:path";
+import { existsSync, readFileSync, statSync } from "node:fs";
+import { join, relative, resolve } from "node:path";
 
 const root = process.cwd();
 const maxBytes = 1024 * 1024;
@@ -27,7 +27,7 @@ const patterns = [
   }
 ];
 
-const files = process.argv.slice(2).length > 0 ? process.argv.slice(2) : trackedFiles();
+const files = process.argv.slice(2).length > 0 ? process.argv.slice(2) : repositoryFiles();
 const findings = [];
 
 for (const file of files) {
@@ -46,13 +46,20 @@ if (findings.length > 0) {
 
 console.log(`secret-scan: ok ${files.length} files`);
 
-function trackedFiles() {
-  const output = execFileSync("git", ["ls-files", "-z"], {
-    cwd: root,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"]
-  });
-  return output.split("\0").filter(Boolean);
+function repositoryFiles() {
+  const output = execFileSync(
+    "git",
+    ["ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+    {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"]
+    }
+  );
+  return output
+    .split("\0")
+    .filter(Boolean)
+    .filter((file) => existsSync(join(root, file)));
 }
 
 function scanFile(file) {

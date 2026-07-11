@@ -16,6 +16,10 @@
   result cannot roll back GitHub state for an immutable package that may already exist.
 - Added bounded weekly Dependabot updates for npm and GitHub Actions, plus explicit timeouts for all
   hosted workflow jobs.
+- Replaced public contribution, development, ownership, issue, and pull-request scaffold text with
+  project-specific setup, validation, security, compatibility, and maintainer contracts.
+- Expanded secret scanning to untracked non-ignored files and made tracked working-tree deletions
+  safe to validate before staging.
 
 ## 0.5.11
 

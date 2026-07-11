@@ -1,29 +1,27 @@
-## What changed
+## Summary
 
-## Why
+## Boundary
 
-## Related spec
+Which schema, core, CLI, report, Action, documentation, or release boundary owns this change?
 
-## Related ADR
+## Compatibility
 
-## API contract changes
+Describe changes to manifests, config, diagnostics, CLI output, exit codes, Action inputs/outputs,
+package contents, or generated artifacts. Write `None` when these contracts are unchanged.
 
-## DB schema changes
-
-## Hygiene file changes
-
-## Risk
+## Risk And Recovery
 
 ## Validation
 
-## Skipped validation and reasons
+- [ ] Focused regression tests
+- [ ] `pnpm run check`
+- [ ] `actionlint` when workflows changed
 
-## Design review checklist confirmation
+Skipped validation and reason:
 
-## Performance budget confirmation
+## Checklist
 
-## Security baseline confirmation
-
-## Testing standard confirmation
-
-## Rollback or recovery path
+- [ ] Fixtures and examples are synthetic and contain no secrets or private catalog data.
+- [ ] User-visible or operational changes are recorded under `CHANGELOG.md` `Unreleased`.
+- [ ] Generated `dist/action/index.cjs` is rebuilt when Action implementation changed.
+- [ ] The change stays inside SCG's read-only compiler and static-report boundary.

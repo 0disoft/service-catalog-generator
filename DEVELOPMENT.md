@@ -1,28 +1,62 @@
 # Development
 
-Status: Draft
-Owner: UNASSIGNED
+## Runtime
 
-## Purpose
+- Node.js: 24 or newer
+- Package manager: pnpm 11.7.0 through Corepack
+- Language: strict TypeScript with NodeNext modules
+- Tests: Vitest
+- Bundling: tsup
 
-This document captures the durable design contract for Development.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+The repository has no development server, database, migration runtime, or required cloud service.
+Normal scan, check, report, test, and build paths must remain local and deterministic.
 
-## Source of Truth
+## Workspace Flow
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
+```sh
+corepack enable
+pnpm install --frozen-lockfile
+pnpm run typecheck
+pnpm run test
+pnpm run contract
+```
 
-## Required Decisions
+Run `pnpm run check` before a commit intended for review. The complete gate is intentionally broader
+than unit tests because package layout, generated Action code, docs, secrets, dependencies, and
+recovery behavior are part of the shipped surface.
 
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+## Where To Work
 
-## Review Blockers
+| Change | Source | Primary tests |
+| --- | --- | --- |
+| Manifest or config schema | `packages/schema/src` | `tests/schema`, `tests/contract` |
+| Discovery, parsing, validation, graph | `packages/core/src` | `tests/core` |
+| CLI arguments, output, exit codes | `packages/cli/src` | `tests/cli` |
+| JSON, DOT, HTML reports | `packages/report/src` | `tests/report` |
+| GitHub Action wrapper | `packages/action/src`, `action.yml` | `tests/action`, `tests/contract` |
+| Release and repository automation | `scripts`, `.github/workflows` | `tests/contract`, `recovery-drill` |
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+Tests should use temporary directories and synthetic fixtures. Assertions must not depend on the
+developer's home directory, Git credentials, private repositories, or network access unless the
+test is explicitly an external release-evidence check.
+
+## Generated Output
+
+`pnpm run build` recreates the CLI and Action bundles. Only `dist/action/index.cjs` is tracked because
+GitHub executes it directly from the repository tag. Do not edit generated bundles by hand. Version
+changes must update package metadata and source version constants before rebuilding so the committed
+Action bundle reports the release version.
+
+Generated catalogs and reports belong in ignored temporary directories. They are evidence derived
+from manifests, never source truth and never public fixtures unless the input is fully synthetic.
+
+## Debugging Order
+
+1. Reproduce with the narrowest synthetic manifest or config.
+2. Confirm whether the defect belongs to schema, core, CLI, report, or Action ownership.
+3. Add a failing regression test at that boundary.
+4. Fix the source rather than generated output.
+5. Run the focused suite, then `pnpm run check`.
+
+Release operations and npm publication are maintainer-only procedures documented in
+`docs/ops/release.md` and `docs/ops/rollback.md`.

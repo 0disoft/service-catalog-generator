@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Private security report
+    url: https://github.com/0disoft/service-catalog-generator/security/advisories/new
+    about: Report vulnerabilities and possible secret exposure privately.

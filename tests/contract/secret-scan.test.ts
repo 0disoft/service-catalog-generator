@@ -1,10 +1,11 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 const cleanupRoots: string[] = [];
+const scannerPath = join(process.cwd(), "scripts", "secret-scan.mjs");
 
 afterEach(() => {
   for (const root of cleanupRoots.splice(0)) {
@@ -53,10 +54,45 @@ describe("secret-scan contract", () => {
       expect(stderr).not.toContain(token);
     }
   });
+
+  it("scans untracked non-ignored files", () => {
+    const workspace = createGitWorkspace();
+    const token = `ghp_${"123456789012345678901234567890123456"}`;
+    writeFileSync(join(workspace, "untracked.txt"), `token=${token}\n`);
+
+    expect(() => runRepositoryScan(workspace)).toThrowError(/secret-like values detected/);
+  });
+
+  it("skips tracked files deleted from the working tree", () => {
+    const workspace = createGitWorkspace();
+    const deleted = join(workspace, "deleted.txt");
+    writeFileSync(deleted, "safe\n");
+    execFileSync("git", ["add", "deleted.txt"], { cwd: workspace, stdio: "ignore" });
+    unlinkSync(deleted);
+
+    expect(runRepositoryScan(workspace)).toContain("secret-scan: ok");
+  });
 });
 
 function createWorkspace(): string {
   const root = mkdtempSync(join(tmpdir(), "scg-secret-scan-"));
   cleanupRoots.push(root);
   return root;
+}
+
+function createGitWorkspace(): string {
+  const root = createWorkspace();
+  execFileSync("git", ["init", "--quiet"], { cwd: root, stdio: "ignore" });
+  writeFileSync(join(root, ".gitignore"), "ignored.txt\n");
+  writeFileSync(join(root, "tracked.txt"), "safe\n");
+  execFileSync("git", ["add", ".gitignore", "tracked.txt"], { cwd: root, stdio: "ignore" });
+  return root;
+}
+
+function runRepositoryScan(workspace: string): string {
+  return execFileSync(process.execPath, [scannerPath], {
+    cwd: workspace,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"]
+  });
 }

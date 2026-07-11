@@ -6,6 +6,8 @@
   credential persistence.
 - Moved mutable major Action tag promotion and rollback to the GitHub Git Refs API so release jobs
   do not depend on persisted Git credentials.
+- Added scheduled and change-triggered CodeQL analysis for JavaScript/TypeScript source and GitHub
+  Actions workflows.
 
 ## 0.5.11
 

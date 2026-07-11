@@ -107,6 +107,7 @@ describe("release workflow contract", () => {
     for (const workflowPath of [
       ".github/workflows/ci.yml",
       ".github/workflows/action-self-smoke.yml",
+      ".github/workflows/codeql.yml",
       ".github/workflows/release.yml"
     ]) {
       const workflowText = readFileSync(join(process.cwd(), workflowPath), "utf8");

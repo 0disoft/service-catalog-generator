@@ -1,6 +1,6 @@
 # Product Brief
 
-Status: Draft
+Status: Active Pre-1.0
 Owner: 0disoft
 
 ## Purpose
@@ -9,8 +9,8 @@ Service Catalog Generator helps solo builders and small teams answer a basic ope
 "what services do we own, what do they depend on, and which manifest facts are missing?"
 
 The product is a lightweight CLI that reads checked-in `service.yaml` manifests and generates a
-static catalog report. The first useful version should feel closer to `eslint` plus a static report
-than to a hosted developer portal.
+static catalog report. The shipped product behaves closer to `eslint` plus a static report than to a
+hosted developer portal.
 
 ## Source of Truth
 

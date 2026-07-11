@@ -20,6 +20,8 @@
   project-specific setup, validation, security, compatibility, and maintainer contracts.
 - Expanded secret scanning to untracked non-ignored files and made tracked working-tree deletions
   safe to validate before staging.
+- Rebased the product roadmap and specification on the shipped `0.5.11` surface and made remaining
+  pre-1.0 compatibility, adoption, migration, and hosted-release evidence explicit.
 
 ## 0.5.11
 

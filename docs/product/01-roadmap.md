@@ -1,82 +1,80 @@
 # Roadmap
 
-Status: Draft
+Status: Active
 Owner: 0disoft
 
-## Purpose
+## Current Position
 
-This roadmap keeps the first releases small enough to ship while preserving the path toward richer
-catalog reports.
+The MVP phases are implemented and the latest verified public release is `0.5.11`. SCG is a
+read-only compiler and linter with a published npm CLI, a GitHub Action, deterministic JSON/DOT/HTML
+reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog adoption evidence.
 
-## Phase 0: Catalog Contract
+## Delivered
 
-- Accept the read-only `service.yaml` compiler and linter boundary.
-- Define `service.yaml` v1alpha1 fields.
-- Include example manifests for a tiny multi-service workspace.
-- Define required, optional, and explicitly out-of-scope fields.
-- Record how owner, runtime, repository, deploy target, data class, and dependencies are expressed.
-- Record diagnostics, exit codes, generated artifact policy, and static report security rules.
+### Catalog Contract And Architecture
 
-## Phase 1: Repository Skeleton
+- `scg.service/v1alpha1`, `scg.catalog/v1alpha1`, and `scg.config/v1alpha1` contracts.
+- Explicit owner, runtime, repository, deploy, data, review, and dependency fields.
+- Stable diagnostic categories, exit-code meanings, generated-artifact policy, and report security
+  boundary.
+- Single public pnpm workspace with schema, core, CLI, report, and Action package boundaries.
 
-- Create a single pnpm workspace.
-- Add packages for schema, core, CLI, report, and action.
-- Add root TypeScript, test, format, lint, CI, and release placeholders.
-- Keep unimplemented scripts honest: they must fail clearly or run real checks.
+### Compiler And Linter
 
-## Phase 2: Schema and Fixtures
+- Multi-root manifest discovery with default excludes and bounded concurrency.
+- Safe YAML parsing, normalization, dependency resolution, graph construction, deterministic
+  ordering, redaction, path containment, and symlink handling.
+- `scan`, `check`, and `report` commands with human and JSON output.
+- Explicit `zdp-v2` adapter that preserves source-specific fields under `extensions.zdp` without
+  moving ZDP policy into SCG.
 
-- Implement `scg.service/v1alpha1`, `scg.catalog/v1alpha1`, and `scg.config/v1alpha1` schemas.
-- Add valid minimal, valid full, missing owner, unknown dependency, secret-like value, and bad schema
-  version fixtures.
-- Make fixture tests the first contract gate.
+### Reports And Automation
 
-## Phase 3: Core Engine
+- Deterministic `catalog.json`, `graph.dot`, and static `report.html` output.
+- GitHub Action check/report wrapper using the same CLI and core behavior.
+- npm Trusted Publishing, GitHub Releases, immutable version tags, and moving major Action tags.
+- Packed-package, installed-CLI, Action self-smoke, release recovery, secret, dependency, and
+  repository-contract validation.
+- Full-SHA workflow pins, CodeQL, bounded Dependabot updates, and explicit runner timeouts.
 
-- Discover manifests below configured roots.
-- Exclude `.git`, `node_modules`, `dist`, `coverage`, and output directories by default.
-- Parse YAML safely, normalize records, validate manifests, resolve dependencies, and build graph
-  edges.
-- Enforce path, symlink, redaction, and deterministic ordering policies.
+## Pre-1.0 Work
 
-## Phase 4: CLI MVP
+### Compatibility Review
 
-- Scan one folder or a list of folders.
-- Validate manifest shape and required fields.
-- Print diagnostics suitable for humans.
-- Export normalized catalog JSON.
-- Export dependency graph DOT.
-- Preserve stable exit codes and JSON output.
+- Inventory every manifest, config, CLI JSON, diagnostic, exit-code, and Action input/output surface
+  that will become a 1.0 compatibility promise.
+- Convert remaining draft wording in user contracts into explicit stable, experimental, or internal
+  classifications.
+- Publish a pre-1.0-to-1.0 migration guide, including removal and deprecation rules.
 
-## Phase 5: Static Report
+### Adoption Evidence
 
-- Generate a static HTML report from the same normalized catalog.
-- Show service list, missing metadata, owner/runtime/deploy slices, and dependency graph.
-- Keep report generation deterministic for CI diffs.
-- Escape manifest strings for HTML and DOT output.
+- Keep repository-local ZDP gates and the central 40-service catalog green against released Action
+  bundles.
+- Add non-ZDP synthetic consumer evidence so the native `scg-v1` contract is exercised outside this
+  repository before freezing it.
+- Record Windows and Linux installed-package evidence for each release candidate.
 
-## Phase 6: CI Wrapper
+### Release Confidence
 
-- Provide a GitHub Action wrapper around the CLI.
-- Support check-only validation and optional report artifact upload.
-- Keep default permissions read-only.
-- Use root `action.yml` and propagate CLI exit behavior.
+- Run the locally prepared CodeQL, dependency-maintenance, npm visibility, and run-owned rollback
+  workflows on hosted GitHub before the next release.
+- Prove both existing-major-tag update and new-major-tag creation paths without rewriting immutable
+  version tags.
+- Keep ambiguous npm publish outcomes in forward-fix mode unless registry absence is positively
+  established.
 
-## Phase 7: Release
+## 1.0 Exit Criteria
 
-- Release npm package `@0disoft/service-catalog-generator` and CLI binary `scg`.
-- Use npm trusted publishing when repository and package metadata are ready.
-- Publish GitHub Releases and Action tags from the same version stream.
-- Treat pre-1.0 schema and JSON-output breaks as allowed only with migration notes.
-
-## 1.0 Freeze
-
-- Freeze manifest schema compatibility.
-- Freeze CLI JSON output compatibility.
-- Freeze documented exit code meanings.
-- Require migration notes for any later breaking change.
+- Manifest and config schemas have documented compatibility and migration rules.
+- CLI JSON, diagnostics, and exit codes have explicit stable-field guarantees.
+- Action inputs, outputs, permissions, runtime, and tag policy are frozen.
+- Native and ZDP adapter consumers pass released-package and released-Action smoke tests.
+- No open critical/high security alert or unresolved release-provenance blocker exists.
+- `pnpm run check`, CodeQL, package smoke, Action smoke, and release dry-run evidence are green at the
+  exact release commit.
 
 ## Explicitly Deferred
 
 - Hosted portal, RBAC, live inventory database, Kubernetes discovery, cloud cost ingestion, incident
-  workflow, and automatic ownership sync.
+  workflow, automatic ownership sync, source-code dependency inference, and telemetry backend.

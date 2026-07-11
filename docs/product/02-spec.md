@@ -1,6 +1,6 @@
 # Product Specification
 
-Status: Draft
+Status: Active Pre-1.0
 Owner: 0disoft
 
 ## Purpose
@@ -105,23 +105,24 @@ metadata:
   lastReviewedAt: "2026-07-01"
 ```
 
-The schema remains pre-1.0 until fixtures and contract tests lock the behavior.
+The schema remains pre-1.0 while external adoption, compatibility classification, and migration
+review continue. Fixtures and contract tests already lock current behavior against accidental drift.
 
 Existing manifest formats may be supported through explicit input schema adapters. These adapters
 must normalize external records into the SCG catalog model without turning those external policy
 contracts into the core SCG schema. Adapter-specific fields may be preserved under `extensions`, but
 policy validation remains owned by the source contract.
 
-## CLI MVP
+## CLI Contract
 
-The first CLI should expose these product-level actions:
+The CLI exposes these product-level actions:
 
 - `scan`: read manifests and print a normalized service list;
 - `check`: validate required fields and dependency references;
 - `report`: write static JSON, DOT, and HTML report artifacts.
 
-Command names are the draft public contract. Flags may change before implementation, but every
-command must keep a machine-readable JSON mode and deterministic exit behavior.
+Command names, documented flags, machine-readable JSON mode, and deterministic exit behavior are
+public pre-1.0 contracts. A breaking change requires a changelog entry and migration note.
 
 ## Outputs
 
@@ -137,7 +138,7 @@ Generated outputs are derived artifacts. They must never become the source of tr
 - Runtime floor: Node.js 24 LTS.
 - Language: TypeScript with strict type checking.
 - Package manager: pnpm workspace.
-- Public package name: `@0disoft/service-catalog-generator` unless package availability blocks it.
+- Public package name: `@0disoft/service-catalog-generator`.
 - CLI binary: `scg`.
 - Project license: Apache-2.0.
 - GitHub Action metadata: root `action.yml`.

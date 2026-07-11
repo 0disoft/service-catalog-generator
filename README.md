@@ -1,6 +1,6 @@
 # Service Catalog Generator
 
-Status: Draft
+Status: Pre-1.0
 Scope: infra
 Repository Type: cli-tool
 Addons: github-action, docs-site
@@ -67,16 +67,16 @@ scg report `
 - github-action: optional CI wrapper for running catalog validation in pull requests.
 - docs-site: static HTML report generated from catalog input, not an authenticated portal.
 
-## MVP Direction
+## Implemented MVP
 
-- Define `service.yaml` v1alpha1.
-- Read existing ZDP v2 `service.yaml` manifests through an explicit input adapter.
+- Define and validate `service.yaml` v1alpha1.
+- Read ZDP v2 `service.yaml` manifests through an explicit input adapter.
 - Scan one or more repositories or folders for manifests without network calls.
 - Validate required owner, runtime, repository, deploy target, data, review timestamp, and
   dependency fields.
-- Export service list and dependency graph as deterministic JSON and DOT.
+- Export service lists and dependency graphs as deterministic JSON and DOT.
 - Generate a static HTML report suitable for small teams and agent workflows.
-- Provide a GitHub Action wrapper that delegates to the same CLI behavior.
+- Provide a published GitHub Action wrapper that delegates to the same CLI behavior.
 
 ## Explicit Non-Goals
 

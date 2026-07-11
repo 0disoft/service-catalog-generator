@@ -1,6 +1,6 @@
 # Risk Register
 
-Status: Draft
+Status: Active
 Owner: 0disoft
 
 ## Manifest Drift

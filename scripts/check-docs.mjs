@@ -13,6 +13,7 @@ const requiredFiles = [
   ".github/ISSUE_TEMPLATE/bug-report.md",
   ".github/ISSUE_TEMPLATE/feature-request.md",
   ".github/ISSUE_TEMPLATE/config.yml",
+  "docs/product/01-roadmap.md",
   "docs/product/02-spec.md",
   "docs/adr/0003-single-public-monorepo.md",
   "docs/adr/0004-typescript-node24-runtime.md",
@@ -36,6 +37,10 @@ const requiredText = new Map([
     ["@0disoft", "pnpm install --frozen-lockfile", "pnpm run check", "dist/action/index.cjs"]
   ],
   ["DEVELOPMENT.md", ["Node.js: 24", "packages/schema/src", "tests/contract", "pnpm run check"]],
+  [
+    "docs/product/01-roadmap.md",
+    ["latest verified public release is `0.5.11`", "## Pre-1.0 Work", "## 1.0 Exit Criteria"]
+  ],
   [".github/CODEOWNERS", ["* @0disoft"]],
   [".github/ISSUE_TEMPLATE/config.yml", ["blank_issues_enabled: false", "/security/advisories/new"]]
 ]);
@@ -43,7 +48,13 @@ const requiredText = new Map([
 const forbiddenText = new Map([
   ["CONTRIBUTING.md", ["UNDECIDED", "UNASSIGNED", "intentionally a scaffold"]],
   ["DEVELOPMENT.md", ["UNDECIDED", "UNASSIGNED", "intentionally a scaffold"]],
-  [".github/CODEOWNERS", ["REPLACE_WITH_OWNER"]]
+  [".github/CODEOWNERS", ["REPLACE_WITH_OWNER"]],
+  [
+    "docs/product/01-roadmap.md",
+    ["Add root TypeScript, test, format, lint, CI, and release placeholders"]
+  ],
+  ["docs/product/02-spec.md", ["Flags may change before implementation"]],
+  ["README.md", ["## MVP Direction"]]
 ]);
 
 const missingFiles = requiredFiles.filter((file) => !existsSync(join(process.cwd(), file)));

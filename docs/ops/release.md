@@ -48,6 +48,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 | `0.5.8` | Release recovery, parse throughput, and config cleanup.   |
 | `0.5.9` | Diagnostic fallback and migration-note cleanup.           |
 | `0.5.10` | ZDP Action smoke coverage and adoption boundary docs.     |
+| `0.5.11` | Committed Action bundle version alignment.                |
 | `1.0.0` | Manifest schema and CLI contract freeze.                  |
 
 Pre-1.0 breaking changes are allowed only with clear migration notes. After 1.0, manifest schema,

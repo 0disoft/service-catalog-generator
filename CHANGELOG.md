@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.5.11
+
+- Rebuilt and committed the CLI and GitHub Action bundles so Action catalog metadata reports the
+  release version instead of the stale `0.5.9` runtime version.
+- Added a release contract test that keeps the committed Action bundle version aligned with
+  `package.json`.
+
 ## 0.5.10
 
 - Added GitHub Action self-smoke coverage for nested-root ZDP v2 manifests and fail-on-warning

@@ -5,7 +5,7 @@ Owner: 0disoft
 
 ## Current Position
 
-The MVP phases are implemented and the latest verified public release is `0.5.11`. SCG is a
+The MVP phases are implemented and the latest verified public release is `0.5.12`. SCG is a
 read-only compiler and linter with a published npm CLI, a GitHub Action, deterministic JSON/DOT/HTML
 reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog adoption evidence.
 
@@ -57,8 +57,8 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 
 ### Release Confidence
 
-- Run the locally prepared CodeQL, dependency-maintenance, npm visibility, and run-owned rollback
-  workflows on hosted GitHub before the next release.
+- Keep hosted CodeQL, bounded dependency maintenance, npm visibility checks, and run-owned rollback
+  guards green for each release candidate.
 - Prove both existing-major-tag update and new-major-tag creation paths without rewriting immutable
   version tags.
 - Keep ambiguous npm publish outcomes in forward-fix mode unless registry absence is positively

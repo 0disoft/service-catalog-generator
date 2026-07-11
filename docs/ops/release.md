@@ -19,7 +19,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 - Release blocker status: any missing implemented validation is a blocker unless documented as not
   yet configured
 - Remaining operational risk: package availability, Trusted Publishing, and Action runtime support
-  are verified for `0.5.11`; each future release must rerun `release-evidence` and reverify Trusted
+  are verified for `0.5.12`; each future release must rerun `release-evidence` and reverify Trusted
   Publishing before promotion
 
 ## Release Units
@@ -79,7 +79,7 @@ For npm CLI smoke tests, run from a temporary directory outside this repository 
 resolve the local workspace package instead of the published package:
 
 ```sh
-npm exec --yes --package @0disoft/service-catalog-generator@0.5.11 -- scg --version
+npm exec --yes --package @0disoft/service-catalog-generator@0.5.12 -- scg --version
 ```
 
 On Windows, a full install smoke test should also confirm `node_modules/.bin/scg.cmd` is created
@@ -125,15 +125,17 @@ The workflow must not use npm token secrets such as `NPM_PUBLISH_TOKEN`, `NPM_TO
 
 Current verified release evidence:
 
-- npm package: `@0disoft/service-catalog-generator@0.5.11`.
+- npm package: `@0disoft/service-catalog-generator@0.5.12`.
 - npm integrity:
-  `sha512-STOWJg3Xjqsf+tJCQBoUVwiV4CJPS6Pl6UeiMtJ//SIlOT6lL8hG46Df1l7WRN8Jj/3/3PkpKE5rejAzG6qY4A==`.
-- GitHub Release: `v0.5.11`.
-- Release workflow run: `29144794587`, conclusion `success`.
-- Release commit: `a94a02253b048b5a465f9859b3e231a3a61a3fdf`.
-- Mutable Action tag: `v0` points to the `0.5.11` release commit.
-- Published CLI smoke: `npm exec --yes --package @0disoft/service-catalog-generator@0.5.11 -- scg --version` returned `0.5.11`.
-- Windows install smoke: clean temporary npm install created `node_modules/.bin/scg.cmd` and returned `0.5.11`.
+  `sha512-tszDMx2e6tyQNkLnzRQpnpOirNsMaBf8JiLMnI0Jl6Vu1N3jk0i/frVPsDJjkB7s8SwO5yLnC7lpfvw1YKaE5g==`.
+- npm provenance predicate: `https://slsa.dev/provenance/v1`.
+- npm signature audit: `invalid: 0`, `missing: 0`.
+- GitHub Release: `v0.5.12`.
+- Release workflow run: `29152031414`, conclusion `success`.
+- Release commit: `c89b1e692a235cbbb7bed90037939cc863660014`.
+- Mutable Action tag: `v0` points to the `0.5.12` release commit.
+- Published CLI smoke: `npm exec --yes --package @0disoft/service-catalog-generator@0.5.12 -- scg --version` returned `0.5.12`.
+- Windows install smoke: clean temporary npm install created `node_modules/.bin/scg.cmd` and returned `0.5.12`.
 - Trusted Publishing dry-run: `pnpm run release:trust:dry-run` returned publish permission for
   `0disoft/service-catalog-generator/.github/workflows/release.yml`.
 
@@ -164,7 +166,7 @@ the npm package access configuration before pushing the release tag.
 After a release is promoted, verify the published package and GitHub release evidence:
 
 ```sh
-pnpm run release-evidence -- 0.5.11
+pnpm run release-evidence -- 0.5.12
 ```
 
 The command checks npm integrity, SLSA provenance subject/workflow/tag/commit identity, installed

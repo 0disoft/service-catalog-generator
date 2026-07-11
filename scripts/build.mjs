@@ -27,8 +27,22 @@ await build({
 });
 
 await stripTrailingWhitespace(join(root, "dist", "action", "index.cjs"));
+await verifyActionBundleVersion();
 
 async function stripTrailingWhitespace(path) {
   const contents = await readFile(path, "utf8");
   await writeFile(path, contents.replace(/[ \t]+$/gm, ""), "utf8");
+}
+
+async function verifyActionBundleVersion() {
+  const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
+  const actionBundle = await readFile(join(root, "dist", "action", "index.cjs"), "utf8");
+  const escapedVersion = packageJson.version.replaceAll(".", "\\.");
+  const versionPattern = new RegExp(`var cliVersion\\d* = "${escapedVersion}";`);
+
+  if (!versionPattern.test(actionBundle)) {
+    throw new Error(
+      `Action bundle CLI version does not match package version ${packageJson.version}. Build workspace packages before bundling the Action.`
+    );
+  }
 }

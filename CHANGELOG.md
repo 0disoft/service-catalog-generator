@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.5.12
+
+- Made Action builds compile workspace packages before bundling and fail when the committed Action
+  runtime version differs from the root package version.
 - Pinned third-party CI and release Actions to immutable commit SHAs and disabled checkout
   credential persistence.
 - Moved mutable major Action tag promotion and rollback to the GitHub Git Refs API so release jobs

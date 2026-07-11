@@ -199,7 +199,7 @@ describe("release workflow contract", () => {
     };
 
     expect(packageJson.name).toBe("@0disoft/service-catalog-generator");
-    expect(packageJson.version).toBe("0.5.11");
+    expect(packageJson.version).toBe("0.5.12");
     expect(packageJson.license).toBe("Apache-2.0");
     expect(packageJson.bin).toEqual({ scg: "dist/cli/index.js" });
     expect(packageJson.files).toEqual([
@@ -249,6 +249,7 @@ describe("release workflow contract", () => {
     };
     const actionBundle = readFileSync(join(process.cwd(), "dist/action/index.cjs"), "utf8");
 
-    expect(actionBundle).toContain(`var cliVersion = "${packageJson.version}"`);
+    const escapedVersion = packageJson.version.replaceAll(".", "\\.");
+    expect(actionBundle).toMatch(new RegExp(`var cliVersion\\d* = "${escapedVersion}";`));
   });
 });

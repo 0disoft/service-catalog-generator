@@ -1,6 +1,6 @@
 {
   "name": "@0disoft/service-catalog-generator",
-  "version": "0.5.11",
+  "version": "0.5.12",
   "description": "Read-only service.yaml compiler and linter for deterministic service catalog artifacts.",
   "license": "Apache-2.0",
   "type": "module",
@@ -39,7 +39,7 @@
     "typecheck": "tsc -b tsconfig.json && tsc -p tsconfig.check.json --noEmit",
     "test": "vitest run tests/workspace.test.ts tests/schema tests/core tests/report tests/cli tests/action",
     "contract": "vitest run tests/contract",
-    "build": "node scripts/build.mjs",
+    "build": "tsc -b tsconfig.json && node scripts/build.mjs",
     "migration-check": "node scripts/not-configured.mjs migration-check \"No schema migrations exist yet.\"",
     "smoke": "pnpm run build && node scripts/smoke.mjs",
     "docs": "node scripts/check-docs.mjs",

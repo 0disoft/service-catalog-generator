@@ -69,11 +69,15 @@ jobs:
           echo "created=true" >> "$GITHUB_OUTPUT"
 
       - name: Move major Action tag
+        id: major-tag
         env:
           GH_TOKEN: ${{ github.token }}
           MAJOR_TAG: ${{ steps.release-preflight.outputs.major-tag }}
           TARGET_SHA: ${{ github.sha }}
-        run: node scripts/github-major-tag.mjs promote
+        run: |
+          set -euo pipefail
+          node scripts/github-major-tag.mjs promote
+          echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Publish npm package
         run: npm publish --access public
@@ -85,6 +89,7 @@ jobs:
           MAJOR_TAG: ${{ steps.release-preflight.outputs.major-tag }}
           PREVIOUS_MAJOR_TARGET: ${{ steps.release-preflight.outputs.previous-major-target }}
           RELEASE_CREATED: ${{ steps.release-create.outputs.created }}
+          MAJOR_TAG_CHANGED: ${{ steps.major-tag.outputs.changed }}
         run: |
           set -euo pipefail
           echo "::warning::Release workflow failed before npm publish completed. Restoring GitHub release state where possible."
@@ -95,8 +100,8 @@ jobs:
             echo "::warning::This run did not create the GitHub Release; leaving existing release state untouched."
           fi
 
-          if [ -z "$MAJOR_TAG" ]; then
-            echo "::warning::Major Action tag was not computed; skipping Action tag recovery."
+          if [ "$MAJOR_TAG_CHANGED" != "true" ]; then
+            echo "::warning::This run did not move the major Action tag; leaving tag state untouched."
             exit 0
           fi
 

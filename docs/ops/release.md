@@ -98,7 +98,8 @@ publication is treated as immutable.
 
 Recovery deletes a GitHub Release only when the create step emitted its run-local creation receipt.
 If preflight failed because a release already existed, automation leaves that existing release
-untouched.
+untouched. Major Action tag recovery follows the same ownership rule and runs only when the tag move
+step emitted its run-local change receipt.
 
 All third-party workflow Actions are pinned to immutable commit SHAs. Checkout credential
 persistence is disabled; major Action tag promotion and recovery use the GitHub Git Refs API through

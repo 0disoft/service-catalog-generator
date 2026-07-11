@@ -40,6 +40,8 @@ Provide a short actionable decision tree with triggers, procedure, database roll
   the GitHub Release and restore or remove the mutable major Action tag through the GitHub Git Refs
   API before retrying. The workflow may delete the GitHub Release only when its create step emitted
   the current run's creation receipt; a pre-existing release must remain untouched.
+- Restore or delete a major Action tag only when the current run's tag move step emitted its change
+  receipt. A failure before tag movement must leave external tag state untouched.
 
 ## Action Tag Rollback
 

@@ -10,6 +10,8 @@
   Actions workflows.
 - Guarded release rollback with a run-local creation receipt so preflight failures cannot delete a
   pre-existing GitHub Release.
+- Guarded major Action tag rollback with a run-local change receipt so failures before tag movement
+  cannot alter external tag state.
 
 ## 0.5.11
 

@@ -77,14 +77,16 @@ describe("release workflow contract", () => {
     expect(steps.some((step) => step.name === "Capture release recovery state")).toBe(true);
     expect(moveTagStep).toEqual(
       expect.objectContaining({
+        id: "major-tag",
         env: {
           GH_TOKEN: "${{ github.token }}",
           MAJOR_TAG: "${{ steps.release-preflight.outputs.major-tag }}",
           TARGET_SHA: "${{ github.sha }}"
-        },
-        run: "node scripts/github-major-tag.mjs promote"
+        }
       })
     );
+    expect(moveTagStep?.run).toContain("node scripts/github-major-tag.mjs promote");
+    expect(moveTagStep?.run).toContain('echo "changed=true" >> "$GITHUB_OUTPUT"');
     expect(createReleaseStep).toEqual(
       expect.objectContaining({
         id: "release-create"
@@ -97,12 +99,15 @@ describe("release workflow contract", () => {
           GH_TOKEN: "${{ github.token }}",
           MAJOR_TAG: "${{ steps.release-preflight.outputs.major-tag }}",
           PREVIOUS_MAJOR_TARGET: "${{ steps.release-preflight.outputs.previous-major-target }}",
-          RELEASE_CREATED: "${{ steps.release-create.outputs.created }}"
+          RELEASE_CREATED: "${{ steps.release-create.outputs.created }}",
+          MAJOR_TAG_CHANGED: "${{ steps.major-tag.outputs.changed }}"
         }
       })
     );
     expect(recoveryStep?.run).toContain('if [ "$RELEASE_CREATED" = "true" ]; then');
     expect(recoveryStep?.run).toContain("leaving existing release state untouched");
+    expect(recoveryStep?.run).toContain('if [ "$MAJOR_TAG_CHANGED" != "true" ]; then');
+    expect(recoveryStep?.run).toContain("leaving tag state untouched");
     expect(recoveryStep?.run).toContain("node scripts/github-major-tag.mjs restore");
     expect(workflowText).toContain("gh release create");
     expect(workflowText).toContain("gh release delete");

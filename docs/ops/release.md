@@ -96,6 +96,10 @@ Release and restores the previous major Action tag target, or deletes the major 
 target existed. Once npm publish succeeds, recovery switches to forward-fix mode because npm package
 publication is treated as immutable.
 
+Recovery deletes a GitHub Release only when the create step emitted its run-local creation receipt.
+If preflight failed because a release already existed, automation leaves that existing release
+untouched.
+
 All third-party workflow Actions are pinned to immutable commit SHAs. Checkout credential
 persistence is disabled; major Action tag promotion and recovery use the GitHub Git Refs API through
 the tested `scripts/github-major-tag.mjs` helper and job-scoped `GITHUB_TOKEN` instead of relying on

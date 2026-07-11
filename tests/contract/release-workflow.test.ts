@@ -21,6 +21,7 @@ type ReleaseWorkflow = {
   jobs: {
     publish: {
       steps: Array<{
+        id?: string;
         name?: string;
         env?: Record<string, string>;
         run?: string;
@@ -37,6 +38,7 @@ describe("release workflow contract", () => {
     const workflow = parse(workflowText) as ReleaseWorkflow;
     const steps = workflow.jobs.publish.steps;
     const moveTagStep = steps.find((step) => step.name === "Move major Action tag");
+    const createReleaseStep = steps.find((step) => step.name === "Create GitHub release");
     const recoveryStep = steps.find(
       (step) => step.name === "Recover GitHub release state when npm publish fails"
     );
@@ -83,15 +85,24 @@ describe("release workflow contract", () => {
         run: "node scripts/github-major-tag.mjs promote"
       })
     );
+    expect(createReleaseStep).toEqual(
+      expect.objectContaining({
+        id: "release-create"
+      })
+    );
+    expect(createReleaseStep?.run).toContain('echo "created=true" >> "$GITHUB_OUTPUT"');
     expect(recoveryStep).toEqual(
       expect.objectContaining({
         env: {
           GH_TOKEN: "${{ github.token }}",
           MAJOR_TAG: "${{ steps.release-preflight.outputs.major-tag }}",
-          PREVIOUS_MAJOR_TARGET: "${{ steps.release-preflight.outputs.previous-major-target }}"
+          PREVIOUS_MAJOR_TARGET: "${{ steps.release-preflight.outputs.previous-major-target }}",
+          RELEASE_CREATED: "${{ steps.release-create.outputs.created }}"
         }
       })
     );
+    expect(recoveryStep?.run).toContain('if [ "$RELEASE_CREATED" = "true" ]; then');
+    expect(recoveryStep?.run).toContain("leaving existing release state untouched");
     expect(recoveryStep?.run).toContain("node scripts/github-major-tag.mjs restore");
     expect(workflowText).toContain("gh release create");
     expect(workflowText).toContain("gh release delete");

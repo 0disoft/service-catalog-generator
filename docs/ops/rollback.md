@@ -38,7 +38,8 @@ Provide a short actionable decision tree with triggers, procedure, database roll
 - Keep changelog and migration notes honest about pre-1.0 breaking changes.
 - If release automation fails before npm publish completes, let the workflow recovery step delete
   the GitHub Release and restore or remove the mutable major Action tag through the GitHub Git Refs
-  API before retrying.
+  API before retrying. The workflow may delete the GitHub Release only when its create step emitted
+  the current run's creation receipt; a pre-existing release must remain untouched.
 
 ## Action Tag Rollback
 

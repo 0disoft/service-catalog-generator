@@ -34,6 +34,9 @@ assertText(releaseWorkflowText, ".github/workflows/release.yml", [
   "persist-credentials: false",
   "gh release create",
   "gh release delete",
+  'echo "created=true" >> "$GITHUB_OUTPUT"',
+  'if [ "$RELEASE_CREATED" = "true" ]; then',
+  "leaving existing release state untouched",
   "node scripts/github-major-tag.mjs promote",
   "node scripts/github-major-tag.mjs restore",
   "Recover GitHub release state when npm publish fails"

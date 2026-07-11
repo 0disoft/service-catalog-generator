@@ -8,6 +8,8 @@
   do not depend on persisted Git credentials.
 - Added scheduled and change-triggered CodeQL analysis for JavaScript/TypeScript source and GitHub
   Actions workflows.
+- Guarded release rollback with a run-local creation receipt so preflight failures cannot delete a
+  pre-existing GitHub Release.
 
 ## 0.5.11
 

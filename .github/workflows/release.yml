@@ -57,13 +57,16 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub release
+        id: release-create
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           gh release create "$GITHUB_REF_NAME" \
             --verify-tag \
             --title "$GITHUB_REF_NAME" \
             --generate-notes
+          echo "created=true" >> "$GITHUB_OUTPUT"
 
       - name: Move major Action tag
         env:
@@ -81,10 +84,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           MAJOR_TAG: ${{ steps.release-preflight.outputs.major-tag }}
           PREVIOUS_MAJOR_TARGET: ${{ steps.release-preflight.outputs.previous-major-target }}
+          RELEASE_CREATED: ${{ steps.release-create.outputs.created }}
         run: |
           set -euo pipefail
           echo "::warning::Release workflow failed before npm publish completed. Restoring GitHub release state where possible."
-          gh release delete "$GITHUB_REF_NAME" --yes --cleanup-tag=false || true
+
+          if [ "$RELEASE_CREATED" = "true" ]; then
+            gh release delete "$GITHUB_REF_NAME" --yes --cleanup-tag=false || true
+          else
+            echo "::warning::This run did not create the GitHub Release; leaving existing release state untouched."
+          fi
 
           if [ -z "$MAJOR_TAG" ]; then
             echo "::warning::Major Action tag was not computed; skipping Action tag recovery."

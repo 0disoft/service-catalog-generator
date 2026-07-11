@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.5.13
+
+- Replaced polynomial stable-ID edge trimming with bounded string operations and added a repeated
+  separator regression test for uncontrolled ZDP owner input.
+
 ## 0.5.12
 
 - Made Action builds compile workspace packages before bundling and fail when the committed Action

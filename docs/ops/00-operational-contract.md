@@ -25,6 +25,7 @@ database, background worker, runtime fleet, or live incident workflow.
 
 - Required validation names: docs, smoke, release-evidence, check
 - Release blocker status: hosted-service requirements are blockers unless a new ADR accepts them
-- Remaining operational risk: `release-evidence` verifies current package, release workflow, GitHub
-  Release, published CLI, and Action tag evidence. Future releases must still rerun package
-  availability, Trusted Publishing, and Action tag checks before promotion.
+- Remaining operational risk: `release-evidence` verifies current package integrity, provenance,
+  signatures, release workflow, GitHub Release, published CLI, and Action tag evidence. Future
+  releases must still rerun package availability, Trusted Publishing, and Action tag checks before
+  promotion.

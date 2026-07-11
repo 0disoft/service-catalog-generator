@@ -166,8 +166,9 @@ After a release is promoted, verify the published package and GitHub release evi
 pnpm run release-evidence -- 0.5.11
 ```
 
-The command checks the npm package metadata, GitHub Release, immutable version tag, mutable major
-Action tag, successful release workflow run, and published CLI version smoke.
+The command checks npm integrity, SLSA provenance subject/workflow/tag/commit identity, installed
+package signatures, the GitHub Release, immutable version tag, mutable major Action tag, successful
+release workflow run, and published CLI version smoke.
 
 ## Stop Conditions
 

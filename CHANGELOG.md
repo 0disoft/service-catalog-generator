@@ -22,6 +22,8 @@
   safe to validate before staging.
 - Rebased the product roadmap and specification on the shipped `0.5.11` surface and made remaining
   pre-1.0 compatibility, adoption, migration, and hosted-release evidence explicit.
+- Extended release evidence to verify SLSA provenance package digest, workflow, tag, commit identity,
+  and installed npm package signatures.
 
 ## 0.5.11
 

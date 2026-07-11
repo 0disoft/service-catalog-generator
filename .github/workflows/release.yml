@@ -68,19 +68,9 @@ jobs:
       - name: Move major Action tag
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          MAJOR_TAG="${{ steps.release-preflight.outputs.major-tag }}"
-          LOOKUP_ENDPOINT="repos/${GITHUB_REPOSITORY}/git/ref/tags/${MAJOR_TAG}"
-          REF_ENDPOINT="repos/${GITHUB_REPOSITORY}/git/refs/tags/${MAJOR_TAG}"
-
-          if gh api "$LOOKUP_ENDPOINT" >/dev/null 2>&1; then
-            gh api --silent --method PATCH "$REF_ENDPOINT" -f sha="$GITHUB_SHA" -F force=true
-          else
-            gh api --silent --method POST "repos/${GITHUB_REPOSITORY}/git/refs" \
-              -f ref="refs/tags/${MAJOR_TAG}" \
-              -f sha="$GITHUB_SHA"
-          fi
+          MAJOR_TAG: ${{ steps.release-preflight.outputs.major-tag }}
+          TARGET_SHA: ${{ github.sha }}
+        run: node scripts/github-major-tag.mjs promote
 
       - name: Publish npm package
         run: npm publish --access public
@@ -101,12 +91,4 @@ jobs:
             exit 0
           fi
 
-          REF_ENDPOINT="repos/${GITHUB_REPOSITORY}/git/refs/tags/${MAJOR_TAG}"
-
-          if [ -n "$PREVIOUS_MAJOR_TARGET" ]; then
-            gh api --silent --method PATCH "$REF_ENDPOINT" \
-              -f sha="$PREVIOUS_MAJOR_TARGET" \
-              -F force=true
-          else
-            gh api --silent --method DELETE "$REF_ENDPOINT" || true
-          fi
+          node scripts/github-major-tag.mjs restore

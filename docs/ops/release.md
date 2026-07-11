@@ -98,7 +98,8 @@ publication is treated as immutable.
 
 All third-party workflow Actions are pinned to immutable commit SHAs. Checkout credential
 persistence is disabled; major Action tag promotion and recovery use the GitHub Git Refs API through
-the job-scoped `GITHUB_TOKEN` instead of relying on Git credential configuration.
+the tested `scripts/github-major-tag.mjs` helper and job-scoped `GITHUB_TOKEN` instead of relying on
+Git credential configuration.
 
 Release jobs are serialized across the repository, not per tag, so two patch tags cannot race while
 moving the same mutable major Action tag.

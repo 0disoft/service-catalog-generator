@@ -36,6 +36,10 @@ describe("release workflow contract", () => {
     const workflowText = readFileSync(join(process.cwd(), ".github/workflows/release.yml"), "utf8");
     const workflow = parse(workflowText) as ReleaseWorkflow;
     const steps = workflow.jobs.publish.steps;
+    const moveTagStep = steps.find((step) => step.name === "Move major Action tag");
+    const recoveryStep = steps.find(
+      (step) => step.name === "Recover GitHub release state when npm publish fails"
+    );
 
     expect(workflow.name).toBe("release");
     expect(workflow.on.push.tags).toEqual(["v*.*.*"]);
@@ -69,17 +73,31 @@ describe("release workflow contract", () => {
       )
     ).toBe(true);
     expect(steps.some((step) => step.name === "Capture release recovery state")).toBe(true);
-    expect(
-      steps.some((step) => step.name === "Recover GitHub release state when npm publish fails")
-    ).toBe(true);
+    expect(moveTagStep).toEqual(
+      expect.objectContaining({
+        env: {
+          GH_TOKEN: "${{ github.token }}",
+          MAJOR_TAG: "${{ steps.release-preflight.outputs.major-tag }}",
+          TARGET_SHA: "${{ github.sha }}"
+        },
+        run: "node scripts/github-major-tag.mjs promote"
+      })
+    );
+    expect(recoveryStep).toEqual(
+      expect.objectContaining({
+        env: {
+          GH_TOKEN: "${{ github.token }}",
+          MAJOR_TAG: "${{ steps.release-preflight.outputs.major-tag }}",
+          PREVIOUS_MAJOR_TARGET: "${{ steps.release-preflight.outputs.previous-major-target }}"
+        }
+      })
+    );
+    expect(recoveryStep?.run).toContain("node scripts/github-major-tag.mjs restore");
     expect(workflowText).toContain("gh release create");
     expect(workflowText).toContain("gh release delete");
-    expect(workflowText).toContain(
-      'LOOKUP_ENDPOINT="repos/${GITHUB_REPOSITORY}/git/ref/tags/${MAJOR_TAG}"'
-    );
-    expect(workflowText).toContain('if gh api "$LOOKUP_ENDPOINT" >/dev/null 2>&1; then');
-    expect(workflowText).toContain('gh api --silent --method PATCH "$REF_ENDPOINT"');
-    expect(workflowText).toContain('gh api --silent --method DELETE "$REF_ENDPOINT"');
+    expect(workflowText).toContain("node scripts/github-major-tag.mjs promote");
+    expect(workflowText).toContain("node scripts/github-major-tag.mjs restore");
+    expect(workflowText).not.toContain("gh api");
     expect(workflowText).not.toMatch(/uses:\s+actions\/(?:checkout|setup-node)@v\d+/);
     expect(workflowText).not.toContain("git push --force");
     expect(workflowText).not.toContain("secrets.NPM_PUBLISH_TOKEN");

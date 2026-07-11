@@ -39,6 +39,9 @@ describe("release workflow contract", () => {
     const steps = workflow.jobs.publish.steps;
     const moveTagStep = steps.find((step) => step.name === "Move major Action tag");
     const createReleaseStep = steps.find((step) => step.name === "Create GitHub release");
+    const npmPreflightStep = steps.find(
+      (step) => step.name === "Verify npm version is unpublished"
+    );
     const recoveryStep = steps.find(
       (step) => step.name === "Recover GitHub release state when npm publish fails"
     );
@@ -75,6 +78,15 @@ describe("release workflow contract", () => {
       )
     ).toBe(true);
     expect(steps.some((step) => step.name === "Capture release recovery state")).toBe(true);
+    expect(npmPreflightStep).toEqual(
+      expect.objectContaining({
+        env: {
+          NPM_PACKAGE_NAME: "@0disoft/service-catalog-generator",
+          NPM_PACKAGE_VERSION: "${{ steps.release-preflight.outputs.version }}"
+        },
+        run: "node scripts/npm-release-visibility.mjs expect-absent"
+      })
+    );
     expect(moveTagStep).toEqual(
       expect.objectContaining({
         id: "major-tag",
@@ -100,7 +112,9 @@ describe("release workflow contract", () => {
           MAJOR_TAG: "${{ steps.release-preflight.outputs.major-tag }}",
           PREVIOUS_MAJOR_TARGET: "${{ steps.release-preflight.outputs.previous-major-target }}",
           RELEASE_CREATED: "${{ steps.release-create.outputs.created }}",
-          MAJOR_TAG_CHANGED: "${{ steps.major-tag.outputs.changed }}"
+          MAJOR_TAG_CHANGED: "${{ steps.major-tag.outputs.changed }}",
+          NPM_PACKAGE_NAME: "@0disoft/service-catalog-generator",
+          NPM_PACKAGE_VERSION: "${{ steps.release-preflight.outputs.version }}"
         }
       })
     );
@@ -108,6 +122,9 @@ describe("release workflow contract", () => {
     expect(recoveryStep?.run).toContain("leaving existing release state untouched");
     expect(recoveryStep?.run).toContain('if [ "$MAJOR_TAG_CHANGED" != "true" ]; then');
     expect(recoveryStep?.run).toContain("leaving tag state untouched");
+    expect(recoveryStep?.run).toContain("node scripts/npm-release-visibility.mjs state");
+    expect(recoveryStep?.run).toContain('if [ "$NPM_RELEASE_STATE" != "absent" ]; then');
+    expect(recoveryStep?.run).toContain("preserving GitHub release and tag state");
     expect(recoveryStep?.run).toContain("node scripts/github-major-tag.mjs restore");
     expect(workflowText).toContain("gh release create");
     expect(workflowText).toContain("gh release delete");
@@ -127,11 +144,14 @@ describe("release workflow contract", () => {
     const stepNames = workflow.jobs.publish.steps.map((step) => step.name ?? step.run ?? step.uses);
 
     const releaseIndex = stepNames.indexOf("Create GitHub release");
+    const npmPreflightIndex = stepNames.indexOf("Verify npm version is unpublished");
     const tagIndex = stepNames.indexOf("Move major Action tag");
     const publishIndex = stepNames.indexOf("Publish npm package");
     const recoveryIndex = stepNames.indexOf("Recover GitHub release state when npm publish fails");
 
     expect(releaseIndex).toBeGreaterThan(-1);
+    expect(npmPreflightIndex).toBeGreaterThan(-1);
+    expect(npmPreflightIndex).toBeLessThan(releaseIndex);
     expect(tagIndex).toBeGreaterThan(releaseIndex);
     expect(publishIndex).toBeGreaterThan(tagIndex);
     expect(recoveryIndex).toBeGreaterThan(publishIndex);

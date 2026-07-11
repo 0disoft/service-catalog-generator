@@ -87,8 +87,9 @@ and runs from a clean temporary project.
 ## Release Workflow
 
 The release workflow runs only for `v*.*.*` tags. It validates package metadata, runs `check`, runs
-a packed tarball install smoke, creates the GitHub Release, moves the mutable major Action tag, and
-then publishes the scoped public package through npm Trusted Publishing.
+a packed tarball install smoke, verifies the exact npm version is not already published, creates the
+GitHub Release, moves the mutable major Action tag, and then publishes the scoped public package
+through npm Trusted Publishing.
 
 The workflow captures the previous mutable major tag target before changing release state. If the
 workflow fails before npm publish completes, the recovery step deletes the just-created GitHub
@@ -100,6 +101,11 @@ Recovery deletes a GitHub Release only when the create step emitted its run-loca
 If preflight failed because a release already existed, automation leaves that existing release
 untouched. Major Action tag recovery follows the same ownership rule and runs only when the tag move
 step emitted its run-local change receipt.
+
+If npm publish returns a failure, recovery retries the public registry lookup before changing GitHub
+state. Destructive rollback runs only when every lookup confirms the exact npm version is absent. A
+published or uncertain registry result preserves the GitHub Release and major tag for forward-fix
+review because npm publication is immutable and a lost success response is possible.
 
 All third-party workflow Actions are pinned to immutable commit SHAs. Checkout credential
 persistence is disabled; major Action tag promotion and recovery use the GitHub Git Refs API through

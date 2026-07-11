@@ -12,6 +12,8 @@
   pre-existing GitHub Release.
 - Guarded major Action tag rollback with a run-local change receipt so failures before tag movement
   cannot alter external tag state.
+- Added npm version preflight and retry-based post-publish visibility checks so an ambiguous publish
+  result cannot roll back GitHub state for an immutable package that may already exist.
 
 ## 0.5.11
 

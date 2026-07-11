@@ -31,6 +31,11 @@ assert(
 assertText(releaseWorkflowText, ".github/workflows/release.yml", [
   "node scripts/pack-smoke.mjs",
   "Capture release recovery state",
+  "Verify npm version is unpublished",
+  "node scripts/npm-release-visibility.mjs expect-absent",
+  "node scripts/npm-release-visibility.mjs state",
+  'if [ "$NPM_RELEASE_STATE" != "absent" ]; then',
+  "preserving GitHub release and tag state",
   "persist-credentials: false",
   "gh release create",
   "gh release delete",

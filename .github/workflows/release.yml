@@ -52,9 +52,16 @@ jobs:
           fi
 
           {
+            echo "version=$VERSION"
             echo "major-tag=$MAJOR_TAG"
             echo "previous-major-target=$PREVIOUS_MAJOR_TARGET"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Verify npm version is unpublished
+        env:
+          NPM_PACKAGE_NAME: "@0disoft/service-catalog-generator"
+          NPM_PACKAGE_VERSION: ${{ steps.release-preflight.outputs.version }}
+        run: node scripts/npm-release-visibility.mjs expect-absent
 
       - name: Create GitHub release
         id: release-create
@@ -90,9 +97,22 @@ jobs:
           PREVIOUS_MAJOR_TARGET: ${{ steps.release-preflight.outputs.previous-major-target }}
           RELEASE_CREATED: ${{ steps.release-create.outputs.created }}
           MAJOR_TAG_CHANGED: ${{ steps.major-tag.outputs.changed }}
+          NPM_PACKAGE_NAME: "@0disoft/service-catalog-generator"
+          NPM_PACKAGE_VERSION: ${{ steps.release-preflight.outputs.version }}
         run: |
           set -euo pipefail
           echo "::warning::Release workflow failed before npm publish completed. Restoring GitHub release state where possible."
+
+          if [ "$RELEASE_CREATED" != "true" ] && [ "$MAJOR_TAG_CHANGED" != "true" ]; then
+            echo "::warning::This run created no release state; no recovery is required."
+            exit 0
+          fi
+
+          NPM_RELEASE_STATE="$(node scripts/npm-release-visibility.mjs state)"
+          if [ "$NPM_RELEASE_STATE" != "absent" ]; then
+            echo "::warning::npm release state is $NPM_RELEASE_STATE; preserving GitHub release and tag state for forward-fix review."
+            exit 0
+          fi
 
           if [ "$RELEASE_CREATED" = "true" ]; then
             gh release delete "$GITHUB_REF_NAME" --yes --cleanup-tag=false || true

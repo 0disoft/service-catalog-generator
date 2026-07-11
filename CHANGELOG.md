@@ -14,6 +14,8 @@
   cannot alter external tag state.
 - Added npm version preflight and retry-based post-publish visibility checks so an ambiguous publish
   result cannot roll back GitHub state for an immutable package that may already exist.
+- Added bounded weekly Dependabot updates for npm and GitHub Actions, plus explicit timeouts for all
+  hosted workflow jobs.
 
 ## 0.5.11
 

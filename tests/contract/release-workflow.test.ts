@@ -177,6 +177,7 @@ describe("release workflow contract", () => {
         expect(reference, workflowPath).toMatch(/^[^@\s]+@[0-9a-f]{40}$/);
       }
       expect(workflowText, workflowPath).toContain("persist-credentials: false");
+      expect(workflowText.match(/timeout-minutes:\s*\d+/g), workflowPath).toHaveLength(1);
     }
   });
 

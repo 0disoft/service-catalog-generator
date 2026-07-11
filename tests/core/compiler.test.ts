@@ -277,6 +277,28 @@ describe("core catalog compiler", () => {
     });
   });
 
+  it("normalizes long repeated owner separators without a backtracking expression", async () => {
+    const workspace = await createWorkspace();
+    const manifest = zdpV2ServiceYaml().replace(
+      "  owner: 0disoft",
+      `  owner: "${"-".repeat(100_000)}"`
+    );
+    await writeManifest(workspace, "platform/runtime/service.yaml", manifest);
+
+    const result = await compileCatalog({
+      cwd: workspace,
+      inputSchema: "zdp-v2",
+      config: {
+        validation: {
+          allowUnknownDependencies: true
+        }
+      }
+    });
+
+    expect(result.snapshot.diagnostics).toEqual([]);
+    expect(result.snapshot.services[0]?.owner.ref).toBe("system:unknown");
+  });
+
   it("warns when metadata.lastReviewedAt is stale", async () => {
     const workspace = await createWorkspace();
     await writeManifest(

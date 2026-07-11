@@ -22765,7 +22765,13 @@ function toOwnerRef(value) {
   return `system:${toStableId(value ?? "unknown")}`;
 }
 function toStableId(value) {
-  const normalized = value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  let normalized = value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  if (normalized.startsWith("-")) {
+    normalized = normalized.slice(1);
+  }
+  if (normalized.endsWith("-")) {
+    normalized = normalized.slice(0, -1);
+  }
   if (!normalized) {
     return "unknown";
   }

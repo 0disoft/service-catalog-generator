@@ -239,11 +239,17 @@ function toOwnerRef(value: string | undefined): string {
 }
 
 function toStableId(value: string): string {
-  const normalized = value
+  let normalized = value
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/[^a-z0-9]+/g, "-");
+
+  if (normalized.startsWith("-")) {
+    normalized = normalized.slice(1);
+  }
+  if (normalized.endsWith("-")) {
+    normalized = normalized.slice(0, -1);
+  }
 
   if (!normalized) {
     return "unknown";

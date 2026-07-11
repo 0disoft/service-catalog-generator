@@ -74,6 +74,10 @@ describe("release workflow contract", () => {
     ).toBe(true);
     expect(workflowText).toContain("gh release create");
     expect(workflowText).toContain("gh release delete");
+    expect(workflowText).toContain(
+      'LOOKUP_ENDPOINT="repos/${GITHUB_REPOSITORY}/git/ref/tags/${MAJOR_TAG}"'
+    );
+    expect(workflowText).toContain('if gh api "$LOOKUP_ENDPOINT" >/dev/null 2>&1; then');
     expect(workflowText).toContain('gh api --silent --method PATCH "$REF_ENDPOINT"');
     expect(workflowText).toContain('gh api --silent --method DELETE "$REF_ENDPOINT"');
     expect(workflowText).not.toMatch(/uses:\s+actions\/(?:checkout|setup-node)@v\d+/);

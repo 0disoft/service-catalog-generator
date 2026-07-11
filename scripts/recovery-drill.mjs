@@ -34,6 +34,8 @@ assertText(releaseWorkflowText, ".github/workflows/release.yml", [
   "persist-credentials: false",
   "gh release create",
   "gh release delete",
+  'LOOKUP_ENDPOINT="repos/${GITHUB_REPOSITORY}/git/ref/tags/${MAJOR_TAG}"',
+  'if gh api "$LOOKUP_ENDPOINT" >/dev/null 2>&1; then',
   'gh api --silent --method PATCH "$REF_ENDPOINT"',
   'gh api --silent --method DELETE "$REF_ENDPOINT"',
   "Recover GitHub release state when npm publish fails"

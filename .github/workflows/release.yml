@@ -71,9 +71,10 @@ jobs:
         run: |
           set -euo pipefail
           MAJOR_TAG="${{ steps.release-preflight.outputs.major-tag }}"
+          LOOKUP_ENDPOINT="repos/${GITHUB_REPOSITORY}/git/ref/tags/${MAJOR_TAG}"
           REF_ENDPOINT="repos/${GITHUB_REPOSITORY}/git/refs/tags/${MAJOR_TAG}"
 
-          if gh api "$REF_ENDPOINT" >/dev/null 2>&1; then
+          if gh api "$LOOKUP_ENDPOINT" >/dev/null 2>&1; then
             gh api --silent --method PATCH "$REF_ENDPOINT" -f sha="$GITHUB_SHA" -F force=true
           else
             gh api --silent --method POST "repos/${GITHUB_REPOSITORY}/git/refs" \

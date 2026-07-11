@@ -3,6 +3,9 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 
+const CHECKOUT_ACTION = "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0";
+const SETUP_NODE_ACTION = "actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e";
+
 type ReleaseWorkflow = {
   name: string;
   on: {
@@ -44,8 +47,16 @@ describe("release workflow contract", () => {
       group: "release-${{ github.repository }}",
       "cancel-in-progress": false
     });
-    expect(steps.some((step) => step.uses === "actions/checkout@v7")).toBe(true);
-    expect(steps.some((step) => step.uses === "actions/setup-node@v6")).toBe(true);
+    expect(steps).toContainEqual(
+      expect.objectContaining({
+        uses: CHECKOUT_ACTION,
+        with: {
+          "fetch-depth": 0,
+          "persist-credentials": false
+        }
+      })
+    );
+    expect(steps.some((step) => step.uses === SETUP_NODE_ACTION)).toBe(true);
     expect(steps.some((step) => step.run === "node scripts/release-check.mjs")).toBe(true);
     expect(steps.some((step) => step.run === "pnpm run check")).toBe(true);
     expect(steps.some((step) => step.run === "node scripts/pack-smoke.mjs")).toBe(true);
@@ -63,7 +74,10 @@ describe("release workflow contract", () => {
     ).toBe(true);
     expect(workflowText).toContain("gh release create");
     expect(workflowText).toContain("gh release delete");
-    expect(workflowText).toContain('git push --force origin "refs/tags/$MAJOR_TAG"');
+    expect(workflowText).toContain('gh api --silent --method PATCH "$REF_ENDPOINT"');
+    expect(workflowText).toContain('gh api --silent --method DELETE "$REF_ENDPOINT"');
+    expect(workflowText).not.toMatch(/uses:\s+actions\/(?:checkout|setup-node)@v\d+/);
+    expect(workflowText).not.toContain("git push --force");
     expect(workflowText).not.toContain("secrets.NPM_PUBLISH_TOKEN");
     expect(workflowText).not.toMatch(/secrets\.(NPM_TOKEN|NODE_AUTH_TOKEN)|NODE_AUTH_TOKEN/i);
   });
@@ -83,6 +97,28 @@ describe("release workflow contract", () => {
     expect(tagIndex).toBeGreaterThan(releaseIndex);
     expect(publishIndex).toBeGreaterThan(tagIndex);
     expect(recoveryIndex).toBeGreaterThan(publishIndex);
+  });
+
+  it("pins third-party workflow Actions and disables checkout credential persistence", () => {
+    for (const workflowPath of [
+      ".github/workflows/ci.yml",
+      ".github/workflows/action-self-smoke.yml",
+      ".github/workflows/release.yml"
+    ]) {
+      const workflowText = readFileSync(join(process.cwd(), workflowPath), "utf8");
+      const actionReferences = [...workflowText.matchAll(/uses:\s*([^\s#]+)/g)].map(
+        (match) => match[1]
+      );
+      const thirdPartyReferences = actionReferences.filter((reference): reference is string =>
+        Boolean(reference && !reference.startsWith("./"))
+      );
+
+      expect(thirdPartyReferences.length).toBeGreaterThan(0);
+      for (const reference of thirdPartyReferences) {
+        expect(reference, workflowPath).toMatch(/^[^@\s]+@[0-9a-f]{40}$/);
+      }
+      expect(workflowText, workflowPath).toContain("persist-credentials: false");
+    }
   });
 
   it("keeps scoped package metadata public-release ready", () => {

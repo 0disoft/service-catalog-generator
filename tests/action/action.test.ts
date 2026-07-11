@@ -82,7 +82,14 @@ describe("GitHub Action wrapper", () => {
 
     expect(workflow.name).toBe("action-self-smoke");
     expect(workflow.permissions).toEqual({ contents: "read" });
-    expect(steps.some((step) => step.uses === "actions/checkout@v7")).toBe(true);
+    expect(steps).toContainEqual(
+      expect.objectContaining({
+        uses: "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0",
+        with: {
+          "persist-credentials": false
+        }
+      })
+    );
     expect(actionStep).toEqual(
       expect.objectContaining({
         uses: "./",

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Pinned third-party CI and release Actions to immutable commit SHAs and disabled checkout
+  credential persistence.
+- Moved mutable major Action tag promotion and rollback to the GitHub Git Refs API so release jobs
+  do not depend on persisted Git credentials.
+
 ## 0.5.11
 
 - Rebuilt and committed the CLI and GitHub Action bundles so Action catalog metadata reports the

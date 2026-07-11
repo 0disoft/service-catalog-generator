@@ -31,10 +31,11 @@ assert(
 assertText(releaseWorkflowText, ".github/workflows/release.yml", [
   "node scripts/pack-smoke.mjs",
   "Capture release recovery state",
+  "persist-credentials: false",
   "gh release create",
   "gh release delete",
-  'git tag -f "$MAJOR_TAG" "$GITHUB_SHA"',
-  'git push --force origin "refs/tags/$MAJOR_TAG"',
+  'gh api --silent --method PATCH "$REF_ENDPOINT"',
+  'gh api --silent --method DELETE "$REF_ENDPOINT"',
   "Recover GitHub release state when npm publish fails"
 ]);
 

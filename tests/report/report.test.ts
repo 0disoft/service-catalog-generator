@@ -113,6 +113,44 @@ describe("report writers", () => {
     });
   });
 
+  it("rejects control characters in output directory values", async () => {
+    const workspace = await createWorkspace();
+
+    await expect(
+      writeCatalogReports(snapshot(), {
+        cwd: workspace,
+        outputDirectory: ".catalog\nservice-count=999",
+        formats: ["json"]
+      })
+    ).rejects.toMatchObject({
+      diagnostic: expect.objectContaining({
+        code: "output.write_failed",
+        message: "Output directory contains an invalid control character."
+      })
+    });
+  });
+
+  it.skipIf(process.platform === "win32")(
+    "treats backslashes as filename characters on POSIX",
+    async () => {
+      const parent = await createWorkspace();
+      const workspace = join(parent, "workspace");
+      await mkdir(workspace, { recursive: true });
+
+      await expect(
+        writeCatalogReports(snapshot(), {
+          cwd: workspace,
+          outputDirectory: "../workspace\\outside",
+          formats: ["json"]
+        })
+      ).rejects.toMatchObject({
+        diagnostic: expect.objectContaining({
+          code: "output.write_failed"
+        })
+      });
+    }
+  );
+
   it("rejects symlinked output directories that resolve outside the workspace", async () => {
     const parent = await createWorkspace();
     const workspace = join(parent, "inside");

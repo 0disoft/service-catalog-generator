@@ -36,7 +36,29 @@ export const RepositoryRefSchema = z
         message: "repository.slug or repository.url is required."
       });
     }
+
+    if (value.url && hasUrlUserInfo(value.url)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["url"],
+        message: "repository.url must not contain embedded credentials."
+      });
+    }
   });
+
+function hasUrlUserInfo(value: string): boolean {
+  const authorityStart = value.indexOf("://") + 3;
+  if (authorityStart < 3) {
+    return false;
+  }
+
+  const authorityEndCandidates = ["/", "?", "#"]
+    .map((separator) => value.indexOf(separator, authorityStart))
+    .filter((index) => index >= 0);
+  const authorityEnd =
+    authorityEndCandidates.length > 0 ? Math.min(...authorityEndCandidates) : value.length;
+  return value.slice(authorityStart, authorityEnd).includes("@");
+}
 
 export const RuntimeProfileSchema = z
   .object({

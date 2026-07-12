@@ -59,12 +59,14 @@ export async function compileCatalog(
     }
   }
 
-  const services = sortServiceRecords(
+  const normalizedServices = sortServiceRecords(
     validatedManifests.map((validated) =>
       normalizeServiceRecord(validated.manifest, validated.file.relativePath, config)
     )
   );
-  diagnostics.push(...duplicateServiceIdDiagnostics(services));
+  const duplicateResult = isolateDuplicateServiceIds(normalizedServices);
+  const services = duplicateResult.services;
+  diagnostics.push(...duplicateResult.diagnostics);
   const knownServiceIds = new Set(services.map((service) => service.id));
 
   for (const service of services) {
@@ -150,7 +152,10 @@ function normalizeConcurrency(value: number): number {
   return Math.max(1, Math.min(64, Math.trunc(value)));
 }
 
-function duplicateServiceIdDiagnostics(services: CompileCatalogResult["services"]): Diagnostic[] {
+function isolateDuplicateServiceIds(services: CompileCatalogResult["services"]): {
+  services: CompileCatalogResult["services"];
+  diagnostics: Diagnostic[];
+} {
   const sourcePathsById = new Map<string, string[]>();
 
   for (const service of services) {
@@ -160,13 +165,23 @@ function duplicateServiceIdDiagnostics(services: CompileCatalogResult["services"
     ]);
   }
 
-  return [...sourcePathsById.entries()]
+  const duplicateIds = new Set(
+    [...sourcePathsById.entries()]
+      .filter(([, sourcePaths]) => sourcePaths.length > 1)
+      .map(([serviceId]) => serviceId)
+  );
+  const diagnostics = [...sourcePathsById.entries()]
     .filter(([, sourcePaths]) => sourcePaths.length > 1)
     .flatMap(([serviceId, sourcePaths]) =>
       sourcePaths.map((sourcePath) =>
         createDuplicateServiceIdDiagnostic(serviceId, sourcePath, sourcePaths)
       )
     );
+
+  return {
+    services: services.filter((service) => !duplicateIds.has(service.id)),
+    diagnostics
+  };
 }
 
 function createDuplicateServiceIdDiagnostic(
@@ -180,8 +195,18 @@ function createDuplicateServiceIdDiagnostic(
     file: sourcePath,
     field: "id",
     message: `Service id ${serviceId} is declared by multiple manifests.`,
-    hint: `Use a unique service id. Duplicate sources: ${sourcePaths.join(", ")}.`
+    hint: duplicateSourceHint(sourcePaths)
   };
+}
+
+function duplicateSourceHint(sourcePaths: string[]): string {
+  const displayed = sourcePaths.slice(0, 5);
+  const remaining = sourcePaths.length - displayed.length;
+  const suffix = remaining > 0 ? `, and ${remaining} more` : "";
+  return `Use a unique service id. ${sourcePaths.length} duplicate sources: ${displayed.join(", ")}${suffix}.`.slice(
+    0,
+    500
+  );
 }
 
 export function resolveCatalogConfig(input: CatalogConfigInput = {}): CatalogConfig {

@@ -74,6 +74,29 @@ describe("core catalog compiler", () => {
     );
   });
 
+  it("bounds duplicate diagnostics and excludes every conflicting service record", async () => {
+    const workspace = await createWorkspace();
+    await Promise.all(
+      Array.from({ length: 40 }, (_, index) =>
+        writeManifest(
+          workspace,
+          `services/duplicate-${String(index).padStart(2, "0")}/service.yaml`,
+          serviceYaml({ id: "duplicate-api" })
+        )
+      )
+    );
+
+    const result = await compileCatalog({ cwd: workspace });
+
+    expect(result.snapshot.summary).toMatchObject({ serviceCount: 0, errorCount: 40 });
+    expect(result.snapshot.services).toEqual([]);
+    expect(result.snapshot.graph.edges).toEqual([]);
+    expect(result.snapshot.diagnostics).toHaveLength(40);
+    expect(
+      result.snapshot.diagnostics.every((diagnostic) => (diagnostic.hint?.length ?? 0) <= 500)
+    ).toBe(true);
+  });
+
   it("maps unclassified schema issues to generic invalid manifest diagnostics", () => {
     expect(
       schemaIssueToDiagnostic(
@@ -99,7 +122,7 @@ describe("core catalog compiler", () => {
 
     const result = await compileCatalog({ cwd: workspace });
 
-    expect(result.snapshot.summary.serviceCount).toBe(2);
+    expect(result.snapshot.summary.serviceCount).toBe(0);
     expect(result.snapshot.summary.errorCount).toBe(2);
     expect(result.snapshot.diagnostics).toEqual(
       expect.arrayContaining([

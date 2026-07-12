@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { parse } from "yaml";
 import {
+  appendGitHubOutput,
   buildCliArguments,
   getInput,
   runAction,
@@ -22,6 +23,24 @@ afterEach(async () => {
 });
 
 describe("GitHub Action wrapper", () => {
+  it("writes multiline outputs without allowing injected output assignments", async () => {
+    const workspace = await createWorkspace();
+    const outputFile = join(workspace, "github-output.txt");
+
+    appendGitHubOutput(outputFile, "report-directory", ".catalog\nservice-count=999");
+
+    const contents = await readFile(outputFile, "utf8");
+    const lines = contents.trimEnd().split(/\r?\n/);
+    const delimiter = lines[0]?.split("<<")[1];
+    expect(lines).toEqual([
+      `report-directory<<${delimiter}`,
+      ".catalog",
+      "service-count=999",
+      delimiter
+    ]);
+    expect(contents).not.toContain("report-directory=.catalog");
+  });
+
   it("keeps action metadata aligned with the public action contract", async () => {
     const metadata = parse(await readFile(join(process.cwd(), "action.yml"), "utf8")) as {
       inputs: Record<string, unknown>;

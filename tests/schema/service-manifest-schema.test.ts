@@ -72,6 +72,18 @@ describe("ServiceManifestSchema fixtures", () => {
     expect(issuePaths(result)).toContain("metadata.annotations.supportRef");
   });
 
+  it("rejects repository URLs with embedded credentials", () => {
+    const manifest = loadFixture("valid-minimal.service.yaml") as Record<string, unknown>;
+    manifest.repository = {
+      provider: "url",
+      url: "https://build-user:supersecret@example.com/private/repo.git"
+    };
+
+    const result = ServiceManifestSchema.safeParse(manifest);
+    expect(result.success).toBe(false);
+    expect(issuePaths(result)).toContain("repository.url");
+  });
+
   it("rejects repeated secret-like values without stateful regex misses", () => {
     const manifest = loadFixture("valid-minimal.service.yaml") as Record<string, unknown>;
     const token = ["ghp", "1".repeat(36)].join("_");

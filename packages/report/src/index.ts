@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, realpath, rename, rm, writeFile } from "node:fs/promises";
-import { basename, dirname, relative, resolve } from "node:path";
+import { basename, dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import type { CorePackageBoundary } from "@scg/core";
 import type { CatalogSnapshot, Diagnostic } from "@scg/schema";
 
@@ -43,6 +43,7 @@ export async function writeCatalogReports(
 ): Promise<WriteCatalogReportsResult> {
   const cwd = resolve(options.cwd ?? process.cwd());
   const cwdRealPath = await realpath(cwd);
+  validateOutputDirectory(options.outputDirectory);
   const outputDirectory = resolve(cwd, options.outputDirectory);
 
   if (!isPathInside(cwd, outputDirectory)) {
@@ -333,22 +334,25 @@ function dotString(value: string): string {
 }
 
 function isPathInside(parent: string, child: string): boolean {
-  const normalizedParent = normalizeForComparison(parent);
-  const normalizedChild = normalizeForComparison(child);
+  const relation = relative(resolve(parent), resolve(child));
   return (
-    normalizedChild === normalizedParent ||
-    normalizedChild.startsWith(`${normalizedParent}\\`) ||
-    normalizedChild.startsWith(`${normalizedParent}/`)
+    relation === "" ||
+    (relation !== ".." && !relation.startsWith(`..${sep}`) && !isAbsolute(relation))
   );
 }
 
-function normalizeForComparison(path: string): string {
-  const resolved = resolve(path);
-  return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+function toPosixPath(path: string): string {
+  return path.split(sep).join("/");
 }
 
-function toPosixPath(path: string): string {
-  return path.replaceAll("\\", "/");
+function validateOutputDirectory(path: string): void {
+  if (!path || /[\0\r\n]/.test(path)) {
+    throwWriteError(
+      path,
+      "Output directory contains an invalid control character.",
+      "Choose a non-empty --out path without NUL or line breaks."
+    );
+  }
 }
 
 function throwWriteError(file: string, message: string, hint: string): never {

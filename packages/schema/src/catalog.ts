@@ -44,6 +44,18 @@ export const CatalogSnapshotSchema = z
   })
   .strict()
   .superRefine((snapshot, ctx) => {
+    const serviceIds = new Set<string>();
+    for (const [index, service] of snapshot.services.entries()) {
+      if (serviceIds.has(service.id)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["services", index, "id"],
+          message: "catalog service ids must be unique."
+        });
+      }
+      serviceIds.add(service.id);
+    }
+
     if (snapshot.summary.serviceCount !== snapshot.services.length) {
       ctx.addIssue({
         code: "custom",

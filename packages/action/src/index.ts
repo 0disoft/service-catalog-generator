@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { appendFileSync } from "node:fs";
 import { EOL } from "node:os";
 import { resolve } from "node:path";
@@ -222,8 +223,17 @@ function createGitHubOutputWriter(env: ActionEnv): ActionOutputWriter {
       return;
     }
 
-    appendFileSync(env.GITHUB_OUTPUT, `${name}=${value}${EOL}`, "utf8");
+    appendGitHubOutput(env.GITHUB_OUTPUT, name, value);
   };
+}
+
+export function appendGitHubOutput(path: string, name: string, value: string): void {
+  let delimiter: string;
+  do {
+    delimiter = `scg_${randomUUID()}`;
+  } while (value.includes(delimiter));
+
+  appendFileSync(path, `${name}<<${delimiter}${EOL}${value}${EOL}${delimiter}${EOL}`, "utf8");
 }
 
 if (process.argv[1] && isActionEntrypoint(process.argv[1])) {

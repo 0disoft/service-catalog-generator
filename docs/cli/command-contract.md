@@ -50,6 +50,7 @@ top-level `files` array describing written artifacts without removing snapshot f
 | `--no-allow-unknown-dependencies` | all            | Override config and reject dependency refs without matching service records.                          |
 | `--input-schema <schema>`      | all               | Select the input manifest adapter. Supported values are `scg-v1` and `zdp-v2`. Defaults to `scg-v1`. |
 | `--json`                       | all               | Emit machine-readable diagnostics and summaries.                                                     |
+| `--summary-json`               | all               | Emit bounded summary, diagnostics, and report file metadata without services or graph data.          |
 | `--no-color`                   | all               | Disable terminal color and ANSI output.                                                              |
 
 Input schema adapters normalize existing manifest formats into the SCG catalog model. Adapter

@@ -43,6 +43,7 @@ type CliCommand = "scan" | "check" | "report";
 type ParsedArgs = {
   command: CliCommand;
   json: boolean;
+  summaryJson: boolean;
   help: boolean;
   version: boolean;
   configPath?: string;
@@ -88,13 +89,13 @@ export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> 
 
     const configResult = await loadConfigInput(cwd, parsed.configPath);
     if (!configResult.ok) {
-      return writeCliError(io, parsed.json, configResult.diagnostic);
+      return writeCliError(io, parsed.json || parsed.summaryJson, configResult.diagnostic);
     }
 
     const config = mergeCliFlags(configResult.config, parsed);
     const configDiagnosticResult = validateConfigInput(config, parsed.configPath);
     if (configDiagnosticResult) {
-      return writeCliError(io, parsed.json, configDiagnosticResult);
+      return writeCliError(io, parsed.json || parsed.summaryJson, configDiagnosticResult);
     }
 
     const result = await compileCatalog({
@@ -126,6 +127,19 @@ export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> 
             2
           )
         );
+      } else if (parsed.summaryJson) {
+        writeLine(
+          io.stdout,
+          JSON.stringify(
+            {
+              summary: result.snapshot.summary,
+              files: writeResult.files,
+              diagnostics: result.snapshot.diagnostics
+            },
+            null,
+            2
+          )
+        );
       } else {
         writeLine(io.stdout, humanSummary(parsed.command, result.snapshot.summary));
         writeWrittenFiles(io.stdout, writeResult.files);
@@ -136,6 +150,18 @@ export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> 
 
     if (parsed.json) {
       writeLine(io.stdout, JSON.stringify(result.snapshot, null, 2));
+    } else if (parsed.summaryJson) {
+      writeLine(
+        io.stdout,
+        JSON.stringify(
+          {
+            summary: result.snapshot.summary,
+            diagnostics: result.snapshot.diagnostics
+          },
+          null,
+          2
+        )
+      );
     } else {
       writeLine(io.stdout, humanSummary(parsed.command, result.snapshot.summary));
       writeDiagnostics(io.stdout, result.snapshot.diagnostics);
@@ -144,7 +170,7 @@ export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> 
     return exitCode;
   } catch (error) {
     if (error instanceof CliUsageError) {
-      return writeCliError(io, argv.includes("--json"), {
+      return writeCliError(io, usesJsonOutput(argv), {
         severity: "error",
         code: "config.invalid",
         message: error.message,
@@ -153,12 +179,12 @@ export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> 
     }
 
     if (error instanceof ReportWriteError) {
-      return writeCliError(io, argv.includes("--json"), error.diagnostic, 4);
+      return writeCliError(io, usesJsonOutput(argv), error.diagnostic, 4);
     }
 
     return writeCliError(
       io,
-      argv.includes("--json"),
+      usesJsonOutput(argv),
       {
         severity: "error",
         code: "config.invalid",
@@ -174,6 +200,7 @@ function parseArgs(argv: string[]): ParsedArgs {
   const state: ParsedArgs = {
     command: "scan",
     json: false,
+    summaryJson: false,
     help: false,
     version: false,
     roots: [],
@@ -206,6 +233,9 @@ function parseArgs(argv: string[]): ParsedArgs {
         break;
       case "--json":
         state.json = true;
+        break;
+      case "--summary-json":
+        state.summaryJson = true;
         break;
       case "--no-color":
         break;
@@ -246,6 +276,9 @@ function parseArgs(argv: string[]): ParsedArgs {
 
   if (state.command !== "report" && state.formats.some((format) => format !== "json")) {
     throw new CliUsageError("Only JSON output is currently supported for scan and check.");
+  }
+  if (state.json && state.summaryJson) {
+    throw new CliUsageError("Use either --json or --summary-json, not both.");
   }
 
   return state;
@@ -507,12 +540,17 @@ function helpText(): string {
     "  --no-allow-unknown-dependencies",
     "  --input-schema <scg-v1|zdp-v2>",
     "  --json",
+    "  --summary-json",
     "  --no-color"
   ].join("\n");
 }
 
 function writeLine(output: Pick<NodeJS.WriteStream, "write">, value: string): void {
   output.write(`${value}\n`);
+}
+
+function usesJsonOutput(argv: string[]): boolean {
+  return argv.includes("--json") || argv.includes("--summary-json");
 }
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {

@@ -95,7 +95,7 @@ export async function runAction(options: RunActionOptions = {}): Promise<number>
 }
 
 export function buildCliArguments(env: ActionEnv, command: "check" | "report"): string[] {
-  const argv = [command, "--json"];
+  const argv = [command, "--summary-json"];
 
   for (const root of splitListInput(getInput(env, "roots"))) {
     argv.push("--root", root);

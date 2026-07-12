@@ -30,6 +30,28 @@ describe("scg CLI", () => {
     expect(snapshot.diagnostics).toEqual([]);
   });
 
+  it("emits bounded summary JSON without catalog records", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(workspace, "services/billing/service.yaml", serviceYaml("billing-api"));
+    const io = createIo();
+
+    const exitCode = await runCli({ argv: ["check", "--summary-json"], cwd: workspace, io });
+    const result = JSON.parse(io.stdoutText());
+
+    expect(exitCode).toBe(0);
+    expect(result).toEqual({
+      summary: {
+        serviceCount: 1,
+        errorCount: 0,
+        warningCount: 0,
+        edgeCount: 0
+      },
+      diagnostics: []
+    });
+    expect(result).not.toHaveProperty("services");
+    expect(result).not.toHaveProperty("graph");
+  });
+
   it("sets exit code 1 for catalog validation errors", async () => {
     const workspace = await createWorkspace();
     await writeManifest(

@@ -23380,12 +23380,12 @@ async function runCli(options = {}) {
     }
     const configResult = await loadConfigInput(cwd, parsed.configPath);
     if (!configResult.ok) {
-      return writeCliError(io, parsed.json, configResult.diagnostic);
+      return writeCliError(io, parsed.json || parsed.summaryJson, configResult.diagnostic);
     }
     const config2 = mergeCliFlags(configResult.config, parsed);
     const configDiagnosticResult = validateConfigInput(config2, parsed.configPath);
     if (configDiagnosticResult) {
-      return writeCliError(io, parsed.json, configDiagnosticResult);
+      return writeCliError(io, parsed.json || parsed.summaryJson, configDiagnosticResult);
     }
     const result = await compileCatalog({
       cwd,
@@ -23405,6 +23405,12 @@ async function runCli(options = {}) {
           ...result.snapshot,
           files: writeResult.files
         }, null, 2));
+      } else if (parsed.summaryJson) {
+        writeLine(io.stdout, JSON.stringify({
+          summary: result.snapshot.summary,
+          files: writeResult.files,
+          diagnostics: result.snapshot.diagnostics
+        }, null, 2));
       } else {
         writeLine(io.stdout, humanSummary(parsed.command, result.snapshot.summary));
         writeWrittenFiles(io.stdout, writeResult.files);
@@ -23414,6 +23420,11 @@ async function runCli(options = {}) {
     }
     if (parsed.json) {
       writeLine(io.stdout, JSON.stringify(result.snapshot, null, 2));
+    } else if (parsed.summaryJson) {
+      writeLine(io.stdout, JSON.stringify({
+        summary: result.snapshot.summary,
+        diagnostics: result.snapshot.diagnostics
+      }, null, 2));
     } else {
       writeLine(io.stdout, humanSummary(parsed.command, result.snapshot.summary));
       writeDiagnostics(io.stdout, result.snapshot.diagnostics);
@@ -23421,7 +23432,7 @@ async function runCli(options = {}) {
     return exitCode;
   } catch (error51) {
     if (error51 instanceof CliUsageError) {
-      return writeCliError(io, argv.includes("--json"), {
+      return writeCliError(io, usesJsonOutput(argv), {
         severity: "error",
         code: "config.invalid",
         message: error51.message,
@@ -23429,9 +23440,9 @@ async function runCli(options = {}) {
       });
     }
     if (error51 instanceof ReportWriteError) {
-      return writeCliError(io, argv.includes("--json"), error51.diagnostic, 4);
+      return writeCliError(io, usesJsonOutput(argv), error51.diagnostic, 4);
     }
-    return writeCliError(io, argv.includes("--json"), {
+    return writeCliError(io, usesJsonOutput(argv), {
       severity: "error",
       code: "config.invalid",
       message: "Unexpected CLI failure.",
@@ -23443,6 +23454,7 @@ function parseArgs(argv) {
   const state = {
     command: "scan",
     json: false,
+    summaryJson: false,
     help: false,
     version: false,
     roots: [],
@@ -23472,6 +23484,9 @@ function parseArgs(argv) {
         break;
       case "--json":
         state.json = true;
+        break;
+      case "--summary-json":
+        state.summaryJson = true;
         break;
       case "--no-color":
         break;
@@ -23511,6 +23526,9 @@ function parseArgs(argv) {
   }
   if (state.command !== "report" && state.formats.some((format) => format !== "json")) {
     throw new CliUsageError("Only JSON output is currently supported for scan and check.");
+  }
+  if (state.json && state.summaryJson) {
+    throw new CliUsageError("Use either --json or --summary-json, not both.");
   }
   return state;
 }
@@ -23689,12 +23707,16 @@ function helpText() {
     "  --no-allow-unknown-dependencies",
     "  --input-schema <scg-v1|zdp-v2>",
     "  --json",
+    "  --summary-json",
     "  --no-color"
   ].join("\n");
 }
 function writeLine(output, value) {
   output.write(`${value}
 `);
+}
+function usesJsonOutput(argv) {
+  return argv.includes("--json") || argv.includes("--summary-json");
 }
 function isPlainRecord(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -23767,7 +23789,7 @@ async function runAction(options = {}) {
   return exitCode;
 }
 function buildCliArguments(env, command) {
-  const argv = [command, "--json"];
+  const argv = [command, "--summary-json"];
   for (const root of splitListInput(getInput(env, "roots"))) {
     argv.push("--root", root);
   }

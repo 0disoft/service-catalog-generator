@@ -55,6 +55,8 @@ the CLI result remains the contract source.
 Count outputs are emitted only after the action can parse the CLI JSON summary. If the CLI produces
 no parseable JSON summary, the action must fail or preserve the failing CLI status instead of
 fabricating zero-count outputs.
+The Action uses the CLI's bounded `--summary-json` mode and does not copy full catalog snapshots or
+manifest extensions into workflow logs.
 
 ## Review Blockers
 

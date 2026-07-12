@@ -170,7 +170,7 @@ describe("GitHub Action wrapper", () => {
 
     expect(argv).toEqual([
       "check",
-      "--json",
+      "--summary-json",
       "--root",
       "services",
       "--root",
@@ -196,7 +196,7 @@ describe("GitHub Action wrapper", () => {
 
     expect(argv).toEqual([
       "report",
-      "--json",
+      "--summary-json",
       "--out",
       "out/catalog",
       "--format",
@@ -217,7 +217,7 @@ describe("GitHub Action wrapper", () => {
 
     expect(argv).toEqual([
       "check",
-      "--json",
+      "--summary-json",
       "--no-fail-on-warning",
       "--no-allow-unknown-dependencies"
     ]);
@@ -297,6 +297,8 @@ describe("GitHub Action wrapper", () => {
     expect(outputs.get("error-count")).toBe("0");
     expect(outputs.get("warning-count")).toBe("0");
     expect(outputs.get("report-directory")).toBe("");
+    expect(io.stdoutText()).not.toContain("billing-api");
+    expect(io.stdoutText()).not.toContain('"services"');
   });
 
   it("runs report mode and exposes the report directory output", async () => {
@@ -390,14 +392,26 @@ describe("GitHub Action wrapper", () => {
 function createIo(): {
   stdout: { write: (chunk: string) => boolean };
   stderr: { write: (chunk: string) => boolean };
+  stdoutText: () => string;
+  stderrText: () => string;
 } {
+  const stdoutChunks: string[] = [];
+  const stderrChunks: string[] = [];
   return {
     stdout: {
-      write: () => true
+      write: (chunk: string) => {
+        stdoutChunks.push(chunk);
+        return true;
+      }
     },
     stderr: {
-      write: () => true
-    }
+      write: (chunk: string) => {
+        stderrChunks.push(chunk);
+        return true;
+      }
+    },
+    stdoutText: () => stdoutChunks.join(""),
+    stderrText: () => stderrChunks.join("")
   };
 }
 

@@ -31,12 +31,16 @@ type CliSummary = {
 
 type CliPayload = {
   summary?: Partial<CliSummary>;
+  files?: Array<{
+    path?: unknown;
+  }>;
 };
 
 type SummaryParseResult =
   | {
       ok: true;
       summary: CliSummary;
+      reportDirectory?: string;
     }
   | {
       ok: false;
@@ -85,10 +89,7 @@ export async function runAction(options: RunActionOptions = {}): Promise<number>
   output("service-count", String(summary.serviceCount));
   output("error-count", String(summary.errorCount));
   output("warning-count", String(summary.warningCount));
-  output(
-    "report-directory",
-    command === "report" ? getInput(env, "output-directory", ".catalog") : ""
-  );
+  output("report-directory", command === "report" ? (summaryResult.reportDirectory ?? "") : "");
 
   return exitCode;
 }
@@ -96,16 +97,16 @@ export async function runAction(options: RunActionOptions = {}): Promise<number>
 export function buildCliArguments(env: ActionEnv, command: "check" | "report"): string[] {
   const argv = [command, "--json"];
 
-  for (const root of splitListInput(getInput(env, "roots", "."))) {
+  for (const root of splitListInput(getInput(env, "roots"))) {
     argv.push("--root", root);
   }
 
-  const manifestName = getInput(env, "manifest-name", "service.yaml");
+  const manifestName = getInput(env, "manifest-name");
   if (manifestName) {
     argv.push("--manifest", manifestName);
   }
 
-  const inputSchema = getInput(env, "input-schema", "scg-v1");
+  const inputSchema = getInput(env, "input-schema");
   if (inputSchema) {
     argv.push("--input-schema", inputSchema);
   }
@@ -115,17 +116,24 @@ export function buildCliArguments(env: ActionEnv, command: "check" | "report"): 
     argv.push("--config", config);
   }
 
-  if (parseBooleanInput(env, "fail-on-warning")) {
-    argv.push("--fail-on-warning");
+  const failOnWarning = parseOptionalBooleanInput(env, "fail-on-warning");
+  if (failOnWarning !== undefined) {
+    argv.push(failOnWarning ? "--fail-on-warning" : "--no-fail-on-warning");
   }
 
-  if (parseBooleanInput(env, "allow-unknown-dependencies")) {
-    argv.push("--allow-unknown-dependencies");
+  const allowUnknownDependencies = parseOptionalBooleanInput(env, "allow-unknown-dependencies");
+  if (allowUnknownDependencies !== undefined) {
+    argv.push(
+      allowUnknownDependencies ? "--allow-unknown-dependencies" : "--no-allow-unknown-dependencies"
+    );
   }
 
   if (command === "report") {
-    argv.push("--out", getInput(env, "output-directory", ".catalog"));
-    for (const format of splitListInput(getInput(env, "format", "json,dot,html"))) {
+    const outputDirectory = getInput(env, "output-directory");
+    if (outputDirectory) {
+      argv.push("--out", outputDirectory);
+    }
+    for (const format of splitListInput(getInput(env, "format"))) {
       argv.push("--format", format);
     }
   }
@@ -147,7 +155,21 @@ export function splitListInput(value: string): string[] {
 }
 
 export function parseBooleanInput(env: ActionEnv, name: string): boolean {
-  return getInput(env, name, "false").toLowerCase() === "true";
+  return parseOptionalBooleanInput(env, name) ?? false;
+}
+
+function parseOptionalBooleanInput(env: ActionEnv, name: string): boolean | undefined {
+  const value = getInput(env, name).toLowerCase();
+  if (!value) {
+    return undefined;
+  }
+  if (value === "true") {
+    return true;
+  }
+  if (value === "false") {
+    return false;
+  }
+  throw new Error(`Action input ${name} must be true or false.`);
 }
 
 function extractSummary(stdout: string): SummaryParseResult {
@@ -199,8 +221,21 @@ function extractSummary(stdout: string): SummaryParseResult {
       errorCount: errorCount.value,
       warningCount: warningCount.value,
       edgeCount: edgeCount.value
-    }
+    },
+    ...(readReportDirectory(payload.files)
+      ? { reportDirectory: readReportDirectory(payload.files) }
+      : {})
   };
+}
+
+function readReportDirectory(files: CliPayload["files"]): string | undefined {
+  const firstPath = files?.[0]?.path;
+  if (typeof firstPath !== "string" || !firstPath) {
+    return undefined;
+  }
+
+  const separatorIndex = firstPath.lastIndexOf("/");
+  return separatorIndex >= 0 ? firstPath.slice(0, separatorIndex) : ".";
 }
 
 function readSummaryNumber(

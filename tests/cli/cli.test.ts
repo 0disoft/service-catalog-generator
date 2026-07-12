@@ -143,6 +143,47 @@ describe("scg CLI", () => {
     expect(snapshot.summary.serviceCount).toBe(1);
   });
 
+  it("supports explicit false CLI overrides for boolean config values", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(
+      workspace,
+      "services/billing/service.yaml",
+      serviceYaml(
+        "billing-api",
+        [
+          "dependencies:",
+          "  - type: service",
+          "    target: ghost-api",
+          "    direction: outbound",
+          "    criticality: required"
+        ].join("\n")
+      )
+    );
+    await writeFile(
+      join(workspace, "scg.config.yaml"),
+      [
+        "schemaVersion: scg.config/v1alpha1",
+        "validation:",
+        "  failOnWarnings: true",
+        "  allowUnknownDependencies: true"
+      ].join("\n"),
+      "utf8"
+    );
+
+    const io = createIo();
+    const exitCode = await runCli({
+      argv: ["check", "--json", "--no-fail-on-warning", "--no-allow-unknown-dependencies"],
+      cwd: workspace,
+      io
+    });
+    const snapshot = JSON.parse(io.stdoutText());
+
+    expect(exitCode).toBe(1);
+    expect(snapshot.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "dependency.unknown_target" })
+    );
+  });
+
   it("compiles ZDP v2 manifests when --input-schema zdp-v2 is selected", async () => {
     const workspace = await createWorkspace();
     await writeManifest(workspace, "services/runtime/service.yaml", zdpV2ServiceYaml());

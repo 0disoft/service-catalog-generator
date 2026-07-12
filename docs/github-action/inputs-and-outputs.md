@@ -26,17 +26,18 @@ This repository type owns action inputs, outputs, permissions, token handling, a
 
 | Input                        | Required | Default         | Meaning                                                                    |
 | ---------------------------- | -------- | --------------- | -------------------------------------------------------------------------- |
-| `roots`                      | false    | `.`             | Newline or comma separated scan roots.                                     |
-| `manifest-name`              | false    | `service.yaml`  | Manifest filename to discover.                                             |
-| `input-schema`               | false    | `scg-v1`        | Input manifest schema adapter. Supported values are `scg-v1` and `zdp-v2`. |
+| `roots`                      | false    | CLI/config      | Newline or comma separated scan roots.                                     |
+| `manifest-name`              | false    | CLI/config      | Manifest filename to discover.                                             |
+| `input-schema`               | false    | CLI default     | Input manifest schema adapter. Supported values are `scg-v1` and `zdp-v2`. |
 | `config`                     | false    | none            | Optional path to `scg.config.yaml`.                                        |
-| `output-directory`           | false    | `.catalog`      | Directory for generated report artifacts.                                  |
-| `fail-on-warning`            | false    | `false`         | Promote warnings to failing validation.                                    |
-| `allow-unknown-dependencies` | false    | `false`         | Permit unresolved service dependency refs.                                 |
+| `output-directory`           | false    | CLI/config      | Directory for generated report artifacts.                                  |
+| `fail-on-warning`            | false    | CLI/config      | Promote warnings to failing validation; explicit `false` overrides config. |
+| `allow-unknown-dependencies` | false    | CLI/config      | Permit unresolved refs; explicit `false` overrides config.                 |
 | `report`                     | false    | `false`         | Generate report artifacts in addition to validation.                       |
-| `format`                     | false    | `json,dot,html` | Report formats when `report` is true.                                      |
+| `format`                     | false    | CLI/config      | Report formats when `report` is true.                                      |
 
-Inputs map to CLI flags. The action must not invent different default validation policy.
+Only explicitly supplied inputs map to CLI flags. Omitted inputs defer to `scg.config.yaml` and then
+CLI defaults so local and Action executions share one precedence contract.
 
 ## Outputs
 

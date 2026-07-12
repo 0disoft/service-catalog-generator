@@ -6,30 +6,24 @@ inputs:
   roots:
     description: Newline or comma separated scan roots.
     required: false
-    default: "."
   manifest-name:
     description: Manifest filename to discover.
     required: false
-    default: service.yaml
   input-schema:
     description: Input manifest schema adapter to use.
     required: false
-    default: scg-v1
   config:
     description: Optional path to scg.config.yaml.
     required: false
   output-directory:
     description: Directory for generated report artifacts.
     required: false
-    default: .catalog
   fail-on-warning:
     description: Promote warnings to a failing validation.
     required: false
-    default: "false"
   allow-unknown-dependencies:
     description: Permit unresolved service dependency refs.
     required: false
-    default: "false"
   report:
     description: Generate report artifacts in addition to validation.
     required: false
@@ -37,7 +31,6 @@ inputs:
   format:
     description: Comma or newline separated report formats when report is true.
     required: false
-    default: json,dot,html
 
 outputs:
   service-count:

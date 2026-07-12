@@ -72,6 +72,17 @@ describe("GitHub Action wrapper", () => {
       "service-count",
       "warning-count"
     ]);
+    for (const name of [
+      "roots",
+      "manifest-name",
+      "input-schema",
+      "output-directory",
+      "fail-on-warning",
+      "allow-unknown-dependencies",
+      "format"
+    ]) {
+      expect(metadata.inputs[name]).not.toHaveProperty("default");
+    }
   });
 
   it("keeps the committed action entrypoint covered by a read-only self-smoke workflow", async () => {
@@ -166,8 +177,6 @@ describe("GitHub Action wrapper", () => {
       "libs",
       "--manifest",
       "catalog.yaml",
-      "--input-schema",
-      "scg-v1",
       "--config",
       "scg.config.yaml",
       "--fail-on-warning",
@@ -188,12 +197,6 @@ describe("GitHub Action wrapper", () => {
     expect(argv).toEqual([
       "report",
       "--json",
-      "--root",
-      ".",
-      "--manifest",
-      "service.yaml",
-      "--input-schema",
-      "scg-v1",
       "--out",
       "out/catalog",
       "--format",
@@ -201,6 +204,56 @@ describe("GitHub Action wrapper", () => {
       "--format",
       "html"
     ]);
+  });
+
+  it("maps explicit false booleans to config-overriding CLI flags", () => {
+    const argv = buildCliArguments(
+      {
+        INPUT_FAIL_ON_WARNING: "false",
+        INPUT_ALLOW_UNKNOWN_DEPENDENCIES: "false"
+      },
+      "check"
+    );
+
+    expect(argv).toEqual([
+      "check",
+      "--json",
+      "--no-fail-on-warning",
+      "--no-allow-unknown-dependencies"
+    ]);
+  });
+
+  it("defers omitted scan inputs to the config file", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(workspace, "configured/catalog.yaml", serviceYaml("configured-api"));
+    await writeFile(
+      join(workspace, "scg.config.yaml"),
+      [
+        "schemaVersion: scg.config/v1alpha1",
+        "scan:",
+        "  roots:",
+        "    - configured",
+        "  manifestNames:",
+        "    - catalog.yaml"
+      ].join("\n"),
+      "utf8"
+    );
+    const outputs = new Map<string, string>();
+    const io = createIo();
+
+    const exitCode = await runAction({
+      cwd: workspace,
+      env: {
+        GITHUB_WORKSPACE: workspace,
+        INPUT_CONFIG: "scg.config.yaml"
+      },
+      stdout: io.stdout,
+      stderr: io.stderr,
+      writeOutput: (name, value) => outputs.set(name, value)
+    });
+
+    expect(exitCode).toBe(0);
+    expect(outputs.get("service-count")).toBe("1");
   });
 
   it("maps explicit input schema values to CLI arguments", () => {

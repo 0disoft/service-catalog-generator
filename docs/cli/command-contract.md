@@ -42,7 +42,9 @@ enough for CI and should never include secrets or full source file contents.
 | `--format <format>`            | `scan`, `report`  | Output format such as `json`, `dot`, or `html`.                                                      |
 | `--out <path>`                 | `report`          | Output directory. Defaults to `.catalog`.                                                            |
 | `--fail-on-warning`            | `check`, `report` | Promote warnings to a failing exit.                                                                  |
+| `--no-fail-on-warning`         | `check`, `report` | Override config and keep warnings non-failing.                                                       |
 | `--allow-unknown-dependencies` | all               | Permit dependency refs without matching service records.                                             |
+| `--no-allow-unknown-dependencies` | all            | Override config and reject dependency refs without matching service records.                          |
 | `--input-schema <schema>`      | all               | Select the input manifest adapter. Supported values are `scg-v1` and `zdp-v2`. Defaults to `scg-v1`. |
 | `--json`                       | all               | Emit machine-readable diagnostics and summaries.                                                     |
 | `--no-color`                   | all               | Disable terminal color and ANSI output.                                                              |

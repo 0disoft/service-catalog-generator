@@ -23379,8 +23379,6 @@ function parseArgs(argv) {
     roots: [],
     manifestNames: [],
     formats: [],
-    failOnWarnings: false,
-    allowUnknownDependencies: false,
     inputSchema: "scg-v1"
   };
   const remaining = [...argv];
@@ -23411,8 +23409,14 @@ function parseArgs(argv) {
       case "--fail-on-warning":
         state.failOnWarnings = true;
         break;
+      case "--no-fail-on-warning":
+        state.failOnWarnings = false;
+        break;
       case "--allow-unknown-dependencies":
         state.allowUnknownDependencies = true;
+        break;
+      case "--no-allow-unknown-dependencies":
+        state.allowUnknownDependencies = false;
         break;
       case "--input-schema":
         state.inputSchema = parseInputSchema(readFlagValue(token, remaining));
@@ -23517,8 +23521,8 @@ function mergeCliFlags(config2, parsed) {
     },
     validation: {
       ...config2.validation,
-      ...parsed.failOnWarnings ? { failOnWarnings: true } : {},
-      ...parsed.allowUnknownDependencies ? { allowUnknownDependencies: true } : {}
+      ...parsed.failOnWarnings !== void 0 ? { failOnWarnings: parsed.failOnWarnings } : {},
+      ...parsed.allowUnknownDependencies !== void 0 ? { allowUnknownDependencies: parsed.allowUnknownDependencies } : {}
     },
     output: {
       ...config2.output,
@@ -23611,7 +23615,9 @@ function helpText() {
     "  --format <json|dot|html>",
     "  --out <path>",
     "  --fail-on-warning",
+    "  --no-fail-on-warning",
     "  --allow-unknown-dependencies",
+    "  --no-allow-unknown-dependencies",
     "  --input-schema <scg-v1|zdp-v2>",
     "  --json",
     "  --no-color"
@@ -23688,22 +23694,19 @@ async function runAction(options = {}) {
   output("service-count", String(summary.serviceCount));
   output("error-count", String(summary.errorCount));
   output("warning-count", String(summary.warningCount));
-  output(
-    "report-directory",
-    command === "report" ? getInput(env, "output-directory", ".catalog") : ""
-  );
+  output("report-directory", command === "report" ? summaryResult.reportDirectory ?? "" : "");
   return exitCode;
 }
 function buildCliArguments(env, command) {
   const argv = [command, "--json"];
-  for (const root of splitListInput(getInput(env, "roots", "."))) {
+  for (const root of splitListInput(getInput(env, "roots"))) {
     argv.push("--root", root);
   }
-  const manifestName = getInput(env, "manifest-name", "service.yaml");
+  const manifestName = getInput(env, "manifest-name");
   if (manifestName) {
     argv.push("--manifest", manifestName);
   }
-  const inputSchema = getInput(env, "input-schema", "scg-v1");
+  const inputSchema = getInput(env, "input-schema");
   if (inputSchema) {
     argv.push("--input-schema", inputSchema);
   }
@@ -23711,15 +23714,22 @@ function buildCliArguments(env, command) {
   if (config2) {
     argv.push("--config", config2);
   }
-  if (parseBooleanInput(env, "fail-on-warning")) {
-    argv.push("--fail-on-warning");
+  const failOnWarning = parseOptionalBooleanInput(env, "fail-on-warning");
+  if (failOnWarning !== void 0) {
+    argv.push(failOnWarning ? "--fail-on-warning" : "--no-fail-on-warning");
   }
-  if (parseBooleanInput(env, "allow-unknown-dependencies")) {
-    argv.push("--allow-unknown-dependencies");
+  const allowUnknownDependencies = parseOptionalBooleanInput(env, "allow-unknown-dependencies");
+  if (allowUnknownDependencies !== void 0) {
+    argv.push(
+      allowUnknownDependencies ? "--allow-unknown-dependencies" : "--no-allow-unknown-dependencies"
+    );
   }
   if (command === "report") {
-    argv.push("--out", getInput(env, "output-directory", ".catalog"));
-    for (const format of splitListInput(getInput(env, "format", "json,dot,html"))) {
+    const outputDirectory = getInput(env, "output-directory");
+    if (outputDirectory) {
+      argv.push("--out", outputDirectory);
+    }
+    for (const format of splitListInput(getInput(env, "format"))) {
       argv.push("--format", format);
     }
   }
@@ -23734,7 +23744,20 @@ function splitListInput(value) {
   return value.split(/[\n,]/).map((item) => item.trim()).filter(Boolean);
 }
 function parseBooleanInput(env, name) {
-  return getInput(env, name, "false").toLowerCase() === "true";
+  return parseOptionalBooleanInput(env, name) ?? false;
+}
+function parseOptionalBooleanInput(env, name) {
+  const value = getInput(env, name).toLowerCase();
+  if (!value) {
+    return void 0;
+  }
+  if (value === "true") {
+    return true;
+  }
+  if (value === "false") {
+    return false;
+  }
+  throw new Error(`Action input ${name} must be true or false.`);
 }
 function extractSummary(stdout) {
   if (!stdout.trim()) {
@@ -23779,8 +23802,17 @@ function extractSummary(stdout) {
       errorCount: errorCount.value,
       warningCount: warningCount.value,
       edgeCount: edgeCount.value
-    }
+    },
+    ...readReportDirectory(payload.files) ? { reportDirectory: readReportDirectory(payload.files) } : {}
   };
+}
+function readReportDirectory(files) {
+  const firstPath = files?.[0]?.path;
+  if (typeof firstPath !== "string" || !firstPath) {
+    return void 0;
+  }
+  const separatorIndex = firstPath.lastIndexOf("/");
+  return separatorIndex >= 0 ? firstPath.slice(0, separatorIndex) : ".";
 }
 function readSummaryNumber(value, field) {
   if (typeof value === "number" && Number.isFinite(value)) {

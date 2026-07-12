@@ -50,8 +50,8 @@ type ParsedArgs = {
   manifestNames: string[];
   formats: ReportFormat[];
   out?: string;
-  failOnWarnings: boolean;
-  allowUnknownDependencies: boolean;
+  failOnWarnings?: boolean;
+  allowUnknownDependencies?: boolean;
   inputSchema: InputSchema;
 };
 
@@ -180,8 +180,6 @@ function parseArgs(argv: string[]): ParsedArgs {
     roots: [],
     manifestNames: [],
     formats: [],
-    failOnWarnings: false,
-    allowUnknownDependencies: false,
     inputSchema: "scg-v1"
   };
 
@@ -215,8 +213,14 @@ function parseArgs(argv: string[]): ParsedArgs {
       case "--fail-on-warning":
         state.failOnWarnings = true;
         break;
+      case "--no-fail-on-warning":
+        state.failOnWarnings = false;
+        break;
       case "--allow-unknown-dependencies":
         state.allowUnknownDependencies = true;
+        break;
+      case "--no-allow-unknown-dependencies":
+        state.allowUnknownDependencies = false;
         break;
       case "--input-schema":
         state.inputSchema = parseInputSchema(readFlagValue(token, remaining));
@@ -366,8 +370,10 @@ function mergeCliFlags(config: CatalogConfigInput, parsed: ParsedArgs): CatalogC
     },
     validation: {
       ...config.validation,
-      ...(parsed.failOnWarnings ? { failOnWarnings: true } : {}),
-      ...(parsed.allowUnknownDependencies ? { allowUnknownDependencies: true } : {})
+      ...(parsed.failOnWarnings !== undefined ? { failOnWarnings: parsed.failOnWarnings } : {}),
+      ...(parsed.allowUnknownDependencies !== undefined
+        ? { allowUnknownDependencies: parsed.allowUnknownDependencies }
+        : {})
     },
     output: {
       ...config.output,
@@ -497,7 +503,9 @@ function helpText(): string {
     "  --format <json|dot|html>",
     "  --out <path>",
     "  --fail-on-warning",
+    "  --no-fail-on-warning",
     "  --allow-unknown-dependencies",
+    "  --no-allow-unknown-dependencies",
     "  --input-schema <scg-v1|zdp-v2>",
     "  --json",
     "  --no-color"

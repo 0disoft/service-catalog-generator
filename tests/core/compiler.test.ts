@@ -194,7 +194,9 @@ describe("core catalog compiler", () => {
         source: "billing-api",
         target: "ghost-api",
         type: "service",
-        criticality: "required"
+        criticality: "required",
+        direction: "outbound",
+        resolution: "unresolved"
       }
     ]);
   });
@@ -582,7 +584,9 @@ describe("core catalog compiler", () => {
         source: "billing-api",
         target: "auth-api",
         type: "service",
-        criticality: "required"
+        criticality: "required",
+        direction: "outbound",
+        resolution: "catalog"
       }
     ]);
     expect(result.snapshot.summary.edgeCount).toBe(1);

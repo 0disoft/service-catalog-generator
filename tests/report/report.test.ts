@@ -38,9 +38,52 @@ describe("report writers", () => {
   it("escapes DOT labels and never accepts raw DOT fragments", () => {
     const dot = renderGraphDot(snapshot());
 
-    expect(dot).toContain('"billing-api" [label="Billing \\"API\\" <prod>"];');
-    expect(dot).toContain('"billing-api" -> "auth-api" [label="service/required"];');
+    expect(dot).toContain('"service:billing-api" [label="Billing \\"API\\" <prod>"];');
+    expect(dot).toContain(
+      '"service:billing-api" -> "service:auth-api" [label="service/required/unresolved"];'
+    );
     expect(dot).not.toContain('label="Billing "API"');
+  });
+
+  it("keeps typed nodes and dependency directions distinct in DOT", () => {
+    const value = snapshot();
+    const usersService = structuredClone(value.services[0]);
+    usersService.id = "users";
+    usersService.name = "Users Service";
+    usersService.dependencies = [];
+    usersService.source.path = "services/users/service.yaml";
+    value.services.push(usersService);
+    value.summary.serviceCount = 2;
+    value.summary.edgeCount = 2;
+    value.graph.edges = [
+      {
+        source: "billing-api",
+        target: "users",
+        type: "database",
+        criticality: "required",
+        direction: "inbound",
+        resolution: "external"
+      },
+      {
+        source: "billing-api",
+        target: "users",
+        type: "service",
+        criticality: "required",
+        direction: "bidirectional",
+        resolution: "catalog"
+      }
+    ];
+
+    const dot = renderGraphDot(value);
+
+    expect(dot).toContain('"database:users" [label="database:users"];');
+    expect(dot).toContain('"service:users" [label="Users Service"];');
+    expect(dot).toContain(
+      '"database:users" -> "service:billing-api" [label="database/required/external"];'
+    );
+    expect(dot).toContain(
+      '"service:billing-api" -> "service:users" [label="service/required/catalog", dir=both];'
+    );
   });
 
   it("escapes manifest-derived HTML text", () => {
@@ -261,7 +304,9 @@ function snapshot(): CatalogSnapshot {
           source: "billing-api",
           target: "auth-api",
           type: "service",
-          criticality: "required"
+          criticality: "required",
+          direction: "outbound",
+          resolution: "unresolved"
         }
       ]
     }

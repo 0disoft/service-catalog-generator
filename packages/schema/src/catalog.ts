@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { DiagnosticSchema } from "./diagnostic.js";
-import { DependencyCriticalitySchema, DependencyTypeSchema, StableIdSchema } from "./shared.js";
+import {
+  DependencyCriticalitySchema,
+  DependencyDirectionSchema,
+  DependencyTypeSchema,
+  StableIdSchema
+} from "./shared.js";
 import { ServiceRecordSchema } from "./service-manifest.js";
 import { CATALOG_SNAPSHOT_SCHEMA_VERSION } from "./versions.js";
 
@@ -9,7 +14,9 @@ export const GraphEdgeSchema = z
     source: StableIdSchema,
     target: StableIdSchema,
     type: DependencyTypeSchema,
-    criticality: DependencyCriticalitySchema
+    criticality: DependencyCriticalitySchema,
+    direction: DependencyDirectionSchema,
+    resolution: z.enum(["catalog", "unresolved", "external"])
   })
   .strict();
 

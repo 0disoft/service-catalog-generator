@@ -105,9 +105,12 @@ export function renderCatalogJson(snapshot: CatalogSnapshot): string {
 }
 
 export function renderGraphDot(snapshot: CatalogSnapshot): string {
-  const serviceIds = new Set(snapshot.services.map((service) => service.id));
-  const referencedIds = new Set(snapshot.graph.edges.flatMap((edge) => [edge.source, edge.target]));
-  const nodeIds = [...new Set([...serviceIds, ...referencedIds])].sort((left, right) =>
+  const serviceNodeIds = snapshot.services.map((service) => graphNodeKey("service", service.id));
+  const referencedNodeIds = snapshot.graph.edges.flatMap((edge) => [
+    graphNodeKey("service", edge.source),
+    graphNodeKey(edge.type, edge.target)
+  ]);
+  const nodeIds = [...new Set([...serviceNodeIds, ...referencedNodeIds])].sort((left, right) =>
     left.localeCompare(right)
   );
   const serviceById = new Map(snapshot.services.map((service) => [service.id, service]));
@@ -118,20 +121,37 @@ export function renderGraphDot(snapshot: CatalogSnapshot): string {
   ];
 
   for (const nodeId of nodeIds) {
-    const service = serviceById.get(nodeId);
-    const label = service ? service.name : nodeId;
+    const [nodeType, rawId] = splitGraphNodeKey(nodeId);
+    const service = nodeType === "service" ? serviceById.get(rawId) : undefined;
+    const label = service ? service.name : `${nodeType}:${rawId}`;
     lines.push(`  ${dotString(nodeId)} [label=${dotString(label)}];`);
   }
 
   for (const edge of snapshot.graph.edges) {
-    const label = `${edge.type}/${edge.criticality}`;
+    const declaringNode = graphNodeKey("service", edge.source);
+    const dependencyNode = graphNodeKey(edge.type, edge.target);
+    const [source, target] =
+      edge.direction === "inbound"
+        ? [dependencyNode, declaringNode]
+        : [declaringNode, dependencyNode];
+    const label = `${edge.type}/${edge.criticality}/${edge.resolution}`;
+    const directionAttribute = edge.direction === "bidirectional" ? ", dir=both" : "";
     lines.push(
-      `  ${dotString(edge.source)} -> ${dotString(edge.target)} [label=${dotString(label)}];`
+      `  ${dotString(source)} -> ${dotString(target)} [label=${dotString(label)}${directionAttribute}];`
     );
   }
 
   lines.push("}");
   return `${lines.join("\n")}\n`;
+}
+
+function graphNodeKey(type: string, id: string): string {
+  return `${type}:${id}`;
+}
+
+function splitGraphNodeKey(key: string): [string, string] {
+  const separatorIndex = key.indexOf(":");
+  return [key.slice(0, separatorIndex), key.slice(separatorIndex + 1)];
 }
 
 export function renderStaticHtml(snapshot: CatalogSnapshot): string {
@@ -281,11 +301,17 @@ function renderEdgesHtml(snapshot: CatalogSnapshot): string {
       tableCell(edge.target),
       tableCell(edge.type),
       tableCell(edge.criticality),
+      tableCell(edge.direction),
+      tableCell(edge.resolution),
       "</tr>"
     ].join("")
   );
 
-  return tableSectionHtml("Dependencies", ["Source", "Target", "Type", "Criticality"], rows);
+  return tableSectionHtml(
+    "Dependencies",
+    ["Source", "Target", "Type", "Criticality", "Direction", "Resolution"],
+    rows
+  );
 }
 
 function renderDiagnosticsHtml(snapshot: CatalogSnapshot): string {

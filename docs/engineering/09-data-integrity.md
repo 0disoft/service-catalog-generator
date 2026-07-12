@@ -29,6 +29,9 @@ presentation, not editable records.
 - Sort services by stable service id.
 - Sort diagnostics by severity, file, field, and code.
 - Sort dependency edges by source, target, type, and criticality.
+- Preserve dependency direction and classify targets as `catalog`, `unresolved`, or `external`.
+- Render graph nodes with typed keys so services, databases, queues, APIs, and external targets do
+  not collapse when they share an id.
 - Avoid current time in output unless explicitly represented as run metadata.
 - Preserve source manifest paths without embedding full file contents.
 

@@ -32,6 +32,9 @@ This repository type owns command behavior, arguments, flags, config loading, ex
 Each command should support human-readable output and a JSON mode. JSON mode must be deterministic
 enough for CI and should never include secrets or full source file contents.
 
+All successful JSON modes include the complete `CatalogSnapshot`. The `report` command adds a
+top-level `files` array describing written artifacts without removing snapshot fields.
+
 ## Draft Flags
 
 | Flag                           | Applies to        | Meaning                                                                                              |

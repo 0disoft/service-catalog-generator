@@ -119,9 +119,8 @@ export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> 
           io.stdout,
           JSON.stringify(
             {
-              summary: result.snapshot.summary,
-              files: writeResult.files,
-              diagnostics: result.snapshot.diagnostics
+              ...result.snapshot,
+              files: writeResult.files
             },
             null,
             2

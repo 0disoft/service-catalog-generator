@@ -349,6 +349,20 @@ describe("scg CLI", () => {
     const result = JSON.parse(io.stdoutText());
 
     expect(exitCode).toBe(0);
+    expect(result).toMatchObject({
+      schemaVersion: "scg.catalog/v1alpha1",
+      services: [expect.objectContaining({ id: "billing-api" })],
+      diagnostics: [],
+      graph: {
+        edges: []
+      },
+      summary: {
+        serviceCount: 1,
+        edgeCount: 0,
+        errorCount: 0,
+        warningCount: 0
+      }
+    });
     expect(result.files).toEqual([
       {
         format: "json",

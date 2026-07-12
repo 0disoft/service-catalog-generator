@@ -23356,9 +23356,8 @@ async function runCli(options = {}) {
       });
       if (parsed.json) {
         writeLine(io.stdout, JSON.stringify({
-          summary: result.snapshot.summary,
-          files: writeResult.files,
-          diagnostics: result.snapshot.diagnostics
+          ...result.snapshot,
+          files: writeResult.files
         }, null, 2));
       } else {
         writeLine(io.stdout, humanSummary(parsed.command, result.snapshot.summary));

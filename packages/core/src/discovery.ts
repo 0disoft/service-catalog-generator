@@ -209,41 +209,53 @@ function shouldExclude(relativePath: string, excludeRules: ExcludeRule[]): boole
 }
 
 function matchGlobSegments(patternSegments: string[], pathSegments: string[]): boolean {
-  return matchGlobSegmentAt(patternSegments, pathSegments, 0, 0);
+  return matchGlobSegmentAt(patternSegments, pathSegments, 0, 0, new Map());
 }
 
 function matchGlobSegmentAt(
   patternSegments: string[],
   pathSegments: string[],
   patternIndex: number,
-  pathIndex: number
+  pathIndex: number,
+  memo: Map<string, boolean>
 ): boolean {
-  if (patternIndex === patternSegments.length) {
-    return pathIndex === pathSegments.length;
+  const state = `${patternIndex}:${pathIndex}`;
+  const cached = memo.get(state);
+  if (cached !== undefined) {
+    return cached;
   }
 
-  const patternSegment = patternSegments[patternIndex];
-  if (patternSegment === "**") {
+  let matched: boolean;
+  if (patternIndex === patternSegments.length) {
+    matched = pathIndex === pathSegments.length;
+  } else if (patternSegments[patternIndex] === "**") {
     if (patternIndex === patternSegments.length - 1) {
-      return true;
-    }
-
-    for (let nextPathIndex = pathIndex; nextPathIndex <= pathSegments.length; nextPathIndex += 1) {
-      if (matchGlobSegmentAt(patternSegments, pathSegments, patternIndex + 1, nextPathIndex)) {
-        return true;
+      matched = true;
+    } else {
+      matched = false;
+      for (
+        let nextPathIndex = pathIndex;
+        nextPathIndex <= pathSegments.length;
+        nextPathIndex += 1
+      ) {
+        if (
+          matchGlobSegmentAt(patternSegments, pathSegments, patternIndex + 1, nextPathIndex, memo)
+        ) {
+          matched = true;
+          break;
+        }
       }
     }
-    return false;
+  } else if (pathIndex >= pathSegments.length) {
+    matched = false;
+  } else {
+    matched =
+      matchGlobSegment(patternSegments[patternIndex], pathSegments[pathIndex]) &&
+      matchGlobSegmentAt(patternSegments, pathSegments, patternIndex + 1, pathIndex + 1, memo);
   }
 
-  if (pathIndex >= pathSegments.length) {
-    return false;
-  }
-
-  return (
-    matchGlobSegment(patternSegment, pathSegments[pathIndex]) &&
-    matchGlobSegmentAt(patternSegments, pathSegments, patternIndex + 1, pathIndex + 1)
-  );
+  memo.set(state, matched);
+  return matched;
 }
 
 function matchGlobSegment(patternSegment: string, pathSegment: string): boolean {

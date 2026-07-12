@@ -1,4 +1,4 @@
-import { readFile, stat } from "node:fs/promises";
+import { open } from "node:fs/promises";
 import type { Diagnostic } from "@scg/schema";
 import { parseDocument } from "yaml";
 import { createDiagnostic } from "./diagnostics.js";
@@ -8,16 +8,32 @@ export async function parseManifestFile(
   file: DiscoveredManifest,
   maxManifestBytes: number
 ): Promise<ParsedManifest> {
-  const fileStat = await stat(file.realPath);
-  if (fileStat.size > maxManifestBytes) {
-    return invalidYaml(file, "Manifest file exceeds the configured size limit.");
-  }
-
   let source: string;
+  let handle: Awaited<ReturnType<typeof open>> | undefined;
   try {
-    source = await readFile(file.realPath, "utf8");
+    handle = await open(file.realPath, "r");
+    const fileStat = await handle.stat();
+    if (fileStat.size > maxManifestBytes) {
+      return invalidYaml(file, "Manifest file exceeds the configured size limit.");
+    }
+
+    const buffer = Buffer.alloc(maxManifestBytes + 1);
+    let offset = 0;
+    while (offset < buffer.length) {
+      const { bytesRead } = await handle.read(buffer, offset, buffer.length - offset, offset);
+      if (bytesRead === 0) {
+        break;
+      }
+      offset += bytesRead;
+    }
+    if (offset > maxManifestBytes) {
+      return invalidYaml(file, "Manifest file exceeds the configured size limit.");
+    }
+    source = buffer.subarray(0, offset).toString("utf8");
   } catch {
     return invalidYaml(file, "Manifest file could not be read.");
+  } finally {
+    await handle?.close();
   }
 
   try {

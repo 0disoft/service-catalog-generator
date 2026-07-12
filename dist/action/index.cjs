@@ -22443,28 +22443,36 @@ function shouldExclude(relativePath, excludeRules) {
   return excludeRules.some((rule) => matchGlobSegments(rule.segments, pathSegments));
 }
 function matchGlobSegments(patternSegments, pathSegments) {
-  return matchGlobSegmentAt(patternSegments, pathSegments, 0, 0);
+  return matchGlobSegmentAt(patternSegments, pathSegments, 0, 0, /* @__PURE__ */ new Map());
 }
-function matchGlobSegmentAt(patternSegments, pathSegments, patternIndex, pathIndex) {
-  if (patternIndex === patternSegments.length) {
-    return pathIndex === pathSegments.length;
+function matchGlobSegmentAt(patternSegments, pathSegments, patternIndex, pathIndex, memo) {
+  const state = `${patternIndex}:${pathIndex}`;
+  const cached2 = memo.get(state);
+  if (cached2 !== void 0) {
+    return cached2;
   }
-  const patternSegment = patternSegments[patternIndex];
-  if (patternSegment === "**") {
+  let matched;
+  if (patternIndex === patternSegments.length) {
+    matched = pathIndex === pathSegments.length;
+  } else if (patternSegments[patternIndex] === "**") {
     if (patternIndex === patternSegments.length - 1) {
-      return true;
-    }
-    for (let nextPathIndex = pathIndex; nextPathIndex <= pathSegments.length; nextPathIndex += 1) {
-      if (matchGlobSegmentAt(patternSegments, pathSegments, patternIndex + 1, nextPathIndex)) {
-        return true;
+      matched = true;
+    } else {
+      matched = false;
+      for (let nextPathIndex = pathIndex; nextPathIndex <= pathSegments.length; nextPathIndex += 1) {
+        if (matchGlobSegmentAt(patternSegments, pathSegments, patternIndex + 1, nextPathIndex, memo)) {
+          matched = true;
+          break;
+        }
       }
     }
-    return false;
+  } else if (pathIndex >= pathSegments.length) {
+    matched = false;
+  } else {
+    matched = matchGlobSegment(patternSegments[patternIndex], pathSegments[pathIndex]) && matchGlobSegmentAt(patternSegments, pathSegments, patternIndex + 1, pathIndex + 1, memo);
   }
-  if (pathIndex >= pathSegments.length) {
-    return false;
-  }
-  return matchGlobSegment(patternSegment, pathSegments[pathIndex]) && matchGlobSegmentAt(patternSegments, pathSegments, patternIndex + 1, pathIndex + 1);
+  memo.set(state, matched);
+  return matched;
 }
 function matchGlobSegment(patternSegment, pathSegment) {
   const source = [...patternSegment].map((character) => character === "*" ? "[^/]*" : character === "?" ? "[^/]" : escapeRegExp(character)).join("");
@@ -22560,15 +22568,31 @@ function normalizeRepositoryRef(repository, config2) {
 var import_promises2 = require("fs/promises");
 var import_yaml = __toESM(require_dist(), 1);
 async function parseManifestFile(file2, maxManifestBytes) {
-  const fileStat = await (0, import_promises2.stat)(file2.realPath);
-  if (fileStat.size > maxManifestBytes) {
-    return invalidYaml(file2, "Manifest file exceeds the configured size limit.");
-  }
   let source;
+  let handle;
   try {
-    source = await (0, import_promises2.readFile)(file2.realPath, "utf8");
+    handle = await (0, import_promises2.open)(file2.realPath, "r");
+    const fileStat = await handle.stat();
+    if (fileStat.size > maxManifestBytes) {
+      return invalidYaml(file2, "Manifest file exceeds the configured size limit.");
+    }
+    const buffer = Buffer.alloc(maxManifestBytes + 1);
+    let offset = 0;
+    while (offset < buffer.length) {
+      const { bytesRead } = await handle.read(buffer, offset, buffer.length - offset, offset);
+      if (bytesRead === 0) {
+        break;
+      }
+      offset += bytesRead;
+    }
+    if (offset > maxManifestBytes) {
+      return invalidYaml(file2, "Manifest file exceeds the configured size limit.");
+    }
+    source = buffer.subarray(0, offset).toString("utf8");
   } catch {
     return invalidYaml(file2, "Manifest file could not be read.");
+  } finally {
+    await handle?.close();
   }
   try {
     const document = (0, import_yaml.parseDocument)(source, {

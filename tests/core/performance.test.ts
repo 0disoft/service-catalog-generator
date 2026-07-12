@@ -24,6 +24,27 @@ afterEach(async () => {
 });
 
 describe("core catalog compiler performance", () => {
+  it("bounds repeated recursive glob matching", async () => {
+    const workspace = await createWorkspace();
+    const nestedPath = `${Array.from({ length: 20 }, (_, index) => `level-${index}`).join("/")}/service.yaml`;
+    await writeManifest(workspace, nestedPath, serviceYaml("deep-service"));
+    const repeatedRecursivePattern = `${Array.from({ length: 10 }, () => "**").join("/")}/never-match`;
+
+    const startedAt = performance.now();
+    const result = await compileCatalog({
+      cwd: workspace,
+      config: {
+        scan: {
+          exclude: [repeatedRecursivePattern]
+        }
+      }
+    });
+    const elapsedMs = performance.now() - startedAt;
+
+    expect(result.snapshot.summary.serviceCount).toBe(1);
+    expect(elapsedMs).toBeLessThan(2000);
+  });
+
   it(
     "scans 500 manifests within the hosted-runner budget",
     async () => {

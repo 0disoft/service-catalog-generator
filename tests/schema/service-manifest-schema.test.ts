@@ -115,4 +115,23 @@ describe("ServiceManifestSchema fixtures", () => {
       expect(result.data.dependencies[0]?.target).toBe("ghost-api");
     }
   });
+
+  it("rejects contradictory retired lifecycle state", () => {
+    const manifest = loadFixture("valid-minimal.service.yaml") as Record<string, unknown>;
+    manifest.lifecycle = "retired";
+    manifest.retirement = { status: "planned" };
+
+    const result = ServiceManifestSchema.safeParse(manifest);
+    expect(result.success).toBe(false);
+    expect(issuePaths(result)).toContain("retirement.status");
+  });
+
+  it("requires retired status, lifecycle, and note to agree", () => {
+    const manifest = loadFixture("valid-minimal.service.yaml") as Record<string, unknown>;
+    manifest.retirement = { status: "retired" };
+
+    const result = ServiceManifestSchema.safeParse(manifest);
+    expect(result.success).toBe(false);
+    expect(issuePaths(result)).toEqual(expect.arrayContaining(["lifecycle", "retirement.note"]));
+  });
 });

@@ -25,3 +25,5 @@ jobs:
       - run: pnpm --version
       - run: pnpm install --frozen-lockfile
       - run: pnpm run check
+      - name: Verify committed Action bundle
+        run: git diff --exit-code -- dist/action/index.cjs

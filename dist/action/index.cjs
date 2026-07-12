@@ -22068,13 +22068,37 @@ var ServiceManifestObjectSchema = external_exports.object({
   metadata: ManifestMetadataSchema,
   extensions: ServiceExtensionsSchema.optional()
 }).strict();
-var ServiceManifestSchema = ServiceManifestObjectSchema.superRefine((value, ctx) => addSecretLikeIssues(value, ctx));
+var ServiceManifestSchema = ServiceManifestObjectSchema.superRefine(addServiceIssues);
 var ServiceSourceSchema = external_exports.object({
   path: RelativePathSchema
 }).strict();
 var ServiceRecordSchema = ServiceManifestObjectSchema.omit({ schemaVersion: true }).extend({
   source: ServiceSourceSchema
-}).superRefine((value, ctx) => addSecretLikeIssues(value, ctx));
+}).superRefine(addServiceIssues);
+function addServiceIssues(value, ctx) {
+  addSecretLikeIssues(value, ctx);
+  if (value.lifecycle === "retired" && value.retirement?.status !== "retired") {
+    ctx.addIssue({
+      code: "custom",
+      path: ["retirement", "status"],
+      message: "retired services require retirement.status: retired."
+    });
+  }
+  if (value.retirement?.status === "retired" && value.lifecycle !== "retired") {
+    ctx.addIssue({
+      code: "custom",
+      path: ["lifecycle"],
+      message: "retirement.status: retired requires lifecycle: retired."
+    });
+  }
+  if (value.retirement?.status === "retired" && !value.retirement.note) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["retirement", "note"],
+      message: "retired services require a retirement note."
+    });
+  }
+}
 
 // packages/schema/dist/catalog.js
 var GraphEdgeSchema = external_exports.object({

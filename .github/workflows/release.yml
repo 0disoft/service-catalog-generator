@@ -35,6 +35,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: node scripts/release-check.mjs
       - run: pnpm run check
+      - name: Verify committed Action bundle
+        run: git diff --exit-code -- dist/action/index.cjs
       - run: node scripts/pack-smoke.mjs
 
       - name: Capture release recovery state

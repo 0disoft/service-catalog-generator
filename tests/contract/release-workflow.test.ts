@@ -68,6 +68,13 @@ describe("release workflow contract", () => {
     expect(steps.some((step) => step.uses === SETUP_NODE_ACTION)).toBe(true);
     expect(steps.some((step) => step.run === "node scripts/release-check.mjs")).toBe(true);
     expect(steps.some((step) => step.run === "pnpm run check")).toBe(true);
+    expect(
+      steps.some(
+        (step) =>
+          step.name === "Verify committed Action bundle" &&
+          step.run === "git diff --exit-code -- dist/action/index.cjs"
+      )
+    ).toBe(true);
     expect(steps.some((step) => step.run === "node scripts/pack-smoke.mjs")).toBe(true);
     expect(
       steps.some(
@@ -179,6 +186,11 @@ describe("release workflow contract", () => {
       expect(workflowText, workflowPath).toContain("persist-credentials: false");
       expect(workflowText.match(/timeout-minutes:\s*\d+/g), workflowPath).toHaveLength(1);
     }
+  });
+
+  it("checks generated Action bundle drift in CI", () => {
+    const workflowText = readFileSync(join(process.cwd(), ".github/workflows/ci.yml"), "utf8");
+    expect(workflowText).toContain("git diff --exit-code -- dist/action/index.cjs");
   });
 
   it("keeps scoped package metadata public-release ready", () => {

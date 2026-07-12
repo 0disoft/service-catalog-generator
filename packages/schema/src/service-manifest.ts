@@ -141,9 +141,7 @@ const ServiceManifestObjectSchema = z
   })
   .strict();
 
-export const ServiceManifestSchema = ServiceManifestObjectSchema.superRefine((value, ctx) =>
-  addSecretLikeIssues(value, ctx)
-);
+export const ServiceManifestSchema = ServiceManifestObjectSchema.superRefine(addServiceIssues);
 
 export const ServiceSourceSchema = z
   .object({
@@ -155,7 +153,39 @@ export const ServiceRecordSchema = ServiceManifestObjectSchema.omit({ schemaVers
   .extend({
     source: ServiceSourceSchema
   })
-  .superRefine((value, ctx) => addSecretLikeIssues(value, ctx));
+  .superRefine(addServiceIssues);
+
+function addServiceIssues(
+  value: {
+    lifecycle: z.infer<typeof LifecycleSchema>;
+    retirement?: z.infer<typeof RetirementSchema>;
+  },
+  ctx: z.RefinementCtx
+): void {
+  addSecretLikeIssues(value, ctx);
+
+  if (value.lifecycle === "retired" && value.retirement?.status !== "retired") {
+    ctx.addIssue({
+      code: "custom",
+      path: ["retirement", "status"],
+      message: "retired services require retirement.status: retired."
+    });
+  }
+  if (value.retirement?.status === "retired" && value.lifecycle !== "retired") {
+    ctx.addIssue({
+      code: "custom",
+      path: ["lifecycle"],
+      message: "retirement.status: retired requires lifecycle: retired."
+    });
+  }
+  if (value.retirement?.status === "retired" && !value.retirement.note) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["retirement", "note"],
+      message: "retired services require a retirement note."
+    });
+  }
+}
 
 export type OwnerRef = z.infer<typeof OwnerRefSchema>;
 export type RepositoryRef = z.infer<typeof RepositoryRefSchema>;

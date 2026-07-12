@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.14
+
 - Rejected credential-bearing repository URLs, control characters and POSIX boundary escapes in
   report output paths, and GitHub output injection through multiline values.
 - Excluded duplicate service IDs from normalized services and graphs, bounded duplicate diagnostics,

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Rejected credential-bearing repository URLs, control characters and POSIX boundary escapes in
+  report output paths, and GitHub output injection through multiline values.
+- Excluded duplicate service IDs from normalized services and graphs, bounded duplicate diagnostics,
+  and enforced catalog ID uniqueness.
+- Preserved Action config precedence for omitted inputs and added explicit false boolean overrides.
+- Bounded recursive glob matching and manifest reads against pathological patterns and file races.
+- Preserved dependency direction and resolution in graph edges and separated typed DOT nodes.
+- Kept complete snapshots in `report --json` while adding bounded `--summary-json` output for the
+  GitHub Action.
+- Enforced lifecycle/retirement consistency and committed Action bundle drift checks in CI and
+  release workflows.
+
 ## 0.5.13
 
 - Replaced polynomial stable-ID edge trimming with bounded string operations and added a repeated

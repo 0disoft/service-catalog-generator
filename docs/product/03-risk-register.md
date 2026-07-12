@@ -52,6 +52,32 @@ Owner: 0disoft
   a workspace.
 - Mitigation: default excludes, realpath tracking, output-directory allowlists, atomic writes, and
   tests for traversal and symlink loops.
+- Remaining risk: atomic replacement currently applies per file, not to the JSON, DOT, and HTML set
+  as one generation. Concurrent writers targeting the same directory can mix generations, and an
+  external process with workspace write access can race path validation by replacing directories.
+- Blocker: 1.0 release without either a generation-level publication protocol or an explicit
+  single-writer contract and tested lock/recovery behavior.
+
+## Resource Exhaustion
+
+- Risk: individually valid manifests can collectively exceed practical memory and output budgets,
+  especially when large extension payloads are retained in snapshots and reports.
+- Mitigation: per-manifest byte limits, manifest-count limits, bounded parsing concurrency, bounded
+  glob matching, and summary-only Action output.
+- Remaining risk: the aggregate input-byte, extension-size, object-depth, key-count, and report-size
+  budgets are not yet public configuration contracts.
+- Blocker: freezing 1.0 limits without measured native and ZDP consumer distributions and migration
+  behavior for catalogs that exceed them.
+
+## Empty And Mixed Catalog Policy
+
+- Risk: a successful zero-service result can hide a bad root or manifest name, while forcing one
+  service can break intentional empty-repository checks. A single run-wide adapter also prevents
+  explicitly configured mixed-schema adoption.
+- Mitigation: consumers should currently pin roots, manifest names, input schema, and expected
+  service-count evidence in their own CI gates.
+- Blocker: adding implicit schema detection. Pre-1.0 design must define explicit minimum-service
+  policy and per-source adapter selection, including overlap and precedence errors.
 
 ## Runtime and Release Drift
 

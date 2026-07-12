@@ -46,6 +46,19 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 - Convert remaining draft wording in user contracts into explicit stable, experimental, or internal
   classifications.
 - Publish a pre-1.0-to-1.0 migration guide, including removal and deprecation rules.
+- Decide whether `check` and `report` require a configurable minimum service count while preserving
+  intentional empty-repository validation.
+- Define explicit per-source adapter configuration without schema autodetection, including overlap
+  and precedence errors.
+
+### Resource And Publication Safety
+
+- Set measured aggregate budgets for input bytes, extensions, object depth, collection size, and
+  generated report size.
+- Replace per-file report publication with a tested single-generation protocol, writer exclusion,
+  and failure recovery contract.
+- Document the supported filesystem threat model and residual directory-replacement race where the
+  Node runtime cannot provide descriptor-relative no-follow writes.
 
 ### Adoption Evidence
 

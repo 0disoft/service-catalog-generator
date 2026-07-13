@@ -30,6 +30,42 @@ export const CatalogConfigSchema = z
         allowUnknownDependencies: false,
         staleAfterDays: 90
       }),
+    limits: z
+      .object({
+        maxManifestBytes: z
+          .number()
+          .int()
+          .positive()
+          .default(256 * 1024),
+        maxTotalManifestBytes: z
+          .number()
+          .int()
+          .positive()
+          .default(64 * 1024 * 1024),
+        maxManifests: z.number().int().positive().max(10_000).default(1000),
+        maxObjectDepth: z.number().int().positive().max(256).default(32),
+        maxCollectionEntries: z.number().int().positive().default(100_000),
+        maxExtensionBytes: z
+          .number()
+          .int()
+          .nonnegative()
+          .default(8 * 1024 * 1024),
+        maxReportBytes: z
+          .number()
+          .int()
+          .positive()
+          .default(64 * 1024 * 1024)
+      })
+      .strict()
+      .default({
+        maxManifestBytes: 256 * 1024,
+        maxTotalManifestBytes: 64 * 1024 * 1024,
+        maxManifests: 1000,
+        maxObjectDepth: 32,
+        maxCollectionEntries: 100_000,
+        maxExtensionBytes: 8 * 1024 * 1024,
+        maxReportBytes: 64 * 1024 * 1024
+      }),
     output: z
       .object({
         directory: z.string().min(1).default(".catalog"),

@@ -39,8 +39,14 @@ Initial budgets:
 - 500 manifests: under 2 seconds on a typical developer laptop.
 - 500 manifests: under 5 seconds on a GitHub hosted runner.
 - 1,000 manifests: bounded memory, target peak below 256 MB.
+- Aggregate manifest bytes: 64 MiB.
+- Aggregate collection entries: 100,000; object depth: 32.
+- Aggregate retained extension JSON: 8 MiB.
+- Combined selected report output: 64 MiB.
 
-Budgets may change after measurement, but performance changes must update this document and tests.
+The synthetic 1,000-service fixture currently measures 484,000 input bytes, 26,000 collection
+entries, maximum depth 3, and 1,093,200 combined report bytes. Budgets may change after comparable
+measurement, but performance changes must update this document and tests.
 
 ## Maintainability
 

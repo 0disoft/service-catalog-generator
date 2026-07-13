@@ -45,6 +45,15 @@ validation:
   allowUnknownDependencies: false
   staleAfterDays: 90
 
+limits:
+  maxManifestBytes: 262144
+  maxTotalManifestBytes: 67108864
+  maxManifests: 1000
+  maxObjectDepth: 32
+  maxCollectionEntries: 100000
+  maxExtensionBytes: 8388608
+  maxReportBytes: 67108864
+
 output:
   directory: .catalog
   formats:
@@ -82,10 +91,23 @@ Environment variables must not override catalog semantics. `NO_COLOR` may affect
 - Formats: JSON for `scan`, no write for `check`, JSON/DOT/HTML for `report`.
 - Unknown dependencies: failing diagnostic by default.
 - Warnings: non-failing unless `--fail-on-warning` is set.
+- Resource limits: fail closed before publishing a partial catalog. Limits cover each manifest,
+  aggregate input bytes, manifest count, object depth, aggregate collection entries, aggregate
+  retained extensions, and the combined selected report formats.
 - Determinism: JSON, DOT, and report outputs are always sorted for stable CI diffs; this is not a
   configurable mode.
 - Network calls: none.
 - Telemetry: none.
+
+## Resource Budget Evidence
+
+The default limits preserve the existing 1,000-manifest scan contract. The maintained synthetic
+1,000-service fixture measures 484,000 input bytes, 26,000 collection entries, maximum object depth
+3, and 1,093,200 combined JSON/DOT/HTML report bytes. The defaults leave headroom for richer
+manifests while stopping inputs that approach the previous theoretical 256 MiB aggregate file cap.
+
+Limit increases are explicit capacity decisions. Reducing a limit can make an existing repository
+fail validation and should be rolled out with measured consumer evidence.
 
 ## Migrating From Removed No-Op Settings
 

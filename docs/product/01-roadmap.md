@@ -53,8 +53,8 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 
 ### Resource And Publication Safety
 
-- Set measured aggregate budgets for input bytes, extensions, object depth, collection size, and
-  generated report size.
+- Keep measured aggregate input, extension, depth, collection, and generated-report budgets aligned
+  with the 1,000-service synthetic fixture and released consumer evidence.
 - Keep the delivered directory-generation report protocol, writer exclusion, rollback tests, and
   fail-closed lock recovery contract under a merge-blocking Ubuntu and Windows runner matrix.
 - Document the supported filesystem threat model and residual directory-replacement race where the

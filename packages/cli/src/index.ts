@@ -113,7 +113,8 @@ export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> 
       const writeResult = await writeCatalogReports(result.snapshot, {
         cwd,
         outputDirectory: result.config.output.directory,
-        formats: result.config.output.formats
+        formats: result.config.output.formats,
+        maxTotalBytes: result.config.limits.maxReportBytes
       });
       if (parsed.json) {
         writeLine(
@@ -371,7 +372,7 @@ async function loadConfigInput(
         diagnostic: configDiagnostic(
           explicitConfigPath ?? DEFAULT_CONFIG_FILE,
           "Config file must contain a YAML mapping.",
-          "Use schemaVersion and nested scan, validation, output, and privacy mappings."
+          "Use schemaVersion and nested scan, validation, limits, output, and privacy mappings."
         )
       };
     }
@@ -426,7 +427,7 @@ function validateConfigInput(
     return configDiagnostic(
       explicitConfigPath ?? DEFAULT_CONFIG_FILE,
       "Config values do not match the CLI configuration contract.",
-      "Use schemaVersion scg.config/v1alpha1 and valid scan, validation, output, and privacy fields."
+      "Use schemaVersion scg.config/v1alpha1 and valid scan, validation, limits, output, and privacy fields."
     );
   }
 }

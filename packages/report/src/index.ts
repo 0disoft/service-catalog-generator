@@ -25,6 +25,7 @@ export type WriteCatalogReportsOptions = {
   cwd?: string;
   outputDirectory: string;
   formats: ReportFormat[];
+  maxTotalBytes?: number;
 };
 
 export type WriteCatalogReportsResult = {
@@ -66,6 +67,17 @@ export async function writeCatalogReports(
       name: reportFileName(format),
       contents: renderReport(snapshot, format)
     }));
+    const totalReportBytes = generationFiles.reduce(
+      (total, file) => total + Buffer.byteLength(file.contents, "utf8"),
+      0
+    );
+    if (totalReportBytes > (options.maxTotalBytes ?? 64 * 1024 * 1024)) {
+      throwWriteError(
+        options.outputDirectory,
+        "Generated reports exceed the configured aggregate byte limit.",
+        "Select fewer formats, reduce catalog payloads, or raise limits.maxReportBytes."
+      );
+    }
     const outputDirectoryRealPath = await publishReportGeneration({
       cwdPath: cwd,
       cwdRealPath,

@@ -51,6 +51,83 @@ describe("core catalog compiler", () => {
     expect(JSON.stringify(result.snapshot.diagnostics)).not.toContain("schemaVersion: [");
   });
 
+  it("fails the complete catalog when aggregate manifest bytes exceed the budget", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(workspace, "services/one/service.yaml", serviceYaml({ id: "one-api" }));
+
+    const result = await compileCatalog({
+      cwd: workspace,
+      config: { limits: { maxTotalManifestBytes: 1 } }
+    });
+
+    expect(result.services).toEqual([]);
+    expect(result.snapshot.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "resource.limit_exceeded",
+        message: "Total manifest bytes exceed the configured aggregate limit."
+      })
+    );
+  });
+
+  it("fails the complete catalog when aggregate collection entries exceed the budget", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(workspace, "services/one/service.yaml", serviceYaml({ id: "one-api" }));
+
+    const result = await compileCatalog({
+      cwd: workspace,
+      config: { limits: { maxCollectionEntries: 1 } }
+    });
+
+    expect(result.services).toEqual([]);
+    expect(result.snapshot.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "resource.limit_exceeded",
+        message: "Manifest collection entries exceed the configured aggregate limit."
+      })
+    );
+  });
+
+  it("rejects manifests whose object depth exceeds the budget", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(workspace, "services/one/service.yaml", serviceYaml({ id: "one-api" }));
+
+    const result = await compileCatalog({
+      cwd: workspace,
+      config: { limits: { maxObjectDepth: 1 } }
+    });
+
+    expect(result.services).toEqual([]);
+    expect(result.snapshot.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "resource.limit_exceeded",
+        file: "services/one/service.yaml",
+        message: "Manifest object depth exceeds the configured limit."
+      })
+    );
+  });
+
+  it("fails the complete catalog when extensions exceed the aggregate byte budget", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(
+      workspace,
+      "services/one/service.yaml",
+      `${serviceYaml({ id: "one-api" })}\nextensions:\n  example:\n    note: retained\n`
+    );
+
+    const result = await compileCatalog({
+      cwd: workspace,
+      config: { limits: { maxExtensionBytes: 1 } }
+    });
+
+    expect(result.services).toEqual([]);
+    expect(result.snapshot.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "resource.limit_exceeded",
+        message: "Manifest extensions exceed the configured aggregate byte limit."
+      })
+    );
+  });
+
   it("maps missing required fields to stable manifest diagnostics", async () => {
     const workspace = await createWorkspace();
     await writeManifest(

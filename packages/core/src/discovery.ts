@@ -164,7 +164,8 @@ async function walkDirectory(state: WalkState): Promise<void> {
       absolutePath,
       realPath: fileRealPath,
       relativePath: relativeToCwd,
-      rootRealPath: state.rootRealPath
+      rootRealPath: state.rootRealPath,
+      sizeBytes: entryStats.size
     });
   }
 }

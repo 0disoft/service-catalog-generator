@@ -14,6 +14,7 @@ export type CatalogConfigInput = {
   schemaVersion?: CatalogConfig["schemaVersion"];
   scan?: Partial<CatalogConfig["scan"]>;
   validation?: Partial<CatalogConfig["validation"]>;
+  limits?: Partial<CatalogConfig["limits"]>;
   output?: Partial<CatalogConfig["output"]>;
   privacy?: Partial<CatalogConfig["privacy"]>;
 };
@@ -35,6 +36,7 @@ export type DiscoveredManifest = {
   realPath: string;
   relativePath: string;
   rootRealPath: string;
+  sizeBytes: number;
 };
 
 export type ParsedManifest =
@@ -42,6 +44,10 @@ export type ParsedManifest =
       ok: true;
       file: DiscoveredManifest;
       value: unknown;
+      metrics: {
+        collectionEntries: number;
+        maxDepth: number;
+      };
     }
   | {
       ok: false;

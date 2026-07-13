@@ -36,6 +36,15 @@ describe("schema package contract", () => {
     expect(result.scan.roots).toEqual(["."]);
     expect(result.scan.manifestNames).toEqual(["service.yaml"]);
     expect(result.validation.allowUnknownDependencies).toBe(false);
+    expect(result.limits).toEqual({
+      maxManifestBytes: 256 * 1024,
+      maxTotalManifestBytes: 64 * 1024 * 1024,
+      maxManifests: 1000,
+      maxObjectDepth: 32,
+      maxCollectionEntries: 100_000,
+      maxExtensionBytes: 8 * 1024 * 1024,
+      maxReportBytes: 64 * 1024 * 1024
+    });
     expect("requireLastReviewedAt" in result.validation).toBe(false);
     expect(result.output.directory).toBe(".catalog");
     expect("deterministic" in result.output).toBe(false);

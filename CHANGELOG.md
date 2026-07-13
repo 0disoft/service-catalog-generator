@@ -7,6 +7,8 @@
   and crash-retained locks.
 - Added merge-blocking Ubuntu and Windows report publication tests for filesystem-specific staging,
   locking, promotion, and rollback behavior.
+- Added configurable aggregate budgets for input bytes, manifest structure, retained extensions,
+  and generated reports, with fail-closed diagnostics instead of partial catalog publication.
 
 ## 0.5.14
 

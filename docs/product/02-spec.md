@@ -165,6 +165,8 @@ stable enough to justify splitting packages or repositories.
 - Missing optional fields produce warnings when the field affects report quality.
 - Unknown dependency references are errors unless explicitly allowed by policy.
 - Report generation should be safe to rerun and overwrite only declared output paths.
+- Aggregate resource limits fail the complete catalog instead of publishing a plausible-looking
+  partial service map.
 - Diagnostics use stable codes so CI, agents, and tests can key off them.
 
 ## Review Blockers

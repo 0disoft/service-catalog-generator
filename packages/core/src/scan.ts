@@ -11,6 +11,7 @@ import { sortDiagnostics, summarizeDiagnostics } from "./diagnostics.js";
 import { buildGraphEdges } from "./graph.js";
 import { normalizeServiceRecord, sortServiceRecords } from "./normalizer.js";
 import { parseManifestFile } from "./parser.js";
+import { serializedByteLength } from "./resource-policy.js";
 import type { CatalogConfigInput, CompileCatalogOptions, CompileCatalogResult } from "./types.js";
 import {
   staleReviewDiagnostic,
@@ -19,8 +20,6 @@ import {
 } from "./validator.js";
 
 const DEFAULT_TOOL_VERSION = "0.5.14";
-const DEFAULT_MAX_MANIFEST_BYTES = 256 * 1024;
-const DEFAULT_MAX_MANIFESTS = 1000;
 const DEFAULT_PARSE_CONCURRENCY = 16;
 
 export async function compileCatalog(
@@ -34,7 +33,7 @@ export async function compileCatalog(
     manifestNames: config.scan.manifestNames,
     exclude: config.scan.exclude,
     outputDirectory: config.output.directory,
-    maxManifests: options.maxManifests ?? DEFAULT_MAX_MANIFESTS,
+    maxManifests: options.maxManifests ?? config.limits.maxManifests,
     followSymlinks: options.followSymlinks ?? false
   });
   const diagnostics: Diagnostic[] = [...discovery.diagnostics];
@@ -43,20 +42,69 @@ export async function compileCatalog(
     options.parseConcurrency ?? DEFAULT_PARSE_CONCURRENCY
   );
 
-  const parsedManifests = await mapWithConcurrency(
-    discovery.manifests,
-    parseConcurrency,
-    async (discoveredManifest) =>
-      parseManifestFile(discoveredManifest, options.maxManifestBytes ?? DEFAULT_MAX_MANIFEST_BYTES)
+  const totalManifestBytes = discovery.manifests.reduce(
+    (total, manifest) => total + manifest.sizeBytes,
+    0
   );
+  const inputBudgetExceeded = totalManifestBytes > config.limits.maxTotalManifestBytes;
+  if (inputBudgetExceeded) {
+    diagnostics.push(
+      resourceLimitDiagnostic(
+        "Total manifest bytes exceed the configured aggregate limit.",
+        "Reduce scan scope or raise limits.maxTotalManifestBytes."
+      )
+    );
+  }
+
+  const parsedManifests = inputBudgetExceeded
+    ? []
+    : await mapWithConcurrency(discovery.manifests, parseConcurrency, async (discoveredManifest) =>
+        parseManifestFile(discoveredManifest, {
+          maxManifestBytes: options.maxManifestBytes ?? config.limits.maxManifestBytes,
+          maxObjectDepth: config.limits.maxObjectDepth
+        })
+      );
+
+  const totalCollectionEntries = parsedManifests.reduce(
+    (total, parsed) => total + (parsed.ok ? parsed.metrics.collectionEntries : 0),
+    0
+  );
+  const collectionBudgetExceeded = totalCollectionEntries > config.limits.maxCollectionEntries;
+  if (collectionBudgetExceeded) {
+    diagnostics.push(
+      resourceLimitDiagnostic(
+        "Manifest collection entries exceed the configured aggregate limit.",
+        "Reduce manifest collections or raise limits.maxCollectionEntries."
+      )
+    );
+  }
 
   for (const parsed of parsedManifests) {
+    if (collectionBudgetExceeded) {
+      break;
+    }
     const validated = validateParsedManifest(parsed, options.inputSchema ?? "scg-v1");
     if (validated.ok) {
       validatedManifests.push(validated);
     } else {
       diagnostics.push(...validated.diagnostics);
     }
+  }
+
+  const totalExtensionBytes = validatedManifests.reduce(
+    (total, validated) =>
+      total +
+      (validated.manifest.extensions ? serializedByteLength(validated.manifest.extensions) : 0),
+    0
+  );
+  if (totalExtensionBytes > config.limits.maxExtensionBytes) {
+    validatedManifests.length = 0;
+    diagnostics.push(
+      resourceLimitDiagnostic(
+        "Manifest extensions exceed the configured aggregate byte limit.",
+        "Reduce extension payloads or raise limits.maxExtensionBytes."
+      )
+    );
   }
 
   const normalizedServices = sortServiceRecords(
@@ -224,6 +272,10 @@ export function resolveCatalogConfig(input: CatalogConfigInput = {}): CatalogCon
       ...defaults.validation,
       ...input.validation
     },
+    limits: {
+      ...defaults.limits,
+      ...input.limits
+    },
     output: {
       ...defaults.output,
       ...input.output
@@ -233,4 +285,13 @@ export function resolveCatalogConfig(input: CatalogConfigInput = {}): CatalogCon
       ...input.privacy
     }
   });
+}
+
+function resourceLimitDiagnostic(message: string, hint: string): Diagnostic {
+  return {
+    severity: "error",
+    code: "resource.limit_exceeded",
+    message,
+    hint
+  };
 }

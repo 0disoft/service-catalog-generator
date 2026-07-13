@@ -22193,6 +22193,23 @@ var CatalogConfigSchema = external_exports.object({
     allowUnknownDependencies: false,
     staleAfterDays: 90
   }),
+  limits: external_exports.object({
+    maxManifestBytes: external_exports.number().int().positive().default(256 * 1024),
+    maxTotalManifestBytes: external_exports.number().int().positive().default(64 * 1024 * 1024),
+    maxManifests: external_exports.number().int().positive().max(1e4).default(1e3),
+    maxObjectDepth: external_exports.number().int().positive().max(256).default(32),
+    maxCollectionEntries: external_exports.number().int().positive().default(1e5),
+    maxExtensionBytes: external_exports.number().int().nonnegative().default(8 * 1024 * 1024),
+    maxReportBytes: external_exports.number().int().positive().default(64 * 1024 * 1024)
+  }).strict().default({
+    maxManifestBytes: 256 * 1024,
+    maxTotalManifestBytes: 64 * 1024 * 1024,
+    maxManifests: 1e3,
+    maxObjectDepth: 32,
+    maxCollectionEntries: 1e5,
+    maxExtensionBytes: 8 * 1024 * 1024,
+    maxReportBytes: 64 * 1024 * 1024
+  }),
   output: external_exports.object({
     directory: external_exports.string().min(1).default(".catalog"),
     formats: external_exports.array(external_exports.enum(["json", "dot", "html"])).default(["json", "dot", "html"])
@@ -22445,7 +22462,8 @@ async function walkDirectory(state) {
       absolutePath,
       realPath: fileRealPath,
       relativePath: relativeToCwd,
-      rootRealPath: state.rootRealPath
+      rootRealPath: state.rootRealPath,
+      sizeBytes: entryStats.size
     });
   }
 }
@@ -22596,16 +22614,46 @@ function normalizeRepositoryRef(repository, config2) {
 // packages/core/dist/parser.js
 var import_promises2 = require("fs/promises");
 var import_yaml = __toESM(require_dist(), 1);
-async function parseManifestFile(file2, maxManifestBytes) {
+
+// packages/core/dist/resource-policy.js
+function measureValueStructure(value) {
+  const visited = /* @__PURE__ */ new WeakSet();
+  const pending = [{ value, depth: 0 }];
+  let collectionEntries = 0;
+  let maxDepth = 0;
+  while (pending.length > 0) {
+    const current = pending.pop();
+    if (!current || typeof current.value !== "object" || current.value === null) {
+      continue;
+    }
+    if (visited.has(current.value)) {
+      continue;
+    }
+    visited.add(current.value);
+    maxDepth = Math.max(maxDepth, current.depth);
+    const children = Array.isArray(current.value) ? current.value : Object.values(current.value);
+    collectionEntries += children.length;
+    for (const child of children) {
+      pending.push({ value: child, depth: current.depth + 1 });
+    }
+  }
+  return { collectionEntries, maxDepth };
+}
+function serializedByteLength(value) {
+  return Buffer.byteLength(JSON.stringify(value), "utf8");
+}
+
+// packages/core/dist/parser.js
+async function parseManifestFile(file2, limits) {
   let source;
   let handle;
   try {
     handle = await (0, import_promises2.open)(file2.realPath, "r");
     const fileStat = await handle.stat();
-    if (fileStat.size > maxManifestBytes) {
+    if (fileStat.size > limits.maxManifestBytes) {
       return invalidYaml(file2, "Manifest file exceeds the configured size limit.");
     }
-    const buffer = Buffer.alloc(maxManifestBytes + 1);
+    const buffer = Buffer.alloc(limits.maxManifestBytes + 1);
     let offset = 0;
     while (offset < buffer.length) {
       const { bytesRead } = await handle.read(buffer, offset, buffer.length - offset, offset);
@@ -22614,7 +22662,7 @@ async function parseManifestFile(file2, maxManifestBytes) {
       }
       offset += bytesRead;
     }
-    if (offset > maxManifestBytes) {
+    if (offset > limits.maxManifestBytes) {
       return invalidYaml(file2, "Manifest file exceeds the configured size limit.");
     }
     source = buffer.subarray(0, offset).toString("utf8");
@@ -22634,14 +22682,35 @@ async function parseManifestFile(file2, maxManifestBytes) {
     if (document.errors.length > 0) {
       return invalidYaml(file2, "Manifest YAML is invalid.");
     }
+    const value = document.toJS({ maxAliasCount: 50 });
+    const metrics = measureValueStructure(value);
+    if (metrics.maxDepth > limits.maxObjectDepth) {
+      return resourceLimitExceeded(file2, "Manifest object depth exceeds the configured limit.");
+    }
     return {
       ok: true,
       file: file2,
-      value: document.toJS({ maxAliasCount: 50 })
+      value,
+      metrics
     };
   } catch {
     return invalidYaml(file2, "Manifest YAML is invalid.");
   }
+}
+function resourceLimitExceeded(file2, message) {
+  return {
+    ok: false,
+    file: file2,
+    diagnostics: [
+      createDiagnostic({
+        severity: "error",
+        code: "resource.limit_exceeded",
+        file: file2.relativePath,
+        message,
+        hint: "Reduce manifest nesting or raise the matching limits setting."
+      })
+    ]
+  };
 }
 function invalidYaml(file2, message) {
   const diagnostic = createDiagnostic({
@@ -22946,8 +23015,6 @@ function parseDateOnly(value) {
 
 // packages/core/dist/scan.js
 var DEFAULT_TOOL_VERSION = "0.5.14";
-var DEFAULT_MAX_MANIFEST_BYTES = 256 * 1024;
-var DEFAULT_MAX_MANIFESTS = 1e3;
 var DEFAULT_PARSE_CONCURRENCY = 16;
 async function compileCatalog(options = {}) {
   const cwd = options.cwd ?? process.cwd();
@@ -22958,20 +23025,41 @@ async function compileCatalog(options = {}) {
     manifestNames: config2.scan.manifestNames,
     exclude: config2.scan.exclude,
     outputDirectory: config2.output.directory,
-    maxManifests: options.maxManifests ?? DEFAULT_MAX_MANIFESTS,
+    maxManifests: options.maxManifests ?? config2.limits.maxManifests,
     followSymlinks: options.followSymlinks ?? false
   });
   const diagnostics = [...discovery.diagnostics];
   const validatedManifests = [];
   const parseConcurrency = normalizeConcurrency(options.parseConcurrency ?? DEFAULT_PARSE_CONCURRENCY);
-  const parsedManifests = await mapWithConcurrency(discovery.manifests, parseConcurrency, async (discoveredManifest) => parseManifestFile(discoveredManifest, options.maxManifestBytes ?? DEFAULT_MAX_MANIFEST_BYTES));
+  const totalManifestBytes = discovery.manifests.reduce((total, manifest) => total + manifest.sizeBytes, 0);
+  const inputBudgetExceeded = totalManifestBytes > config2.limits.maxTotalManifestBytes;
+  if (inputBudgetExceeded) {
+    diagnostics.push(resourceLimitDiagnostic("Total manifest bytes exceed the configured aggregate limit.", "Reduce scan scope or raise limits.maxTotalManifestBytes."));
+  }
+  const parsedManifests = inputBudgetExceeded ? [] : await mapWithConcurrency(discovery.manifests, parseConcurrency, async (discoveredManifest) => parseManifestFile(discoveredManifest, {
+    maxManifestBytes: options.maxManifestBytes ?? config2.limits.maxManifestBytes,
+    maxObjectDepth: config2.limits.maxObjectDepth
+  }));
+  const totalCollectionEntries = parsedManifests.reduce((total, parsed) => total + (parsed.ok ? parsed.metrics.collectionEntries : 0), 0);
+  const collectionBudgetExceeded = totalCollectionEntries > config2.limits.maxCollectionEntries;
+  if (collectionBudgetExceeded) {
+    diagnostics.push(resourceLimitDiagnostic("Manifest collection entries exceed the configured aggregate limit.", "Reduce manifest collections or raise limits.maxCollectionEntries."));
+  }
   for (const parsed of parsedManifests) {
+    if (collectionBudgetExceeded) {
+      break;
+    }
     const validated = validateParsedManifest(parsed, options.inputSchema ?? "scg-v1");
     if (validated.ok) {
       validatedManifests.push(validated);
     } else {
       diagnostics.push(...validated.diagnostics);
     }
+  }
+  const totalExtensionBytes = validatedManifests.reduce((total, validated) => total + (validated.manifest.extensions ? serializedByteLength(validated.manifest.extensions) : 0), 0);
+  if (totalExtensionBytes > config2.limits.maxExtensionBytes) {
+    validatedManifests.length = 0;
+    diagnostics.push(resourceLimitDiagnostic("Manifest extensions exceed the configured aggregate byte limit.", "Reduce extension payloads or raise limits.maxExtensionBytes."));
   }
   const normalizedServices = sortServiceRecords(validatedManifests.map((validated) => normalizeServiceRecord(validated.manifest, validated.file.relativePath, config2)));
   const duplicateResult = isolateDuplicateServiceIds(normalizedServices);
@@ -23080,6 +23168,10 @@ function resolveCatalogConfig(input = {}) {
       ...defaults.validation,
       ...input.validation
     },
+    limits: {
+      ...defaults.limits,
+      ...input.limits
+    },
     output: {
       ...defaults.output,
       ...input.output
@@ -23089,6 +23181,14 @@ function resolveCatalogConfig(input = {}) {
       ...input.privacy
     }
   });
+}
+function resourceLimitDiagnostic(message, hint) {
+  return {
+    severity: "error",
+    code: "resource.limit_exceeded",
+    message,
+    hint
+  };
 }
 
 // packages/report/dist/index.js
@@ -23327,6 +23427,10 @@ async function writeCatalogReports(snapshot, options) {
       name: reportFileName(format),
       contents: renderReport(snapshot, format)
     }));
+    const totalReportBytes = generationFiles.reduce((total, file2) => total + Buffer.byteLength(file2.contents, "utf8"), 0);
+    if (totalReportBytes > (options.maxTotalBytes ?? 64 * 1024 * 1024)) {
+      throwWriteError(options.outputDirectory, "Generated reports exceed the configured aggregate byte limit.", "Select fewer formats, reduce catalog payloads, or raise limits.maxReportBytes.");
+    }
     const outputDirectoryRealPath = await publishReportGeneration({
       cwdPath: cwd,
       cwdRealPath,
@@ -23604,7 +23708,8 @@ async function runCli(options = {}) {
       const writeResult = await writeCatalogReports(result.snapshot, {
         cwd,
         outputDirectory: result.config.output.directory,
-        formats: result.config.output.formats
+        formats: result.config.output.formats,
+        maxTotalBytes: result.config.limits.maxReportBytes
       });
       if (parsed.json) {
         writeLine(io.stdout, JSON.stringify({
@@ -23790,7 +23895,7 @@ async function loadConfigInput(cwd, explicitConfigPath) {
     if (!isPlainRecord(config2)) {
       return {
         ok: false,
-        diagnostic: configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config file must contain a YAML mapping.", "Use schemaVersion and nested scan, validation, output, and privacy mappings.")
+        diagnostic: configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config file must contain a YAML mapping.", "Use schemaVersion and nested scan, validation, limits, output, and privacy mappings.")
       };
     }
     return {
@@ -23829,7 +23934,7 @@ function validateConfigInput(config2, explicitConfigPath) {
     resolveCatalogConfig(config2);
     return void 0;
   } catch {
-    return configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config values do not match the CLI configuration contract.", "Use schemaVersion scg.config/v1alpha1 and valid scan, validation, output, and privacy fields.");
+    return configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config values do not match the CLI configuration contract.", "Use schemaVersion scg.config/v1alpha1 and valid scan, validation, limits, output, and privacy fields.");
   }
 }
 function exitCodeForDiagnostics(diagnostics, failOnWarnings) {

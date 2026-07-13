@@ -221,6 +221,25 @@ describe("report writers", () => {
     });
   });
 
+  it("rejects a report generation that exceeds the aggregate byte budget", async () => {
+    const workspace = await createWorkspace();
+
+    await expect(
+      writeCatalogReports(snapshot(), {
+        cwd: workspace,
+        outputDirectory: ".catalog",
+        formats: ["json"],
+        maxTotalBytes: 1
+      })
+    ).rejects.toMatchObject({
+      diagnostic: expect.objectContaining({
+        code: "output.write_failed",
+        message: "Generated reports exceed the configured aggregate byte limit."
+      })
+    });
+    await expect(readdir(workspace)).resolves.toEqual([]);
+  });
+
   it("excludes a second writer while a generation is staged", async () => {
     const workspace = await createWorkspace();
     const entered = deferred<void>();

@@ -2,16 +2,20 @@ import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { join } from "node:path";
 import { verifyNpmProvenance } from "./npm-provenance.mjs";
 import { resolveGitHubTagCommit } from "./github-tag-target.mjs";
+import { resolveNpmCommand, runInstalledCli } from "./package-smoke-helpers.mjs";
+import { normalizeReleaseVersion } from "./release-version.mjs";
 
 const root = process.cwd();
 const packageName = "@0disoft/service-catalog-generator";
 const repository = "0disoft/service-catalog-generator";
 const rootPackage = await readJson("package.json");
 const args = process.argv.slice(2).filter((arg) => arg !== "--");
-const version = args[0] ?? rootPackage.version;
+const version = normalizeReleaseVersion(
+  args[0] ?? process.env.RELEASE_VERSION ?? rootPackage.version
+);
 const versionTag = `v${version}`;
 const majorTag = `v${version.split(".")[0]}`;
 const npmCommand = resolveNpmCommand();
@@ -171,7 +175,7 @@ async function smokePublishedCli(version) {
     );
     assert(existsSync(binPath), "published package must install the scg binary shim");
     return {
-      cliVersion: runInstalledCli(binPath, workspace),
+      cliVersion: runInstalledCli(binPath, workspace, ["--version"]),
       signatureAudit: npmJson(["audit", "signatures", "--json"], workspace)
     };
   } finally {
@@ -185,47 +189,6 @@ async function fetchJson(url) {
   });
   assert(response.ok, `attestation request failed with HTTP ${response.status}`);
   return response.json();
-}
-
-function runInstalledCli(binPath, workspace) {
-  if (process.platform === "win32") {
-    return execFileSync(
-      process.env.ComSpec ?? "cmd.exe",
-      ["/d", "/c", "call", binPath, "--version"],
-      {
-        cwd: workspace,
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "pipe"]
-      }
-    ).trim();
-  }
-
-  return execFileSync(binPath, ["--version"], {
-    cwd: workspace,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"]
-  }).trim();
-}
-
-function resolveNpmCommand() {
-  const nodeDir = dirname(process.execPath);
-  const npmCliCandidates = [
-    resolve(nodeDir, "node_modules", "npm", "bin", "npm-cli.js"),
-    resolve(nodeDir, "..", "lib", "node_modules", "npm", "bin", "npm-cli.js")
-  ];
-  const npmCli = npmCliCandidates.find((candidate) => existsSync(candidate));
-
-  if (npmCli) {
-    return {
-      file: process.execPath,
-      prefixArgs: [npmCli]
-    };
-  }
-
-  return {
-    file: "npm",
-    prefixArgs: []
-  };
 }
 
 function assert(condition, message) {

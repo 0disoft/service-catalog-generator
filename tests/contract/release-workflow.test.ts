@@ -182,7 +182,8 @@ describe("release workflow contract", () => {
       ".github/workflows/ci.yml",
       ".github/workflows/action-self-smoke.yml",
       ".github/workflows/codeql.yml",
-      ".github/workflows/release.yml"
+      ".github/workflows/release.yml",
+      ".github/workflows/release-smoke.yml"
     ]) {
       const workflowText = readFileSync(join(process.cwd(), workflowPath), "utf8");
       const workflow = parse(workflowText) as WorkflowSecurityContract;
@@ -231,7 +232,7 @@ describe("release workflow contract", () => {
     };
 
     expect(packageJson.name).toBe("@0disoft/service-catalog-generator");
-    expect(packageJson.version).toBe("0.5.16");
+    expect(packageJson.version).toBe("0.5.17");
     expect(packageJson.license).toBe("Apache-2.0");
     expect(packageJson.bin).toEqual({ scg: "dist/cli/index.js" });
     expect(packageJson.files).toEqual([

@@ -1,6 +1,6 @@
 {
   "name": "@0disoft/service-catalog-generator",
-  "version": "0.5.16",
+  "version": "0.5.17",
   "description": "Read-only service.yaml compiler and linter for deterministic service catalog artifacts.",
   "license": "Apache-2.0",
   "type": "module",
@@ -47,6 +47,7 @@
     "dependency-audit": "node scripts/dependency-audit.mjs",
     "recovery-drill": "node scripts/recovery-drill.mjs",
     "release-evidence": "node scripts/release-evidence.mjs",
+    "registry-smoke": "node scripts/registry-smoke.mjs",
     "release:trust:dry-run": "node scripts/trusted-publisher-dry-run.mjs",
     "prepack": "pnpm run build",
     "check": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run contract && pnpm run smoke && pnpm run docs && pnpm run recovery-drill && pnpm run secret-scan && pnpm run dependency-audit"

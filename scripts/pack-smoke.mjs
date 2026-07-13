@@ -2,7 +2,8 @@ import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { join, resolve } from "node:path";
+import { resolveNpmCommand, runInstalledCli } from "./package-smoke-helpers.mjs";
 
 const root = process.cwd();
 const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
@@ -70,43 +71,6 @@ try {
 } finally {
   await rm(packDirectory, { force: true, recursive: true });
   await rm(installDirectory, { force: true, recursive: true });
-}
-
-function runInstalledCli(binPath, cwd, args) {
-  if (process.platform === "win32") {
-    return execFileSync(process.env.ComSpec ?? "cmd.exe", ["/d", "/c", "call", binPath, ...args], {
-      cwd,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"]
-    }).trim();
-  }
-
-  return execFileSync(binPath, args, {
-    cwd,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"]
-  }).trim();
-}
-
-function resolveNpmCommand() {
-  const nodeDir = dirname(process.execPath);
-  const npmCliCandidates = [
-    resolve(nodeDir, "node_modules", "npm", "bin", "npm-cli.js"),
-    resolve(nodeDir, "..", "lib", "node_modules", "npm", "bin", "npm-cli.js")
-  ];
-  const npmCli = npmCliCandidates.find((candidate) => existsSync(candidate));
-
-  if (npmCli) {
-    return {
-      file: process.execPath,
-      prefixArgs: [npmCli]
-    };
-  }
-
-  return {
-    file: "npm",
-    prefixArgs: []
-  };
 }
 
 function assert(condition, message) {

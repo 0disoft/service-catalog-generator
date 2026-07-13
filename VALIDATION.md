@@ -20,6 +20,7 @@ This document owns stable validation names for this scaffold.
 - dependency-audit
 - recovery-drill
 - release-evidence
+- registry-smoke
 - check
 
 ## Required Final Report

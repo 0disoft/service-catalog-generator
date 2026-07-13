@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.5.17
+
+- Added post-release Ubuntu and Windows registry smoke automation for the exact published npm
+  package, followed by provenance, signature, GitHub Release, and tag evidence verification.
+
 ## 0.5.16
 
 - Resolved annotated GitHub release tags to their commit targets during release-evidence checks.

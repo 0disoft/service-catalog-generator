@@ -39,6 +39,12 @@ updates weekly, groups compatible minor and patch updates, and limits each ecosy
 pull requests. Major dependency updates remain separate review units. Every hosted job has an
 explicit timeout so a stalled registry, build, or analysis cannot consume the runner indefinitely.
 
+The `release-smoke` workflow is a post-publish evidence gate rather than a publishing gate. After a
+successful release it installs the exact npm version on Ubuntu and Windows, compiles the native
+consumer fixture, and then verifies provenance, package signatures, release state, and tag state on
+Ubuntu. Failures are release evidence for a forward fix; they do not roll back an immutable npm
+publication.
+
 ## Validation
 
 - Required validation names: docs, smoke, recovery-drill, secret-scan, dependency-audit, check

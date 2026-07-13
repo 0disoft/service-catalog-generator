@@ -15,7 +15,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 ## Validation
 
 - Required validation names: format, lint, typecheck, test, contract, smoke, docs, recovery-drill,
-  release-evidence, check
+  release-evidence, registry-smoke, check
 - Release blocker status: any missing implemented validation is a blocker unless documented as not
   yet configured
 - Remaining operational risk: package availability, Trusted Publishing, and Action runtime support
@@ -54,6 +54,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 | `0.5.14` | Catalog boundary, graph, Action, and resource hardening.   |
 | `0.5.15` | Report publication, resource budgets, and compatibility.  |
 | `0.5.16` | Release evidence and Oxc quality-toolchain migration.      |
+| `0.5.17` | Cross-platform post-publish registry smoke automation.     |
 | `1.0.0` | Manifest schema and CLI contract freeze.                  |
 
 Pre-1.0 breaking changes are allowed only with clear migration notes. After 1.0, manifest schema,
@@ -78,6 +79,16 @@ CLI JSON output, and exit codes are compatibility contracts.
    cut a forward-fix patch release rather than trying to rewrite the published version.
 12. Smoke test package installation and Action usage from the released tag.
 13. Run `pnpm run release-evidence -- <version>` after promotion.
+
+After a successful `release` workflow, `release-smoke` installs the exact published npm version on
+Ubuntu and Windows and compiles the native consumer fixture. The evidence job runs only after both
+registry smoke jobs pass, then verifies npm provenance and signatures, the GitHub Release, the
+immutable version tag, the mutable major Action tag, and the originating release workflow. Registry
+visibility is retried for up to 60 seconds before the smoke fails.
+
+The workflow also supports a manual `version` input, with or without a `v` prefix, for replaying
+evidence against an existing release. A post-publish failure never authorizes rollback or mutation
+of the npm version; investigate the failed evidence and publish a forward-fix patch release.
 
 For npm CLI smoke tests, run from a temporary directory outside this repository so npm does not
 resolve the local workspace package instead of the published package:
@@ -180,6 +191,12 @@ pnpm run release-evidence -- 0.5.16
 The command checks npm integrity, SLSA provenance subject/workflow/tag/commit identity, installed
 package signatures, the GitHub Release, immutable version tag, mutable major Action tag, successful
 release workflow run, and published CLI version smoke.
+
+To run the same exact-package fixture validation used by the hosted Ubuntu and Windows jobs:
+
+```sh
+pnpm run registry-smoke -- 0.5.16
+```
 
 ## Stop Conditions
 

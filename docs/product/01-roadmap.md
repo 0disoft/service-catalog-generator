@@ -76,6 +76,8 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
   version tags.
 - Keep ambiguous npm publish outcomes in forward-fix mode unless registry absence is positively
   established.
+- Keep exact published-package installation and native-consumer compilation green on hosted Ubuntu
+  and Windows before accepting post-release provenance and tag evidence.
 
 ## 1.0 Exit Criteria
 

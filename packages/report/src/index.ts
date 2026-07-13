@@ -374,7 +374,7 @@ function toPosixPath(path: string): string {
 }
 
 function validateOutputDirectory(path: string): void {
-  if (!path || /[\0\r\n]/.test(path)) {
+  if (!path || path.includes("\0") || path.includes("\r") || path.includes("\n")) {
     throwWriteError(
       path,
       "Output directory contains an invalid control character.",

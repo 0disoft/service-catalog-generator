@@ -1,6 +1,6 @@
 {
   "name": "@0disoft/service-catalog-generator",
-  "version": "0.5.15",
+  "version": "0.5.16",
   "description": "Read-only service.yaml compiler and linter for deterministic service catalog artifacts.",
   "license": "Apache-2.0",
   "type": "module",
@@ -33,9 +33,9 @@
     "yaml": "2.9.0"
   },
   "scripts": {
-    "format": "prettier --check \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"packages/**/*.{json,ts}\" \"scripts/**/*.mjs\" \"tests/**/*.ts\"",
-    "format:write": "prettier --write \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"packages/**/*.{json,ts}\" \"scripts/**/*.mjs\" \"tests/**/*.ts\"",
-    "lint": "eslint .",
+    "format": "oxfmt --check \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \".ox*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"packages/**/*.{json,ts}\" \"scripts/**/*.mjs\" \"tests/**/*.ts\"",
+    "format:write": "oxfmt --write \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \".ox*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"packages/**/*.{json,ts}\" \"scripts/**/*.mjs\" \"tests/**/*.ts\"",
+    "lint": "oxlint . --deny-warnings",
     "typecheck": "tsc -b tsconfig.json && tsc -p tsconfig.check.json --noEmit",
     "test": "vitest run tests/workspace.test.ts tests/schema tests/core tests/report tests/cli tests/action",
     "contract": "vitest run tests/contract",
@@ -52,13 +52,11 @@
     "check": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run contract && pnpm run smoke && pnpm run docs && pnpm run recovery-drill && pnpm run secret-scan && pnpm run dependency-audit"
   },
   "devDependencies": {
-    "@eslint/js": "10.0.1",
     "@types/node": "26.1.0",
-    "eslint": "10.6.0",
-    "prettier": "3.9.4",
+    "oxfmt": "0.58.0",
+    "oxlint": "1.73.0",
     "tsup": "8.5.1",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.62.1",
     "vitest": "4.1.10"
   }
 }

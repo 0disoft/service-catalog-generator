@@ -5,6 +5,9 @@
 - Node.js: 24 or newer
 - Package manager: pnpm 11.7.0 through Corepack
 - Language: strict TypeScript with NodeNext modules
+- Formatting: Oxfmt
+- Linting: Oxlint with an explicit migrated ESLint-compatible ruleset
+- Type checking and declaration emit: TypeScript (`tsc`)
 - Tests: Vitest
 - Bundling: tsup
 
@@ -16,6 +19,8 @@ Normal scan, check, report, test, and build paths must remain local and determin
 ```sh
 corepack enable
 pnpm install --frozen-lockfile
+pnpm run format
+pnpm run lint
 pnpm run typecheck
 pnpm run test
 pnpm run contract

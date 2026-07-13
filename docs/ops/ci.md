@@ -29,6 +29,11 @@ credentials, long-running services, write permissions, telemetry, or private cat
 
 Unimplemented gates must fail clearly or be reported as skipped. Fake passing scripts are blockers.
 
+Oxfmt owns formatting checks and Oxlint owns JavaScript and TypeScript lint rules. TypeScript
+continues to own type checking, project-reference builds, and declaration emit; the lint gate must
+not replace the `typecheck` gate without a separate compatibility decision and equivalent release
+evidence.
+
 Third-party Actions are pinned to immutable commit SHAs. Dependabot checks npm and GitHub Actions
 updates weekly, groups compatible minor and patch updates, and limits each ecosystem to three open
 pull requests. Major dependency updates remain separate review units. Every hosted job has an

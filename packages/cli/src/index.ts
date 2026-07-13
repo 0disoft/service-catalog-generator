@@ -18,10 +18,15 @@ import {
 import { parseDocument } from "yaml";
 
 export const packageName = "@scg/cli";
-export const cliVersion = "0.5.15";
+export const cliVersion = "0.5.16";
 
 export type CliPackageBoundary =
-  "commands" | "flags" | "config-precedence" | "human-output" | "json-output" | "exit-codes";
+  | "commands"
+  | "flags"
+  | "config-precedence"
+  | "human-output"
+  | "json-output"
+  | "exit-codes";
 
 export type CliCoreDependency = CorePackageBoundary;
 

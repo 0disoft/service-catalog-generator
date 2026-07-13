@@ -7,5 +7,5 @@
     "noEmit": true,
     "types": ["node", "vitest"]
   },
-  "include": ["eslint.config.mjs", "scripts/**/*.mjs", "tests/**/*.ts", "vitest.config.ts"]
+  "include": ["scripts/**/*.mjs", "tests/**/*.ts", "vitest.config.ts"]
 }

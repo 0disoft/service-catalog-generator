@@ -2,7 +2,11 @@
 
 ## Unreleased
 
+## 0.5.16
+
 - Resolved annotated GitHub release tags to their commit targets during release-evidence checks.
+- Replaced ESLint, typescript-eslint, and Prettier with pinned Oxlint and Oxfmt quality gates while
+  retaining TypeScript as the type-check, project-build, and declaration authority.
 
 ## 0.5.15
 

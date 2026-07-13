@@ -70,7 +70,12 @@ export type ValidatedManifest =
 export type ServiceDependency = DependencyRef;
 
 export type CorePackageBoundary =
-  "adapter" | "discovery" | "parser" | "normalizer" | "validator" | "graph";
+  | "adapter"
+  | "discovery"
+  | "parser"
+  | "normalizer"
+  | "validator"
+  | "graph";
 
 export type CoreSchemaDependency = import("@scg/schema").SchemaPackageBoundary;
 

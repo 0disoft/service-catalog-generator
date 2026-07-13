@@ -20,6 +20,7 @@ This directory records durable product and architecture decisions for Service Ca
 - 0009 Release and Package Provenance
 - 0010 Generated Artifacts Are Never Source Truth
 - 0011 Input Schema Adapters
+- 0012 Oxc Quality Toolchain
 
 ## Source of Truth
 

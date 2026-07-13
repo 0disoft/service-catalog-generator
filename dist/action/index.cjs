@@ -23014,7 +23014,7 @@ function parseDateOnly(value) {
 }
 
 // packages/core/dist/scan.js
-var DEFAULT_TOOL_VERSION = "0.5.15";
+var DEFAULT_TOOL_VERSION = "0.5.16";
 var DEFAULT_PARSE_CONCURRENCY = 16;
 async function compileCatalog(options = {}) {
   const cwd = options.cwd ?? process.cwd();
@@ -23653,7 +23653,7 @@ function toPosixPath2(path) {
   return path.split(import_node_path4.sep).join("/");
 }
 function validateOutputDirectory(path) {
-  if (!path || /[\0\r\n]/.test(path)) {
+  if (!path || path.includes("\0") || path.includes("\r") || path.includes("\n")) {
     throwWriteError(path, "Output directory contains an invalid control character.", "Choose a non-empty --out path without NUL or line breaks.");
   }
 }
@@ -23669,7 +23669,7 @@ function throwWriteError(file2, message, hint) {
 
 // packages/cli/dist/index.js
 var import_yaml2 = __toESM(require_dist(), 1);
-var cliVersion = "0.5.15";
+var cliVersion = "0.5.16";
 var DEFAULT_CONFIG_FILE = "scg.config.yaml";
 async function runCli(options = {}) {
   const argv = options.argv ?? process.argv.slice(2);

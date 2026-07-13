@@ -15,6 +15,8 @@ const requiredFiles = [
   ".github/ISSUE_TEMPLATE/config.yml",
   "docs/product/01-roadmap.md",
   "docs/product/02-spec.md",
+  "docs/compatibility/1.0-contract-matrix.md",
+  "docs/compatibility/pre-1.0-to-1.0.md",
   "docs/adr/0003-single-public-monorepo.md",
   "docs/adr/0004-typescript-node24-runtime.md",
   "docs/adr/0005-service-manifest-schema-v1alpha1.md",
@@ -32,6 +34,10 @@ const requiredText = new Map([
   ],
   ["docs/cli/output-and-exit-codes.md", ["Catalog validation error", "internal unexpected error"]],
   ["docs/github-action/permissions.md", ["contents: read"]],
+  [
+    "docs/compatibility/1.0-contract-matrix.md",
+    ["stable", "experimental", "internal", "resource.limit_exceeded"]
+  ],
   [
     "CONTRIBUTING.md",
     ["@0disoft", "pnpm install --frozen-lockfile", "pnpm run check", "dist/action/index.cjs"]

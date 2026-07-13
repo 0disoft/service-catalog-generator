@@ -41,11 +41,11 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 
 ### Compatibility Review
 
-- Inventory every manifest, config, CLI JSON, diagnostic, exit-code, and Action input/output surface
-  that will become a 1.0 compatibility promise.
-- Convert remaining draft wording in user contracts into explicit stable, experimental, or internal
-  classifications.
-- Publish a pre-1.0-to-1.0 migration guide, including removal and deprecation rules.
+- Keep the published 1.0 contract matrix synchronized with manifest, config, CLI JSON, diagnostic,
+  exit-code, report, package, and Action surfaces.
+- Resolve the remaining experimental alpha-schema and resource-default decisions before the 1.0
+  release candidate.
+- Maintain the pre-1.0-to-1.0 migration guide, removal rules, and deprecation window.
 - Decide whether `check` and `report` require a configurable minimum service count while preserving
   intentional empty-repository validation.
 - Define explicit per-source adapter configuration without schema autodetection, including overlap

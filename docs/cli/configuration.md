@@ -1,6 +1,6 @@
 # CLI Configuration
 
-Status: Draft
+Status: Stable Pre-1.0
 Repository Type: cli-tool
 
 ## Repository Type Contract

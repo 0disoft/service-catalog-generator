@@ -64,6 +64,8 @@ scg report `
 - VALIDATION.md: validation names and reporting requirements
 - .agents/context-map.md: agent route map
 - docs/product/02-spec.md: product scope and MVP contract
+- docs/compatibility/1.0-contract-matrix.md: stable, experimental, and internal surfaces
+- docs/compatibility/pre-1.0-to-1.0.md: deprecation and migration policy
 - docs/cli/command-contract.md: CLI command and output contract
 - docs/github-action/action-contract.md: CI wrapper contract
 - docs/docs-site/information-architecture.md: static report information architecture

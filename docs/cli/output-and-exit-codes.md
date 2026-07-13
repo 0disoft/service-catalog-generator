@@ -1,6 +1,6 @@
 # Output and Exit Codes
 
-Status: Draft
+Status: Stable Pre-1.0
 Repository Type: cli-tool
 
 ## Repository Type Contract
@@ -51,8 +51,15 @@ Initial stable diagnostic codes include:
 - `manifest.missing_required_field`;
 - `manifest.invalid_schema_version`;
 - `manifest.invalid_yaml`;
+- `manifest.duplicate_id`;
+- `manifest.invalid_format`;
+- `manifest.invalid_type`;
+- `manifest.invalid_value`;
 - `dependency.unknown_target`;
+- `adapter.invalid_input`;
+- `metadata.future_review`;
 - `metadata.stale_review`;
+- `resource.limit_exceeded`;
 - `security.secret_like_value`;
 - `path.outside_scan_root`;
 - `output.write_failed`;

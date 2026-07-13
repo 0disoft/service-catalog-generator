@@ -1,6 +1,6 @@
 # Command Contract
 
-Status: Draft
+Status: Stable Pre-1.0
 Repository Type: cli-tool
 
 ## Repository Type Contract
@@ -23,7 +23,7 @@ This repository type owns command behavior, arguments, flags, config loading, ex
   defaults.
 - Runtime compatibility floor: Node.js 24 LTS.
 
-## Draft Commands
+## Commands
 
 - `scg scan`: discover manifests and print normalized catalog records.
 - `scg check`: validate required fields, schema shape, stale metadata, and dependency references.
@@ -37,7 +37,7 @@ enough for CI and should never include secrets or full source file contents.
 All successful JSON modes include the complete `CatalogSnapshot`. The `report` command adds a
 top-level `files` array describing written artifacts without removing snapshot fields.
 
-## Draft Flags
+## Flags
 
 | Flag                              | Applies to        | Meaning                                                                                              |
 | --------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |

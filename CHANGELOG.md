@@ -11,6 +11,8 @@
   and generated reports, with fail-closed diagnostics instead of partial catalog publication.
 - Added a standalone native `scg-v1` consumer fixture exercised by source tests, the packed npm CLI,
   and the GitHub Action self-smoke workflow.
+- Classified package, schema, CLI, report, diagnostic, and Action surfaces as stable, experimental,
+  or internal and added the pre-1.0-to-1.0 migration policy.
 
 ## 0.5.14
 

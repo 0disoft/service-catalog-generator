@@ -1,6 +1,6 @@
 # Inputs and Outputs
 
-Status: Draft
+Status: Stable Pre-1.0
 Repository Type: github-action
 
 ## Repository Type Contract

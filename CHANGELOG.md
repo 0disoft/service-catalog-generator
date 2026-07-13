@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Published JSON, DOT, and HTML reports as one owner-marked directory generation with writer
+  exclusion, stale-format removal, promotion rollback, and fail-closed handling for unowned files
+  and crash-retained locks.
+
 ## 0.5.14
 
 - Rejected credential-bearing repository URLs, control characters and POSIX boundary escapes in

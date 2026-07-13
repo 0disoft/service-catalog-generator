@@ -42,20 +42,22 @@ configured roots
 
 - `scan` prints or writes the normalized catalog and diagnostics.
 - `check` validates manifests and exits according to diagnostics and policy.
-- `report` writes `catalog.json`, `graph.dot`, and `report.html` under a declared output directory.
+- `report` renders all selected formats before publication, stages them in a sibling directory,
+  acquires a single-writer lock, and promotes the complete directory generation. A failed promotion
+  restores the prior directory; a crash-retained lock fails closed and reports the path to inspect.
 
 All commands must support deterministic JSON output. Human output may be friendlier, but it cannot be
 the only source of machine-readable state.
 
 ## Failure and Recovery
 
-| Failure | Handling |
-| --- | --- |
-| CLI usage or config error | Exit 2 with a clear diagnostic before scanning. |
-| Input read or parse error | Exit 3 and include file path plus parser-safe reason. |
-| Validation error | Exit 1 with stable diagnostic codes. |
-| Output write error | Exit 4 and avoid partial overwrite when possible. |
-| Unexpected internal error | Exit 5 without dumping full manifest contents. |
+| Failure                   | Handling                                                             |
+| ------------------------- | -------------------------------------------------------------------- |
+| CLI usage or config error | Exit 2 with a clear diagnostic before scanning.                      |
+| Input read or parse error | Exit 3 and include file path plus parser-safe reason.                |
+| Validation error          | Exit 1 with stable diagnostic codes.                                 |
+| Output write error        | Exit 4; preserve or restore the complete previous report generation. |
+| Unexpected internal error | Exit 5 without dumping full manifest contents.                       |
 
 The recovery path should always point back to a manifest field, config field, or output path. Generated
 HTML, DOT, and JSON are never repaired directly.

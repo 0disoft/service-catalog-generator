@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, symlink } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -8,6 +8,7 @@ import {
   renderStaticHtml,
   writeCatalogReports
 } from "../../packages/report/src/index.js";
+import { publishReportGeneration } from "../../packages/report/src/generation-publisher.js";
 import type { CatalogSnapshot } from "../../packages/schema/src/index.js";
 
 const cleanupRoots: string[] = [];
@@ -137,6 +138,153 @@ describe("report writers", () => {
     await expect(readFile(join(workspace, ".catalog", "report.html"), "utf8")).resolves.toContain(
       "Service Catalog"
     );
+    await expect(
+      readFile(join(workspace, ".catalog", ".scg-generation.json"), "utf8")
+    ).resolves.toContain('"schemaVersion": "scg.report-generation/v1"');
+  });
+
+  it("replaces the complete generation and removes stale report formats", async () => {
+    const workspace = await createWorkspace();
+    await writeCatalogReports(snapshot(), {
+      cwd: workspace,
+      outputDirectory: ".catalog",
+      formats: []
+    });
+
+    await writeCatalogReports(snapshot(), {
+      cwd: workspace,
+      outputDirectory: ".catalog",
+      formats: ["json"]
+    });
+
+    await expect(readdir(join(workspace, ".catalog"))).resolves.toEqual([
+      ".scg-generation.json",
+      "catalog.json"
+    ]);
+  });
+
+  it("refuses to replace output directories containing unowned files", async () => {
+    const workspace = await createWorkspace();
+    const outputDirectory = join(workspace, ".catalog");
+    await mkdir(outputDirectory);
+    await writeFile(join(outputDirectory, "notes.txt"), "keep me\n", "utf8");
+
+    await expect(
+      writeCatalogReports(snapshot(), {
+        cwd: workspace,
+        outputDirectory: ".catalog",
+        formats: ["json"]
+      })
+    ).rejects.toMatchObject({
+      diagnostic: expect.objectContaining({
+        code: "output.write_failed",
+        message: "Report output directory contains files that are not owned by SCG."
+      })
+    });
+    await expect(readFile(join(outputDirectory, "notes.txt"), "utf8")).resolves.toBe("keep me\n");
+  });
+
+  it("refuses to trust a corrupt generation marker", async () => {
+    const workspace = await createWorkspace();
+    const outputDirectory = join(workspace, ".catalog");
+    await mkdir(outputDirectory);
+    await writeFile(join(outputDirectory, "catalog.json"), "old\n", "utf8");
+    await writeFile(join(outputDirectory, ".scg-generation.json"), "{}\n", "utf8");
+
+    await expect(
+      writeCatalogReports(snapshot(), {
+        cwd: workspace,
+        outputDirectory: ".catalog",
+        formats: ["json"]
+      })
+    ).rejects.toMatchObject({
+      diagnostic: expect.objectContaining({
+        message: "Report output directory has an invalid generation marker."
+      })
+    });
+    await expect(readFile(join(outputDirectory, "catalog.json"), "utf8")).resolves.toBe("old\n");
+  });
+
+  it("rejects the workspace root as a report output directory", async () => {
+    const workspace = await createWorkspace();
+
+    await expect(
+      writeCatalogReports(snapshot(), {
+        cwd: workspace,
+        outputDirectory: ".",
+        formats: ["json"]
+      })
+    ).rejects.toMatchObject({
+      diagnostic: expect.objectContaining({
+        message: "The workspace root cannot be used as the report output directory."
+      })
+    });
+  });
+
+  it("excludes a second writer while a generation is staged", async () => {
+    const workspace = await createWorkspace();
+    const entered = deferred<void>();
+    const release = deferred<void>();
+    const firstWrite = publishReportGeneration({
+      cwdRealPath: workspace,
+      outputDirectory: join(workspace, ".catalog"),
+      files: [{ name: "catalog.json", contents: "first\n" }],
+      hooks: {
+        beforePromote: async () => {
+          entered.resolve();
+          await release.promise;
+        }
+      }
+    });
+    await entered.promise;
+
+    await expect(
+      publishReportGeneration({
+        cwdRealPath: workspace,
+        outputDirectory: join(workspace, ".catalog"),
+        files: [{ name: "catalog.json", contents: "second\n" }]
+      })
+    ).rejects.toMatchObject({
+      message: "Another report writer owns the output directory lock."
+    });
+
+    release.resolve();
+    await firstWrite;
+    await expect(readFile(join(workspace, ".catalog", "catalog.json"), "utf8")).resolves.toBe(
+      "first\n"
+    );
+  });
+
+  it("restores the previous generation when installation fails after backup", async () => {
+    const workspace = await createWorkspace();
+    const outputDirectory = join(workspace, ".catalog");
+    await publishReportGeneration({
+      cwdRealPath: workspace,
+      outputDirectory,
+      files: [
+        { name: "catalog.json", contents: "old json\n" },
+        { name: "graph.dot", contents: "old dot\n" }
+      ]
+    });
+
+    await expect(
+      publishReportGeneration({
+        cwdRealPath: workspace,
+        outputDirectory,
+        files: [{ name: "catalog.json", contents: "new json\n" }],
+        hooks: {
+          beforeInstall: async () => {
+            throw new Error("injected promotion failure");
+          }
+        }
+      })
+    ).rejects.toThrow("injected promotion failure");
+
+    await expect(readFile(join(outputDirectory, "catalog.json"), "utf8")).resolves.toBe(
+      "old json\n"
+    );
+    await expect(readFile(join(outputDirectory, "graph.dot"), "utf8")).resolves.toBe("old dot\n");
+    expect((await readdir(workspace)).filter((entry) => entry.includes(".scg-"))).toEqual([]);
   });
 
   it("rejects output directories outside the workspace", async () => {
@@ -311,4 +459,15 @@ function snapshot(): CatalogSnapshot {
       ]
     }
   };
+}
+
+function deferred<T>(): {
+  promise: Promise<T>;
+  resolve: (value: T | PromiseLike<T>) => void;
+} {
+  let resolvePromise!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((resolve) => {
+    resolvePromise = resolve;
+  });
+  return { promise, resolve: resolvePromise };
 }

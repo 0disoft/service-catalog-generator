@@ -3994,10 +3994,10 @@ var require_resolve_block_map = __commonJS({
       let offset = bm.offset;
       let commentEnd = null;
       for (const collItem of bm.items) {
-        const { start, key, sep: sep3, value } = collItem;
+        const { start, key, sep: sep4, value } = collItem;
         const keyProps = resolveProps.resolveProps(start, {
           indicator: "explicit-key-ind",
-          next: key ?? sep3?.[0],
+          next: key ?? sep4?.[0],
           offset,
           onError,
           parentIndent: bm.indent,
@@ -4011,7 +4011,7 @@ var require_resolve_block_map = __commonJS({
             else if ("indent" in key && key.indent !== bm.indent)
               onError(offset, "BAD_INDENT", startColMsg);
           }
-          if (!keyProps.anchor && !keyProps.tag && !sep3) {
+          if (!keyProps.anchor && !keyProps.tag && !sep4) {
             commentEnd = keyProps.end;
             if (keyProps.comment) {
               if (map2.comment)
@@ -4035,7 +4035,7 @@ var require_resolve_block_map = __commonJS({
         ctx.atKey = false;
         if (utilMapIncludes.mapIncludes(ctx, map2.items, keyNode))
           onError(keyStart, "DUPLICATE_KEY", "Map keys must be unique");
-        const valueProps = resolveProps.resolveProps(sep3 ?? [], {
+        const valueProps = resolveProps.resolveProps(sep4 ?? [], {
           indicator: "map-value-ind",
           next: value,
           offset: keyNode.range[2],
@@ -4051,7 +4051,7 @@ var require_resolve_block_map = __commonJS({
             if (ctx.options.strict && keyProps.start < valueProps.found.offset - 1024)
               onError(keyNode.range, "KEY_OVER_1024_CHARS", "The : indicator must be at most 1024 chars after the start of an implicit block mapping key");
           }
-          const valueNode = value ? composeNode(ctx, value, valueProps, onError) : composeEmptyNode(ctx, offset, sep3, null, valueProps, onError);
+          const valueNode = value ? composeNode(ctx, value, valueProps, onError) : composeEmptyNode(ctx, offset, sep4, null, valueProps, onError);
           if (ctx.schema.compat)
             utilFlowIndentCheck.flowIndentCheck(bm.indent, value, onError);
           offset = valueNode.range[2];
@@ -4142,7 +4142,7 @@ var require_resolve_end = __commonJS({
       let comment = "";
       if (end) {
         let hasSpace = false;
-        let sep3 = "";
+        let sep4 = "";
         for (const token of end) {
           const { source, type } = token;
           switch (type) {
@@ -4156,13 +4156,13 @@ var require_resolve_end = __commonJS({
               if (!comment)
                 comment = cb;
               else
-                comment += sep3 + cb;
-              sep3 = "";
+                comment += sep4 + cb;
+              sep4 = "";
               break;
             }
             case "newline":
               if (comment)
-                sep3 += source;
+                sep4 += source;
               hasSpace = true;
               break;
             default:
@@ -4205,18 +4205,18 @@ var require_resolve_flow_collection = __commonJS({
       let offset = fc.offset + fc.start.source.length;
       for (let i = 0; i < fc.items.length; ++i) {
         const collItem = fc.items[i];
-        const { start, key, sep: sep3, value } = collItem;
+        const { start, key, sep: sep4, value } = collItem;
         const props = resolveProps.resolveProps(start, {
           flow: fcName,
           indicator: "explicit-key-ind",
-          next: key ?? sep3?.[0],
+          next: key ?? sep4?.[0],
           offset,
           onError,
           parentIndent: fc.indent,
           startOnNewline: false
         });
         if (!props.found) {
-          if (!props.anchor && !props.tag && !sep3 && !value) {
+          if (!props.anchor && !props.tag && !sep4 && !value) {
             if (i === 0 && props.comma)
               onError(props.comma, "UNEXPECTED_TOKEN", `Unexpected , in ${fcName}`);
             else if (i < fc.items.length - 1)
@@ -4270,8 +4270,8 @@ var require_resolve_flow_collection = __commonJS({
             }
           }
         }
-        if (!isMap && !sep3 && !props.found) {
-          const valueNode = value ? composeNode(ctx, value, props, onError) : composeEmptyNode(ctx, props.end, sep3, null, props, onError);
+        if (!isMap && !sep4 && !props.found) {
+          const valueNode = value ? composeNode(ctx, value, props, onError) : composeEmptyNode(ctx, props.end, sep4, null, props, onError);
           coll.items.push(valueNode);
           offset = valueNode.range[2];
           if (isBlock(value))
@@ -4283,7 +4283,7 @@ var require_resolve_flow_collection = __commonJS({
           if (isBlock(key))
             onError(keyNode.range, "BLOCK_IN_FLOW", blockMsg);
           ctx.atKey = false;
-          const valueProps = resolveProps.resolveProps(sep3 ?? [], {
+          const valueProps = resolveProps.resolveProps(sep4 ?? [], {
             flow: fcName,
             indicator: "map-value-ind",
             next: value,
@@ -4294,8 +4294,8 @@ var require_resolve_flow_collection = __commonJS({
           });
           if (valueProps.found) {
             if (!isMap && !props.found && ctx.options.strict) {
-              if (sep3)
-                for (const st of sep3) {
+              if (sep4)
+                for (const st of sep4) {
                   if (st === valueProps.found)
                     break;
                   if (st.type === "newline") {
@@ -4312,7 +4312,7 @@ var require_resolve_flow_collection = __commonJS({
             else
               onError(valueProps.start, "MISSING_CHAR", `Missing , or : between ${fcName} items`);
           }
-          const valueNode = value ? composeNode(ctx, value, valueProps, onError) : valueProps.found ? composeEmptyNode(ctx, valueProps.end, sep3, null, valueProps, onError) : null;
+          const valueNode = value ? composeNode(ctx, value, valueProps, onError) : valueProps.found ? composeEmptyNode(ctx, valueProps.end, sep4, null, valueProps, onError) : null;
           if (valueNode) {
             if (isBlock(value))
               onError(valueNode.range, "BLOCK_IN_FLOW", blockMsg);
@@ -4492,7 +4492,7 @@ var require_resolve_block_scalar = __commonJS({
           chompStart = i + 1;
       }
       let value = "";
-      let sep3 = "";
+      let sep4 = "";
       let prevMoreIndented = false;
       for (let i = 0; i < contentStart; ++i)
         value += lines[i][0].slice(trimIndent) + "\n";
@@ -4509,24 +4509,24 @@ var require_resolve_block_scalar = __commonJS({
           indent = "";
         }
         if (type === Scalar.Scalar.BLOCK_LITERAL) {
-          value += sep3 + indent.slice(trimIndent) + content;
-          sep3 = "\n";
+          value += sep4 + indent.slice(trimIndent) + content;
+          sep4 = "\n";
         } else if (indent.length > trimIndent || content[0] === "	") {
-          if (sep3 === " ")
-            sep3 = "\n";
-          else if (!prevMoreIndented && sep3 === "\n")
-            sep3 = "\n\n";
-          value += sep3 + indent.slice(trimIndent) + content;
-          sep3 = "\n";
+          if (sep4 === " ")
+            sep4 = "\n";
+          else if (!prevMoreIndented && sep4 === "\n")
+            sep4 = "\n\n";
+          value += sep4 + indent.slice(trimIndent) + content;
+          sep4 = "\n";
           prevMoreIndented = true;
         } else if (content === "") {
-          if (sep3 === "\n")
+          if (sep4 === "\n")
             value += "\n";
           else
-            sep3 = "\n";
+            sep4 = "\n";
         } else {
-          value += sep3 + content;
-          sep3 = " ";
+          value += sep4 + content;
+          sep4 = " ";
           prevMoreIndented = false;
         }
       }
@@ -4708,25 +4708,25 @@ var require_resolve_flow_scalar = __commonJS({
       if (!match)
         return source;
       let res = match[1];
-      let sep3 = " ";
+      let sep4 = " ";
       let pos = first.lastIndex;
       line.lastIndex = pos;
       while (match = line.exec(source)) {
         if (match[1] === "") {
-          if (sep3 === "\n")
-            res += sep3;
+          if (sep4 === "\n")
+            res += sep4;
           else
-            sep3 = "\n";
+            sep4 = "\n";
         } else {
-          res += sep3 + match[1];
-          sep3 = " ";
+          res += sep4 + match[1];
+          sep4 = " ";
         }
         pos = line.lastIndex;
       }
       const last = /[ \t]*(.*)/sy;
       last.lastIndex = pos;
       match = last.exec(source);
-      return res + sep3 + (match?.[1] ?? "");
+      return res + sep4 + (match?.[1] ?? "");
     }
     function doubleQuotedValue(source, onError) {
       let res = "";
@@ -5536,14 +5536,14 @@ var require_cst_stringify = __commonJS({
         }
       }
     }
-    function stringifyItem({ start, key, sep: sep3, value }) {
+    function stringifyItem({ start, key, sep: sep4, value }) {
       let res = "";
       for (const st of start)
         res += st.source;
       if (key)
         res += stringifyToken(key);
-      if (sep3)
-        for (const st of sep3)
+      if (sep4)
+        for (const st of sep4)
           res += st.source;
       if (value)
         res += stringifyToken(value);
@@ -6710,18 +6710,18 @@ var require_parser = __commonJS({
         if (this.type === "map-value-ind") {
           const prev = getPrevProps(this.peek(2));
           const start = getFirstKeyStartProps(prev);
-          let sep3;
+          let sep4;
           if (scalar.end) {
-            sep3 = scalar.end;
-            sep3.push(this.sourceToken);
+            sep4 = scalar.end;
+            sep4.push(this.sourceToken);
             delete scalar.end;
           } else
-            sep3 = [this.sourceToken];
+            sep4 = [this.sourceToken];
           const map2 = {
             type: "block-map",
             offset: scalar.offset,
             indent: scalar.indent,
-            items: [{ start, key: scalar, sep: sep3 }]
+            items: [{ start, key: scalar, sep: sep4 }]
           };
           this.onKeyLine = true;
           this.stack[this.stack.length - 1] = map2;
@@ -6874,15 +6874,15 @@ var require_parser = __commonJS({
                 } else if (isFlowToken(it.key) && !includesToken(it.sep, "newline")) {
                   const start2 = getFirstKeyStartProps(it.start);
                   const key = it.key;
-                  const sep3 = it.sep;
-                  sep3.push(this.sourceToken);
+                  const sep4 = it.sep;
+                  sep4.push(this.sourceToken);
                   delete it.key;
                   delete it.sep;
                   this.stack.push({
                     type: "block-map",
                     offset: this.offset,
                     indent: this.indent,
-                    items: [{ start: start2, key, sep: sep3 }]
+                    items: [{ start: start2, key, sep: sep4 }]
                   });
                 } else if (start.length > 0) {
                   it.sep = it.sep.concat(start, this.sourceToken);
@@ -7076,13 +7076,13 @@ var require_parser = __commonJS({
             const prev = getPrevProps(parent);
             const start = getFirstKeyStartProps(prev);
             fixFlowSeqItems(fc);
-            const sep3 = fc.end.splice(1, fc.end.length);
-            sep3.push(this.sourceToken);
+            const sep4 = fc.end.splice(1, fc.end.length);
+            sep4.push(this.sourceToken);
             const map2 = {
               type: "block-map",
               offset: fc.offset,
               indent: fc.indent,
-              items: [{ start, key: fc, sep: sep3 }]
+              items: [{ start, key: fc, sep: sep4 }]
             };
             this.onKeyLine = true;
             this.stack[this.stack.length - 1] = map2;
@@ -7375,12 +7375,12 @@ module.exports = __toCommonJS(index_exports);
 var import_node_crypto2 = require("crypto");
 var import_node_fs2 = require("fs");
 var import_node_os = require("os");
-var import_node_path5 = require("path");
+var import_node_path6 = require("path");
 
 // packages/cli/dist/index.js
 var import_node_fs = require("fs");
-var import_promises4 = require("fs/promises");
-var import_node_path4 = require("path");
+var import_promises5 = require("fs/promises");
+var import_node_path5 = require("path");
 
 // packages/schema/dist/versions.js
 var SERVICE_MANIFEST_SCHEMA_VERSION = "scg.service/v1alpha1";
@@ -23092,9 +23092,189 @@ function resolveCatalogConfig(input = {}) {
 }
 
 // packages/report/dist/index.js
+var import_promises4 = require("fs/promises");
+var import_node_path4 = require("path");
+
+// packages/report/dist/generation-publisher.js
 var import_node_crypto = require("crypto");
 var import_promises3 = require("fs/promises");
 var import_node_path3 = require("path");
+var GENERATION_MARKER = ".scg-generation.json";
+var REPORT_FILE_NAMES = /* @__PURE__ */ new Set(["catalog.json", "graph.dot", "report.html"]);
+var ReportGenerationError = class extends Error {
+  hint;
+  constructor(message, hint) {
+    super(message);
+    this.name = "ReportGenerationError";
+    this.hint = hint;
+  }
+};
+async function publishReportGeneration(options) {
+  const outputDirectory = (0, import_node_path3.resolve)(options.outputDirectory);
+  if (!isPathInside2(options.cwdRealPath, outputDirectory)) {
+    throw new ReportGenerationError("Output directory resolves outside the current workspace.", "Choose an --out path inside the current workspace.");
+  }
+  if (outputDirectory === (0, import_node_path3.resolve)(options.cwdRealPath)) {
+    throw new ReportGenerationError("The workspace root cannot be used as the report output directory.", "Choose a dedicated generated directory such as .catalog.");
+  }
+  const outputParent = (0, import_node_path3.dirname)(outputDirectory);
+  await (0, import_promises3.mkdir)(outputParent, { recursive: true });
+  const outputParentRealPath = await (0, import_promises3.realpath)(outputParent);
+  const canonicalOutputDirectory = (0, import_node_path3.resolve)(outputParentRealPath, (0, import_node_path3.basename)(outputDirectory));
+  if (!isPathInside2(options.cwdRealPath, outputParentRealPath)) {
+    throw new ReportGenerationError("Output directory resolves outside the current workspace.", "Choose an --out path inside the current workspace and avoid symlinked parent directories.");
+  }
+  validateGenerationFiles(options.files);
+  const generationId = (0, import_node_crypto.randomUUID)();
+  const lockDirectory = (0, import_node_path3.resolve)(outputParentRealPath, `.${(0, import_node_path3.basename)(canonicalOutputDirectory)}.scg-write-lock`);
+  const stagingDirectory = (0, import_node_path3.resolve)(outputParentRealPath, `.${(0, import_node_path3.basename)(canonicalOutputDirectory)}.scg-stage-${generationId}`);
+  const backupDirectory = (0, import_node_path3.resolve)(outputParentRealPath, `.${(0, import_node_path3.basename)(canonicalOutputDirectory)}.scg-backup-${generationId}`);
+  let ownsLock = false;
+  let preserveBackup = false;
+  try {
+    await acquireLock(lockDirectory, generationId, canonicalOutputDirectory);
+    ownsLock = true;
+    const outputExists = await validateExistingOutput(canonicalOutputDirectory);
+    await writeStagingGeneration(stagingDirectory, generationId, options.files);
+    await options.hooks?.beforePromote?.();
+    if (!outputExists) {
+      await (0, import_promises3.rename)(stagingDirectory, canonicalOutputDirectory);
+      return canonicalOutputDirectory;
+    }
+    await (0, import_promises3.rename)(canonicalOutputDirectory, backupDirectory);
+    try {
+      await options.hooks?.beforeInstall?.();
+      await (0, import_promises3.rename)(stagingDirectory, canonicalOutputDirectory);
+    } catch (error51) {
+      try {
+        await (0, import_promises3.rename)(backupDirectory, canonicalOutputDirectory);
+      } catch {
+        preserveBackup = true;
+        throw new ReportGenerationError("Report generation promotion failed and the previous generation could not be restored.", `Preserve and inspect ${backupDirectory}; do not remove it until the previous reports are recovered.`);
+      }
+      throw error51;
+    }
+    try {
+      await (0, import_promises3.rm)(backupDirectory, { force: true, recursive: true });
+    } catch {
+      preserveBackup = true;
+      throw new ReportGenerationError("The new report generation was installed, but the previous backup could not be removed.", `Inspect and remove ${backupDirectory} after confirming the new reports are complete.`);
+    }
+    return canonicalOutputDirectory;
+  } finally {
+    await removeBestEffort(stagingDirectory);
+    if (!preserveBackup) {
+      await removeBestEffort(backupDirectory);
+    }
+    if (ownsLock) {
+      await releaseOwnedLock(lockDirectory, generationId);
+    }
+  }
+}
+async function acquireLock(lockDirectory, generationId, outputDirectory) {
+  try {
+    await (0, import_promises3.mkdir)(lockDirectory);
+  } catch (error51) {
+    if (isNodeError(error51, "EEXIST")) {
+      throw new ReportGenerationError("Another report writer owns the output directory lock.", `Wait for the writer to finish. If it crashed, inspect and remove ${lockDirectory} before retrying.`);
+    }
+    throw error51;
+  }
+  try {
+    await (0, import_promises3.writeFile)((0, import_node_path3.resolve)(lockDirectory, "owner.json"), `${JSON.stringify({
+      schemaVersion: "scg.report-write-lock/v1",
+      generationId,
+      pid: process.pid,
+      outputDirectory,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    }, null, 2)}
+`, { encoding: "utf8", flag: "wx" });
+  } catch (error51) {
+    await (0, import_promises3.rm)(lockDirectory, { force: true, recursive: true });
+    throw error51;
+  }
+}
+async function releaseOwnedLock(lockDirectory, generationId) {
+  try {
+    const owner = JSON.parse(await (0, import_promises3.readFile)((0, import_node_path3.resolve)(lockDirectory, "owner.json"), "utf8"));
+    if (owner.generationId === generationId) {
+      await (0, import_promises3.rm)(lockDirectory, { force: true, recursive: true });
+    }
+  } catch {
+  }
+}
+async function validateExistingOutput(outputDirectory) {
+  let stats;
+  try {
+    stats = await (0, import_promises3.lstat)(outputDirectory);
+  } catch (error51) {
+    if (isNodeError(error51, "ENOENT")) {
+      return false;
+    }
+    throw error51;
+  }
+  if (!stats.isDirectory() || stats.isSymbolicLink()) {
+    throw new ReportGenerationError("Report output path must be a regular directory owned by the workspace.", "Remove the file or symlink and choose a dedicated generated directory.");
+  }
+  const entries = await (0, import_promises3.readdir)(outputDirectory);
+  const unknownEntries = entries.filter((entry) => entry !== GENERATION_MARKER && !REPORT_FILE_NAMES.has(entry));
+  if (unknownEntries.length > 0) {
+    throw new ReportGenerationError("Report output directory contains files that are not owned by SCG.", `Move these entries before retrying: ${unknownEntries.sort().join(", ")}`);
+  }
+  if (entries.includes(GENERATION_MARKER)) {
+    await validateGenerationMarker(outputDirectory, entries);
+  }
+  return true;
+}
+async function validateGenerationMarker(outputDirectory, entries) {
+  try {
+    const marker = JSON.parse(await (0, import_promises3.readFile)((0, import_node_path3.resolve)(outputDirectory, GENERATION_MARKER), "utf8"));
+    const reportEntries = entries.filter((entry) => REPORT_FILE_NAMES.has(entry)).sort();
+    if (marker.schemaVersion !== "scg.report-generation/v1" || typeof marker.generationId !== "string" || marker.generationId.length === 0 || !Array.isArray(marker.files) || marker.files.some((file2) => typeof file2 !== "string") || JSON.stringify([...marker.files].sort()) !== JSON.stringify(reportEntries)) {
+      throw new Error("invalid generation marker");
+    }
+  } catch {
+    throw new ReportGenerationError("Report output directory has an invalid generation marker.", "Preserve the directory for inspection, then regenerate into a clean dedicated output path.");
+  }
+}
+async function writeStagingGeneration(stagingDirectory, generationId, files) {
+  await (0, import_promises3.mkdir)(stagingDirectory);
+  await Promise.all(files.map((file2) => (0, import_promises3.writeFile)((0, import_node_path3.resolve)(stagingDirectory, file2.name), file2.contents, {
+    encoding: "utf8",
+    flag: "wx"
+  })));
+  const marker = {
+    schemaVersion: "scg.report-generation/v1",
+    generationId,
+    files: files.map((file2) => file2.name).sort()
+  };
+  await (0, import_promises3.writeFile)((0, import_node_path3.resolve)(stagingDirectory, GENERATION_MARKER), `${JSON.stringify(marker, null, 2)}
+`, { encoding: "utf8", flag: "wx" });
+}
+function validateGenerationFiles(files) {
+  const names = /* @__PURE__ */ new Set();
+  for (const file2 of files) {
+    if (!REPORT_FILE_NAMES.has(file2.name) || names.has(file2.name)) {
+      throw new ReportGenerationError("Report generation contains an invalid or duplicate file name.", "Use each supported report format at most once.");
+    }
+    names.add(file2.name);
+  }
+}
+function isPathInside2(parent, child) {
+  const relation = (0, import_node_path3.relative)((0, import_node_path3.resolve)(parent), (0, import_node_path3.resolve)(child));
+  return relation === "" || relation !== ".." && !relation.startsWith(`..${import_node_path3.sep}`) && !(0, import_node_path3.isAbsolute)(relation);
+}
+function isNodeError(error51, code) {
+  return error51 instanceof Error && "code" in error51 && error51.code === code;
+}
+async function removeBestEffort(path) {
+  try {
+    await (0, import_promises3.rm)(path, { force: true, recursive: true });
+  } catch {
+  }
+}
+
+// packages/report/dist/index.js
 var ReportWriteError = class extends Error {
   diagnostic;
   constructor(diagnostic) {
@@ -23104,38 +23284,44 @@ var ReportWriteError = class extends Error {
   }
 };
 async function writeCatalogReports(snapshot, options) {
-  const cwd = (0, import_node_path3.resolve)(options.cwd ?? process.cwd());
-  const cwdRealPath = await (0, import_promises3.realpath)(cwd);
+  const cwd = (0, import_node_path4.resolve)(options.cwd ?? process.cwd());
+  const cwdRealPath = await (0, import_promises4.realpath)(cwd);
   validateOutputDirectory(options.outputDirectory);
-  const outputDirectory = (0, import_node_path3.resolve)(cwd, options.outputDirectory);
-  if (!isPathInside2(cwd, outputDirectory)) {
+  const outputDirectory = (0, import_node_path4.resolve)(cwd, options.outputDirectory);
+  if (!isPathInside3(cwd, outputDirectory)) {
     throwWriteError(options.outputDirectory, "Output directory resolves outside the current workspace.", "Choose an --out path inside the current workspace.");
   }
   const formats = normalizeFormats(options.formats);
   const files = [];
   try {
-    await (0, import_promises3.mkdir)(outputDirectory, { recursive: true });
-    const outputDirectoryRealPath = await (0, import_promises3.realpath)(outputDirectory);
-    if (!isPathInside2(cwdRealPath, outputDirectoryRealPath)) {
-      throwWriteError(options.outputDirectory, "Output directory resolves outside the current workspace.", "Choose an --out path inside the current workspace and avoid symlinked output directories.");
-    }
+    const generationFiles = formats.map((format) => ({
+      name: reportFileName(format),
+      contents: renderReport(snapshot, format)
+    }));
+    const outputDirectoryRealPath = await publishReportGeneration({
+      cwdRealPath,
+      outputDirectory,
+      files: generationFiles
+    });
     for (const format of formats) {
       const fileName = reportFileName(format);
-      const absolutePath = (0, import_node_path3.resolve)(outputDirectoryRealPath, fileName);
-      if (!isPathInside2(outputDirectoryRealPath, absolutePath)) {
+      const absolutePath = (0, import_node_path4.resolve)(outputDirectoryRealPath, fileName);
+      if (!isPathInside3(outputDirectoryRealPath, absolutePath)) {
         throwWriteError(fileName, "Report file resolves outside the output directory.", "Use a safe output format.");
       }
-      await writeAtomic(absolutePath, renderReport(snapshot, format));
       files.push({
         format,
-        path: toPosixPath2((0, import_node_path3.relative)(cwdRealPath, absolutePath))
+        path: toPosixPath2((0, import_node_path4.relative)(cwdRealPath, absolutePath))
       });
     }
   } catch (error51) {
     if (error51 instanceof ReportWriteError) {
       throw error51;
     }
-    throwWriteError(toPosixPath2((0, import_node_path3.relative)(cwd, outputDirectory)), "Report output could not be written.", "Check --out permissions and ensure the path is a writable directory.");
+    if (error51 instanceof ReportGenerationError) {
+      throwWriteError(options.outputDirectory, error51.message, error51.hint);
+    }
+    throwWriteError(toPosixPath2((0, import_node_path4.relative)(cwd, outputDirectory)), "Report output could not be written.", "Check --out permissions and ensure the path is a writable directory.");
   }
   return { files };
 }
@@ -23250,16 +23436,6 @@ function reportFileName(format) {
       return "report.html";
   }
 }
-async function writeAtomic(path, contents) {
-  const temporaryPath = (0, import_node_path3.resolve)((0, import_node_path3.dirname)(path), `.${(0, import_node_path3.basename)(path)}.${process.pid}.${(0, import_node_crypto.randomUUID)()}.tmp`);
-  try {
-    await (0, import_promises3.writeFile)(temporaryPath, contents, { encoding: "utf8", flag: "wx" });
-    await (0, import_promises3.rename)(temporaryPath, path);
-  } catch (error51) {
-    await (0, import_promises3.rm)(temporaryPath, { force: true });
-    throw error51;
-  }
-}
 function renderSummaryHtml(snapshot) {
   return [
     '<section aria-label="Summary">',
@@ -23335,12 +23511,12 @@ function tableCell(value) {
 function dotString(value) {
   return `"${escapeDotString(value)}"`;
 }
-function isPathInside2(parent, child) {
-  const relation = (0, import_node_path3.relative)((0, import_node_path3.resolve)(parent), (0, import_node_path3.resolve)(child));
-  return relation === "" || relation !== ".." && !relation.startsWith(`..${import_node_path3.sep}`) && !(0, import_node_path3.isAbsolute)(relation);
+function isPathInside3(parent, child) {
+  const relation = (0, import_node_path4.relative)((0, import_node_path4.resolve)(parent), (0, import_node_path4.resolve)(child));
+  return relation === "" || relation !== ".." && !relation.startsWith(`..${import_node_path4.sep}`) && !(0, import_node_path4.isAbsolute)(relation);
 }
 function toPosixPath2(path) {
-  return path.split(import_node_path3.sep).join("/");
+  return path.split(import_node_path4.sep).join("/");
 }
 function validateOutputDirectory(path) {
   if (!path || /[\0\r\n]/.test(path)) {
@@ -23363,7 +23539,7 @@ var cliVersion = "0.5.14";
 var DEFAULT_CONFIG_FILE = "scg.config.yaml";
 async function runCli(options = {}) {
   const argv = options.argv ?? process.argv.slice(2);
-  const cwd = (0, import_node_path4.resolve)(options.cwd ?? process.cwd());
+  const cwd = (0, import_node_path5.resolve)(options.cwd ?? process.cwd());
   const io = options.io ?? {
     stdout: process.stdout,
     stderr: process.stderr
@@ -23552,7 +23728,7 @@ function readFlagValue(flag, remaining) {
   return value;
 }
 async function loadConfigInput(cwd, explicitConfigPath) {
-  const configPath = explicitConfigPath ? (0, import_node_path4.resolve)(cwd, explicitConfigPath) : (0, import_node_path4.resolve)(cwd, DEFAULT_CONFIG_FILE);
+  const configPath = explicitConfigPath ? (0, import_node_path5.resolve)(cwd, explicitConfigPath) : (0, import_node_path5.resolve)(cwd, DEFAULT_CONFIG_FILE);
   if (!(0, import_node_fs.existsSync)(configPath)) {
     if (explicitConfigPath) {
       return {
@@ -23566,7 +23742,7 @@ async function loadConfigInput(cwd, explicitConfigPath) {
     };
   }
   try {
-    const source = await (0, import_promises4.readFile)(configPath, "utf8");
+    const source = await (0, import_promises5.readFile)(configPath, "utf8");
     const document = (0, import_yaml2.parseDocument)(source, {
       prettyErrors: false,
       schema: "core",
@@ -23735,7 +23911,7 @@ function isCliEntrypoint(path) {
   return normalized.endsWith("/dist/cli/index.js") || normalized.endsWith("/packages/cli/dist/index.js") || normalized.endsWith("/packages/cli/src/index.ts");
 }
 function normalizeCliPath(path) {
-  const resolved = (0, import_node_path4.resolve)(path);
+  const resolved = (0, import_node_path5.resolve)(path);
   try {
     return (0, import_node_fs.realpathSync)(resolved).replaceAll("\\", "/");
   } catch {
@@ -23939,7 +24115,7 @@ if (process.argv[1] && isActionEntrypoint(process.argv[1])) {
   });
 }
 function isActionEntrypoint(path) {
-  const normalized = (0, import_node_path5.resolve)(path).replaceAll("\\", "/");
+  const normalized = (0, import_node_path6.resolve)(path).replaceAll("\\", "/");
   return normalized.endsWith("/dist/action/index.cjs") || normalized.endsWith("/packages/action/dist/index.cjs") || normalized.endsWith("/packages/action/src/index.ts");
 }
 // Annotate the CommonJS export names for ESM import in node:

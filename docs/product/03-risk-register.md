@@ -50,13 +50,15 @@ Owner: 0disoft
 
 - Risk: path traversal, symlink loops, broad scans, or unsafe output overwrites expose files or damage
   a workspace.
-- Mitigation: default excludes, realpath tracking, output-directory allowlists, atomic writes, and
-  tests for traversal and symlink loops.
-- Remaining risk: atomic replacement currently applies per file, not to the JSON, DOT, and HTML set
-  as one generation. Concurrent writers targeting the same directory can mix generations, and an
-  external process with workspace write access can race path validation by replacing directories.
-- Blocker: 1.0 release without either a generation-level publication protocol or an explicit
-  single-writer contract and tested lock/recovery behavior.
+- Mitigation: default excludes, realpath tracking, output-directory allowlists, a dedicated
+  directory-generation protocol, owner-marked report sets, single-writer locking, rollback, and
+  tests for traversal, symlinks, writer exclusion, stale-format removal, and promotion failure.
+- Remaining risk: directory promotion prevents mixed generations but can expose a brief missing-path
+  window on filesystems that cannot replace a non-empty directory in one operation. A process with
+  workspace write access can ignore SCG's lock or race path validation by replacing directories.
+  Crash-retained locks deliberately require inspection instead of unsafe age-based auto-breaking.
+- Blocker: claiming uninterrupted reader availability or protection from hostile same-user
+  filesystem mutation without a stronger platform-specific filesystem primitive.
 
 ## Resource Exhaustion
 

@@ -1,8 +1,12 @@
-import { randomUUID } from "node:crypto";
-import { mkdir, realpath, rename, rm, writeFile } from "node:fs/promises";
-import { basename, dirname, isAbsolute, relative, resolve, sep } from "node:path";
+import { realpath } from "node:fs/promises";
+import { isAbsolute, relative, resolve, sep } from "node:path";
 import type { CorePackageBoundary } from "@scg/core";
 import type { CatalogSnapshot, Diagnostic } from "@scg/schema";
+import {
+  publishReportGeneration,
+  ReportGenerationError,
+  type ReportGenerationFile
+} from "./generation-publisher.js";
 
 export const packageName = "@scg/report";
 
@@ -58,16 +62,15 @@ export async function writeCatalogReports(
   const files: WrittenReportFile[] = [];
 
   try {
-    await mkdir(outputDirectory, { recursive: true });
-    const outputDirectoryRealPath = await realpath(outputDirectory);
-    if (!isPathInside(cwdRealPath, outputDirectoryRealPath)) {
-      throwWriteError(
-        options.outputDirectory,
-        "Output directory resolves outside the current workspace.",
-        "Choose an --out path inside the current workspace and avoid symlinked output directories."
-      );
-    }
-
+    const generationFiles: ReportGenerationFile[] = formats.map((format) => ({
+      name: reportFileName(format),
+      contents: renderReport(snapshot, format)
+    }));
+    const outputDirectoryRealPath = await publishReportGeneration({
+      cwdRealPath,
+      outputDirectory,
+      files: generationFiles
+    });
     for (const format of formats) {
       const fileName = reportFileName(format);
       const absolutePath = resolve(outputDirectoryRealPath, fileName);
@@ -78,8 +81,6 @@ export async function writeCatalogReports(
           "Use a safe output format."
         );
       }
-
-      await writeAtomic(absolutePath, renderReport(snapshot, format));
       files.push({
         format,
         path: toPosixPath(relative(cwdRealPath, absolutePath))
@@ -88,6 +89,9 @@ export async function writeCatalogReports(
   } catch (error) {
     if (error instanceof ReportWriteError) {
       throw error;
+    }
+    if (error instanceof ReportGenerationError) {
+      throwWriteError(options.outputDirectory, error.message, error.hint);
     }
 
     throwWriteError(
@@ -237,21 +241,6 @@ function reportFileName(format: ReportFormat): string {
       return "graph.dot";
     case "html":
       return "report.html";
-  }
-}
-
-async function writeAtomic(path: string, contents: string): Promise<void> {
-  const temporaryPath = resolve(
-    dirname(path),
-    `.${basename(path)}.${process.pid}.${randomUUID()}.tmp`
-  );
-
-  try {
-    await writeFile(temporaryPath, contents, { encoding: "utf8", flag: "wx" });
-    await rename(temporaryPath, path);
-  } catch (error) {
-    await rm(temporaryPath, { force: true });
-    throw error;
   }
 }
 

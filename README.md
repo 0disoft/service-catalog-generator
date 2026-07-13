@@ -24,6 +24,11 @@ scg check --fail-on-warning
 scg report --format json --format dot --format html
 ```
 
+`scg report` treats its output path as a dedicated generated directory. It stages a complete report
+generation, excludes concurrent SCG writers, and replaces the previous generation as a directory so
+JSON, DOT, and HTML files cannot be mixed across runs. Existing directories containing files other
+than SCG report artifacts are rejected instead of overwritten.
+
 SCG manifests use `scg.service/v1alpha1` by default. Existing ZDP v2 manifests can be read through
 the explicit adapter:
 

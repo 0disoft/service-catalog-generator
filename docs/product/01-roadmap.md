@@ -55,8 +55,8 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 
 - Set measured aggregate budgets for input bytes, extensions, object depth, collection size, and
   generated report size.
-- Replace per-file report publication with a tested single-generation protocol, writer exclusion,
-  and failure recovery contract.
+- Keep the delivered directory-generation report protocol, writer exclusion, rollback tests, and
+  fail-closed lock recovery contract stable across Windows and Linux release candidates.
 - Document the supported filesystem threat model and residual directory-replacement race where the
   Node runtime cannot provide descriptor-relative no-follow writes.
 

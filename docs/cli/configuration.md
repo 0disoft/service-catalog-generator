@@ -75,7 +75,10 @@ Environment variables must not override catalog semantics. `NO_COLOR` may affect
 - Input schema: `scg-v1`; use `--input-schema zdp-v2` for ZDP v2 manifests.
 - Output directory: `.catalog`.
   When the configured output directory resolves below a scan root, only that generated subtree is
-  skipped during discovery.
+  skipped during discovery. The directory is owned as one generated report set: each successful
+  `report` run replaces the complete prior generation, removes report formats not selected by the
+  new run, and writes `.scg-generation.json` as internal publication metadata. Use a dedicated path;
+  SCG rejects an existing directory containing non-SCG entries and never uses the workspace root.
 - Formats: JSON for `scan`, no write for `check`, JSON/DOT/HTML for `report`.
 - Unknown dependencies: failing diagnostic by default.
 - Warnings: non-failing unless `--fail-on-warning` is set.

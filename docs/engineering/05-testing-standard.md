@@ -24,6 +24,7 @@ Testing standard defines merge-blocking expectations for unit, integration, cont
 | Graph tests | Cover service edges, external edges, unknown nodes, and cycles. |
 | CLI contract tests | Lock JSON output shape and exit codes. |
 | Golden output tests | Lock `catalog.json`, `graph.dot`, and `report.html` from synthetic examples. |
+| Publication tests | Prove report generation replacement, writer exclusion, rollback, and path safety on Ubuntu and Windows hosted runners. |
 | Security tests | Cover XSS, DOT injection, path traversal, symlink loops, and secret-like values. |
 | Action tests | Cover input mapping, permission assumptions, output mapping, and CLI exit propagation. |
 | E2E tests | Run a tiny synthetic workspace through scan, check, and report. |

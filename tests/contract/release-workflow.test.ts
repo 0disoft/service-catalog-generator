@@ -32,6 +32,19 @@ type ReleaseWorkflow = {
   };
 };
 
+type WorkflowSecurityContract = {
+  jobs: Record<
+    string,
+    {
+      "timeout-minutes"?: number;
+      steps?: Array<{
+        uses?: string;
+        with?: Record<string, string | number | boolean>;
+      }>;
+    }
+  >;
+};
+
 describe("release workflow contract", () => {
   it("publishes through npm trusted publishing", () => {
     const workflowText = readFileSync(join(process.cwd(), ".github/workflows/release.yml"), "utf8");
@@ -172,6 +185,7 @@ describe("release workflow contract", () => {
       ".github/workflows/release.yml"
     ]) {
       const workflowText = readFileSync(join(process.cwd(), workflowPath), "utf8");
+      const workflow = parse(workflowText) as WorkflowSecurityContract;
       const actionReferences = [...workflowText.matchAll(/uses:\s*([^\s#]+)/g)].map(
         (match) => match[1]
       );
@@ -183,8 +197,14 @@ describe("release workflow contract", () => {
       for (const reference of thirdPartyReferences) {
         expect(reference, workflowPath).toMatch(/^[^@\s]+@[0-9a-f]{40}$/);
       }
-      expect(workflowText, workflowPath).toContain("persist-credentials: false");
-      expect(workflowText.match(/timeout-minutes:\s*\d+/g), workflowPath).toHaveLength(1);
+      for (const [jobName, job] of Object.entries(workflow.jobs)) {
+        expect(job["timeout-minutes"], `${workflowPath}:${jobName}`).toBeGreaterThan(0);
+        for (const step of job.steps ?? []) {
+          if (step.uses === CHECKOUT_ACTION) {
+            expect(step.with?.["persist-credentials"], `${workflowPath}:${jobName}`).toBe(false);
+          }
+        }
+      }
     }
   });
 

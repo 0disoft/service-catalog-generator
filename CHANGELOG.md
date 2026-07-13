@@ -5,6 +5,8 @@
 - Published JSON, DOT, and HTML reports as one owner-marked directory generation with writer
   exclusion, stale-format removal, promotion rollback, and fail-closed handling for unowned files
   and crash-retained locks.
+- Added merge-blocking Ubuntu and Windows report publication tests for filesystem-specific staging,
+  locking, promotion, and rollback behavior.
 
 ## 0.5.14
 

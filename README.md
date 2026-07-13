@@ -39,6 +39,10 @@ scg scan --json --input-schema zdp-v2 --allow-unknown-dependencies
 The ZDP adapter normalizes records into SCG catalog output and preserves ZDP-specific fields under
 `extensions.zdp`. ZDP policy validation remains owned by `zdp-architecture-linter`.
 
+A standalone native `scg-v1` consumer fixture with two services, strict dependency resolution, and
+its own config lives under `examples/native-consumer`. Packed-package and GitHub Action smoke tests
+both compile that fixture so native behavior does not depend on the ZDP adapter.
+
 For a ZDP platform catalog run, materialize each repository root `service.yaml` under a temporary
 manifest directory and build a derived report from that directory:
 

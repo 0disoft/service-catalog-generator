@@ -28,6 +28,7 @@ Testing standard defines merge-blocking expectations for unit, integration, cont
 | Security tests | Cover XSS, DOT injection, path traversal, symlink loops, and secret-like values. |
 | Action tests | Cover input mapping, permission assumptions, output mapping, and CLI exit propagation. |
 | E2E tests | Run a tiny synthetic workspace through scan, check, and report. |
+| Native consumer tests | Compile the standalone `examples/native-consumer` repository through source, packed CLI, and Action paths. |
 | Performance tests | Measure 500 and 1,000 manifest workspaces against documented budgets. |
 
 ## Required Fixtures

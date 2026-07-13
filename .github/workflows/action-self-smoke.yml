@@ -18,48 +18,18 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Create synthetic service manifest
-        run: |
-          mkdir -p .tmp/action-smoke/services/billing
-          cat > .tmp/action-smoke/services/billing/service.yaml <<'YAML'
-          schemaVersion: scg.service/v1alpha1
-          id: billing-api
-          name: Billing API
-          lifecycle: production
-          owner:
-            type: team
-            ref: team:platform
-          repository:
-            provider: github
-            slug: example/billing-api
-          runtime:
-            language: typescript
-            platform: node
-          deploy:
-            type: container
-            targets:
-              - environment: production
-                provider: unknown
-                ref: billing-api-prod
-          data:
-            storesPersonalData: false
-            classification: internal
-          dependencies: []
-          metadata:
-            lastReviewedAt: "2026-07-01"
-          YAML
-
       - id: scg
         uses: ./
         with:
-          roots: .tmp/action-smoke/services
+          config: examples/native-consumer/scg.config.yaml
+          roots: examples/native-consumer/services
           report: "true"
           format: json,dot,html
           output-directory: .tmp/action-smoke/.catalog
 
       - name: Assert action outputs and reports
         run: |
-          test "${{ steps.scg.outputs.service-count }}" = "1"
+          test "${{ steps.scg.outputs.service-count }}" = "2"
           test "${{ steps.scg.outputs.error-count }}" = "0"
           test "${{ steps.scg.outputs.warning-count }}" = "0"
           test "${{ steps.scg.outputs.report-directory }}" = ".tmp/action-smoke/.catalog"

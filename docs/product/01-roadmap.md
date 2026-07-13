@@ -64,8 +64,8 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 
 - Keep repository-local ZDP gates and the central 40-service catalog green against released Action
   bundles.
-- Add non-ZDP synthetic consumer evidence so the native `scg-v1` contract is exercised outside this
-  repository before freezing it.
+- Keep the standalone non-ZDP synthetic consumer fixture green through source, packed npm CLI, and
+  GitHub Action execution before freezing the native `scg-v1` contract.
 - Record Windows and Linux installed-package evidence for each release candidate.
 
 ### Release Confidence

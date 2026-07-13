@@ -1,0 +1,23 @@
+schemaVersion: scg.config/v1alpha1
+
+scan:
+  roots:
+    - services
+  manifestNames:
+    - service.yaml
+  exclude:
+    - .git/**
+    - node_modules/**
+    - .catalog/**
+
+validation:
+  failOnWarnings: true
+  allowUnknownDependencies: false
+  staleAfterDays: 365
+
+output:
+  directory: .catalog
+  formats:
+    - json
+    - dot
+    - html

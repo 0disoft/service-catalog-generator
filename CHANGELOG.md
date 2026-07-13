@@ -9,6 +9,8 @@
   locking, promotion, and rollback behavior.
 - Added configurable aggregate budgets for input bytes, manifest structure, retained extensions,
   and generated reports, with fail-closed diagnostics instead of partial catalog publication.
+- Added a standalone native `scg-v1` consumer fixture exercised by source tests, the packed npm CLI,
+  and the GitHub Action self-smoke workflow.
 
 ## 0.5.14
 

@@ -124,7 +124,8 @@ describe("GitHub Action wrapper", () => {
       expect.objectContaining({
         uses: "./",
         with: {
-          roots: ".tmp/action-smoke/services",
+          config: "examples/native-consumer/scg.config.yaml",
+          roots: "examples/native-consumer/services",
           report: "true",
           format: "json,dot,html",
           "output-directory": ".tmp/action-smoke/.catalog"

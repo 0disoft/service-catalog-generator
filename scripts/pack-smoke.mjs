@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 
@@ -50,55 +50,21 @@ try {
   const version = runInstalledCli(binPath, installDirectory, ["--version"]);
   assert(version === packageJson.version, `installed CLI version mismatch: ${version}`);
 
-  const manifestDirectory = join(installDirectory, "services", "billing");
-  await mkdir(manifestDirectory, { recursive: true });
-  await writeFile(
-    join(manifestDirectory, "service.yaml"),
-    [
-      "schemaVersion: scg.service/v1alpha1",
-      "id: billing-api",
-      "name: Billing API",
-      "lifecycle: production",
-      "owner:",
-      "  type: team",
-      "  ref: team:platform",
-      "repository:",
-      "  provider: github",
-      "  slug: example/billing-api",
-      "runtime:",
-      "  language: typescript",
-      "  platform: node",
-      "deploy:",
-      "  type: container",
-      "  targets:",
-      "    - environment: production",
-      "      provider: unknown",
-      "      ref: billing-api-prod",
-      "data:",
-      "  storesPersonalData: false",
-      "  classification: internal",
-      "dependencies: []",
-      "metadata:",
-      '  lastReviewedAt: "2026-07-01"',
-      ""
-    ].join("\n"),
-    "utf8"
-  );
+  await cp(join(root, "examples", "native-consumer"), installDirectory, { recursive: true });
 
   runInstalledCli(binPath, installDirectory, [
     "report",
-    "--root",
-    "services",
-    "--out",
-    ".catalog",
-    "--format",
-    "json",
+    "--config",
+    "scg.config.yaml",
     "--no-color"
   ]);
   assert(
     existsSync(join(installDirectory, ".catalog", "catalog.json")),
     "report smoke missing catalog.json"
   );
+  const catalog = JSON.parse(await readFile(join(installDirectory, ".catalog", "catalog.json")));
+  assert(catalog.summary.serviceCount === 2, "native consumer must compile two services");
+  assert(catalog.summary.edgeCount === 1, "native consumer must resolve one dependency edge");
 
   console.log(`pack-smoke: ok ${packageJson.name}@${packageJson.version}`);
 } finally {

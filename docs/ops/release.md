@@ -52,6 +52,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 | `0.5.12` | Release integrity and repository operations hardening.    |
 | `0.5.13` | Stable-ID normalization ReDoS hardening.                  |
 | `0.5.14` | Catalog boundary, graph, Action, and resource hardening.   |
+| `0.5.15` | Report publication, resource budgets, and compatibility.  |
 | `1.0.0` | Manifest schema and CLI contract freeze.                  |
 
 Pre-1.0 breaking changes are allowed only with clear migration notes. After 1.0, manifest schema,

@@ -59,7 +59,7 @@ dependency checkout or heavier build steps:
 
 ```yaml
 - name: Validate service catalog manifest
-  uses: 0disoft/service-catalog-generator@v0.5.14
+  uses: 0disoft/service-catalog-generator@v0.5.15
   with:
     roots: projects/zdp-platforms/client-surfaces/example-app
     input-schema: zdp-v2

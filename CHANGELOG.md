@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.15
+
 - Published JSON, DOT, and HTML reports as one owner-marked directory generation with writer
   exclusion, stale-format removal, promotion rollback, and fail-closed handling for unowned files
   and crash-retained locks.

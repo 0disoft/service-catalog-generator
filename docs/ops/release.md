@@ -153,6 +153,8 @@ Current verified release evidence:
   `0.5.16`.
 - Windows install smoke: clean temporary npm install created `node_modules/.bin/scg.cmd`, returned
   `0.5.16`, and compiled the native consumer fixture as 2 services, 1 edge, and 0 errors.
+- Hosted post-publish smoke: workflow run `29242587621` installed and compiled the exact `0.5.16`
+  package on Ubuntu and Windows before the release-evidence job succeeded.
 - CodeQL: JavaScript/TypeScript and Actions analysis succeeded at the release commit with zero open
   code-scanning alerts.
 - Trusted Publishing dry-run: `pnpm run release:trust:dry-run` returned publish permission for

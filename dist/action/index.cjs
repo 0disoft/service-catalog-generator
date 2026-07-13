@@ -23111,17 +23111,18 @@ var ReportGenerationError = class extends Error {
 };
 async function publishReportGeneration(options) {
   const outputDirectory = (0, import_node_path3.resolve)(options.outputDirectory);
-  if (!isPathInside2(options.cwdRealPath, outputDirectory)) {
+  const cwdPath = (0, import_node_path3.resolve)(options.cwdPath);
+  if (!isPathInside2(cwdPath, outputDirectory)) {
     throw new ReportGenerationError("Output directory resolves outside the current workspace.", "Choose an --out path inside the current workspace.");
   }
-  if (outputDirectory === (0, import_node_path3.resolve)(options.cwdRealPath)) {
+  if (outputDirectory === cwdPath || await pathsReferToSameDirectory(options.cwdRealPath, outputDirectory)) {
     throw new ReportGenerationError("The workspace root cannot be used as the report output directory.", "Choose a dedicated generated directory such as .catalog.");
   }
   const outputParent = (0, import_node_path3.dirname)(outputDirectory);
   await (0, import_promises3.mkdir)(outputParent, { recursive: true });
   const outputParentRealPath = await (0, import_promises3.realpath)(outputParent);
   const canonicalOutputDirectory = (0, import_node_path3.resolve)(outputParentRealPath, (0, import_node_path3.basename)(outputDirectory));
-  if (!isPathInside2(options.cwdRealPath, outputParentRealPath)) {
+  if (!await isDirectoryInside(options.cwdRealPath, outputParentRealPath)) {
     throw new ReportGenerationError("Output directory resolves outside the current workspace.", "Choose an --out path inside the current workspace and avoid symlinked parent directories.");
   }
   validateGenerationFiles(options.files);
@@ -23267,6 +23268,34 @@ function isPathInside2(parent, child) {
 function isNodeError(error51, code) {
   return error51 instanceof Error && "code" in error51 && error51.code === code;
 }
+async function pathsReferToSameDirectory(left, right) {
+  try {
+    const [leftStats, rightStats] = await Promise.all([(0, import_promises3.stat)(left), (0, import_promises3.stat)(right)]);
+    return sameFileIdentity(leftStats, rightStats);
+  } catch (error51) {
+    if (isNodeError(error51, "ENOENT")) {
+      return false;
+    }
+    throw error51;
+  }
+}
+async function isDirectoryInside(parent, child) {
+  const parentStats = await (0, import_promises3.stat)(parent);
+  let current = (0, import_node_path3.resolve)(child);
+  while (true) {
+    if (sameFileIdentity(parentStats, await (0, import_promises3.stat)(current))) {
+      return true;
+    }
+    const next = (0, import_node_path3.dirname)(current);
+    if (next === current) {
+      return false;
+    }
+    current = next;
+  }
+}
+function sameFileIdentity(left, right) {
+  return left.ino !== 0 && left.dev === right.dev && left.ino === right.ino;
+}
 async function removeBestEffort(path) {
   try {
     await (0, import_promises3.rm)(path, { force: true, recursive: true });
@@ -23299,6 +23328,7 @@ async function writeCatalogReports(snapshot, options) {
       contents: renderReport(snapshot, format)
     }));
     const outputDirectoryRealPath = await publishReportGeneration({
+      cwdPath: cwd,
       cwdRealPath,
       outputDirectory,
       files: generationFiles

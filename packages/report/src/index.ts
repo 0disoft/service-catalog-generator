@@ -67,6 +67,7 @@ export async function writeCatalogReports(
       contents: renderReport(snapshot, format)
     }));
     const outputDirectoryRealPath = await publishReportGeneration({
+      cwdPath: cwd,
       cwdRealPath,
       outputDirectory,
       files: generationFiles

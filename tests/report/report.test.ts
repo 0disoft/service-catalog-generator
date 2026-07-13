@@ -226,6 +226,7 @@ describe("report writers", () => {
     const entered = deferred<void>();
     const release = deferred<void>();
     const firstWrite = publishReportGeneration({
+      cwdPath: workspace,
       cwdRealPath: workspace,
       outputDirectory: join(workspace, ".catalog"),
       files: [{ name: "catalog.json", contents: "first\n" }],
@@ -240,6 +241,7 @@ describe("report writers", () => {
 
     await expect(
       publishReportGeneration({
+        cwdPath: workspace,
         cwdRealPath: workspace,
         outputDirectory: join(workspace, ".catalog"),
         files: [{ name: "catalog.json", contents: "second\n" }]
@@ -259,6 +261,7 @@ describe("report writers", () => {
     const workspace = await createWorkspace();
     const outputDirectory = join(workspace, ".catalog");
     await publishReportGeneration({
+      cwdPath: workspace,
       cwdRealPath: workspace,
       outputDirectory,
       files: [
@@ -269,6 +272,7 @@ describe("report writers", () => {
 
     await expect(
       publishReportGeneration({
+        cwdPath: workspace,
         cwdRealPath: workspace,
         outputDirectory,
         files: [{ name: "catalog.json", contents: "new json\n" }],
@@ -341,6 +345,29 @@ describe("report writers", () => {
       });
     }
   );
+
+  it("accepts workspace aliases that resolve to the same directory", async () => {
+    const parent = await createWorkspace();
+    const workspace = join(parent, "workspace");
+    const workspaceAlias = join(parent, "workspace-alias");
+    await mkdir(workspace);
+
+    try {
+      await symlink(workspace, workspaceAlias, "junction");
+    } catch {
+      return;
+    }
+
+    await writeCatalogReports(snapshot(), {
+      cwd: workspaceAlias,
+      outputDirectory: ".catalog",
+      formats: ["json"]
+    });
+
+    await expect(readFile(join(workspace, ".catalog", "catalog.json"), "utf8")).resolves.toContain(
+      '"serviceCount": 1'
+    );
+  });
 
   it("rejects symlinked output directories that resolve outside the workspace", async () => {
     const parent = await createWorkspace();

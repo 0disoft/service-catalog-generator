@@ -1,5 +1,16 @@
 import { randomUUID } from "node:crypto";
-import { lstat, mkdir, readFile, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
+import type { Stats } from "node:fs";
+import {
+  lstat,
+  mkdir,
+  readFile,
+  readdir,
+  realpath,
+  rename,
+  rm,
+  stat,
+  writeFile
+} from "node:fs/promises";
 import { basename, dirname, isAbsolute, relative, resolve, sep } from "node:path";
 
 const GENERATION_MARKER = ".scg-generation.json";
@@ -32,19 +43,24 @@ export class ReportGenerationError extends Error {
 }
 
 export async function publishReportGeneration(options: {
+  cwdPath: string;
   cwdRealPath: string;
   outputDirectory: string;
   files: ReportGenerationFile[];
   hooks?: ReportGenerationHooks;
 }): Promise<string> {
   const outputDirectory = resolve(options.outputDirectory);
-  if (!isPathInside(options.cwdRealPath, outputDirectory)) {
+  const cwdPath = resolve(options.cwdPath);
+  if (!isPathInside(cwdPath, outputDirectory)) {
     throw new ReportGenerationError(
       "Output directory resolves outside the current workspace.",
       "Choose an --out path inside the current workspace."
     );
   }
-  if (outputDirectory === resolve(options.cwdRealPath)) {
+  if (
+    outputDirectory === cwdPath ||
+    (await pathsReferToSameDirectory(options.cwdRealPath, outputDirectory))
+  ) {
     throw new ReportGenerationError(
       "The workspace root cannot be used as the report output directory.",
       "Choose a dedicated generated directory such as .catalog."
@@ -56,7 +72,7 @@ export async function publishReportGeneration(options: {
   const outputParentRealPath = await realpath(outputParent);
   const canonicalOutputDirectory = resolve(outputParentRealPath, basename(outputDirectory));
 
-  if (!isPathInside(options.cwdRealPath, outputParentRealPath)) {
+  if (!(await isDirectoryInside(options.cwdRealPath, outputParentRealPath))) {
     throw new ReportGenerationError(
       "Output directory resolves outside the current workspace.",
       "Choose an --out path inside the current workspace and avoid symlinked parent directories."
@@ -292,6 +308,38 @@ function isPathInside(parent: string, child: string): boolean {
 
 function isNodeError(error: unknown, code: string): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error && error.code === code;
+}
+
+async function pathsReferToSameDirectory(left: string, right: string): Promise<boolean> {
+  try {
+    const [leftStats, rightStats] = await Promise.all([stat(left), stat(right)]);
+    return sameFileIdentity(leftStats, rightStats);
+  } catch (error) {
+    if (isNodeError(error, "ENOENT")) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+async function isDirectoryInside(parent: string, child: string): Promise<boolean> {
+  const parentStats = await stat(parent);
+  let current = resolve(child);
+
+  while (true) {
+    if (sameFileIdentity(parentStats, await stat(current))) {
+      return true;
+    }
+    const next = dirname(current);
+    if (next === current) {
+      return false;
+    }
+    current = next;
+  }
+}
+
+function sameFileIdentity(left: Stats, right: Stats): boolean {
+  return left.ino !== 0 && left.dev === right.dev && left.ino === right.ino;
 }
 
 async function removeBestEffort(path: string): Promise<void> {

@@ -4,6 +4,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { verifyNpmProvenance } from "./npm-provenance.mjs";
+import { resolveGitHubTagCommit } from "./github-tag-target.mjs";
 
 const root = process.cwd();
 const packageName = "@0disoft/service-catalog-generator";
@@ -49,9 +50,8 @@ assert(
 
 const versionRef = ghJson(["api", `repos/${repository}/git/ref/tags/${versionTag}`]);
 const majorRef = ghJson(["api", `repos/${repository}/git/ref/tags/${majorTag}`]);
-const versionSha = versionRef.object?.sha;
-const majorSha = majorRef.object?.sha;
-assert(typeof versionSha === "string" && versionSha.length > 0, `${versionTag} tag must exist`);
+const versionSha = await resolveGitHubTagCommit(versionRef.object, loadGitHubTag);
+const majorSha = await resolveGitHubTagCommit(majorRef.object, loadGitHubTag);
 assert(majorSha === versionSha, `${majorTag} must point to the same commit as ${versionTag}`);
 
 const provenance = verifyNpmProvenance({
@@ -126,6 +126,10 @@ function ghJson(args) {
       stdio: ["ignore", "pipe", "pipe"]
     })
   );
+}
+
+function loadGitHubTag(sha) {
+  return ghJson(["api", `repos/${repository}/git/tags/${sha}`]);
 }
 
 function npmJson(args, cwd = root) {

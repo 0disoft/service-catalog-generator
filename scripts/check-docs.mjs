@@ -45,7 +45,7 @@ const requiredText = new Map([
   ["DEVELOPMENT.md", ["Node.js: 24", "packages/schema/src", "tests/contract", "pnpm run check"]],
   [
     "docs/product/01-roadmap.md",
-    ["latest verified public release is `0.5.14`", "## Pre-1.0 Work", "## 1.0 Exit Criteria"]
+    ["latest verified public release is `0.5.15`", "## Pre-1.0 Work", "## 1.0 Exit Criteria"]
   ],
   [".github/CODEOWNERS", ["* @0disoft"]],
   [".github/ISSUE_TEMPLATE/config.yml", ["blank_issues_enabled: false", "/security/advisories/new"]]

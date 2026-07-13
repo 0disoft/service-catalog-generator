@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Resolved annotated GitHub release tags to their commit targets during release-evidence checks.
+
 ## 0.5.15
 
 - Published JSON, DOT, and HTML reports as one owner-marked directory generation with writer

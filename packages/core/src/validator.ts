@@ -105,6 +105,23 @@ export function unknownDependencyDiagnostics(
     );
 }
 
+export function minimumServiceCountDiagnostic(
+  serviceCount: number,
+  minimumServiceCount: number
+): Diagnostic | undefined {
+  if (serviceCount >= minimumServiceCount) {
+    return undefined;
+  }
+
+  return createDiagnostic({
+    severity: "error",
+    code: "catalog.minimum_service_count",
+    field: "validation.minimumServiceCount",
+    message: `Catalog contains ${serviceCount} normalized services, below the configured minimum of ${minimumServiceCount}.`,
+    hint: "Add valid service manifests, expand scan roots, or lower validation.minimumServiceCount."
+  });
+}
+
 function parseDateOnly(value: string): Date | undefined {
   const [yearText, monthText, dayText] = value.split("-");
   const year = Number(yearText);

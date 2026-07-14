@@ -14,12 +14,13 @@ import { parseManifestFile } from "./parser.js";
 import { serializedByteLength } from "./resource-policy.js";
 import type { CatalogConfigInput, CompileCatalogOptions, CompileCatalogResult } from "./types.js";
 import {
+  minimumServiceCountDiagnostic,
   staleReviewDiagnostic,
   unknownDependencyDiagnostics,
   validateParsedManifest
 } from "./validator.js";
 
-const DEFAULT_TOOL_VERSION = "0.5.17";
+const DEFAULT_TOOL_VERSION = "0.5.18";
 const DEFAULT_PARSE_CONCURRENCY = 16;
 
 export async function compileCatalog(
@@ -115,6 +116,13 @@ export async function compileCatalog(
   const duplicateResult = isolateDuplicateServiceIds(normalizedServices);
   const services = duplicateResult.services;
   diagnostics.push(...duplicateResult.diagnostics);
+  const serviceCountDiagnostic = minimumServiceCountDiagnostic(
+    services.length,
+    config.validation.minimumServiceCount
+  );
+  if (serviceCountDiagnostic) {
+    diagnostics.push(serviceCountDiagnostic);
+  }
   const knownServiceIds = new Set(services.map((service) => service.id));
 
   for (const service of services) {

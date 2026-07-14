@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 const stableDiagnosticCodes = [
   "adapter.invalid_input",
+  "catalog.minimum_service_count",
   "config.invalid",
   "dependency.unknown_target",
   "manifest.duplicate_id",

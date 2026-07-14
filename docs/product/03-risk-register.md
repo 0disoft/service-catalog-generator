@@ -77,10 +77,11 @@ Owner: 0disoft
 - Risk: a successful zero-service result can hide a bad root or manifest name, while forcing one
   service can break intentional empty-repository checks. A single run-wide adapter also prevents
   explicitly configured mixed-schema adoption.
-- Mitigation: consumers should currently pin roots, manifest names, input schema, and expected
-  service-count evidence in their own CI gates.
-- Blocker: adding implicit schema detection. Pre-1.0 design must define explicit minimum-service
-  policy and per-source adapter selection, including overlap and precedence errors.
+- Mitigation: `validation.minimumServiceCount` defaults to zero and can require a positive final
+  normalized-service count after duplicate-id exclusion. Consumers should also pin roots, manifest
+  names, and input schema.
+- Blocker: adding implicit schema detection. Pre-1.0 design must still define per-source adapter
+  selection, including overlap and precedence errors.
 
 ## Runtime and Release Drift
 

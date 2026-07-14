@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.5.18
+
+- Added optional `validation.minimumServiceCount` policy with a zero default, fail-closed normalized
+  service counting, strict configuration bounds, and CLI plus GitHub Action coverage.
+
 ## 0.5.17
 
 - Added post-release Ubuntu and Windows registry smoke automation for the exact published npm

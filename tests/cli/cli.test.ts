@@ -343,6 +343,54 @@ describe("scg CLI", () => {
     });
   });
 
+  it("enforces the configured minimum normalized service count", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(workspace, "services/billing/service.yaml", serviceYaml("billing-api"));
+    await writeFile(
+      join(workspace, "scg.config.yaml"),
+      ["schemaVersion: scg.config/v1alpha1", "validation:", "  minimumServiceCount: 2"].join("\n"),
+      "utf8"
+    );
+
+    const io = createIo();
+    const exitCode = await runCli({ argv: ["check", "--json"], cwd: workspace, io });
+    const snapshot = JSON.parse(io.stdoutText());
+
+    expect(exitCode).toBe(1);
+    expect(snapshot.summary).toMatchObject({ serviceCount: 1, errorCount: 1 });
+    expect(snapshot.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "catalog.minimum_service_count",
+        field: "validation.minimumServiceCount"
+      })
+    );
+  });
+
+  it("rejects a minimum service count above the manifest discovery limit", async () => {
+    const workspace = await createWorkspace();
+    await writeFile(
+      join(workspace, "scg.config.yaml"),
+      [
+        "schemaVersion: scg.config/v1alpha1",
+        "validation:",
+        "  minimumServiceCount: 2",
+        "limits:",
+        "  maxManifests: 1"
+      ].join("\n"),
+      "utf8"
+    );
+
+    const io = createIo();
+    const exitCode = await runCli({ argv: ["check", "--json"], cwd: workspace, io });
+    const error = JSON.parse(io.stderrText());
+
+    expect(exitCode).toBe(2);
+    expect(error.diagnostics[0]).toMatchObject({
+      code: "config.invalid",
+      file: "scg.config.yaml"
+    });
+  });
+
   it("returns exit code 3 for invalid manifest YAML", async () => {
     const workspace = await createWorkspace();
     await writeManifest(workspace, "services/broken/service.yaml", "schemaVersion: [");

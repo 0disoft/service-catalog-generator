@@ -36,6 +36,44 @@ describe("core catalog compiler", () => {
     expect(result.snapshot.diagnostics).toEqual([]);
   });
 
+  it("allows empty catalogs by default and enforces an explicit minimum normalized service count", async () => {
+    const workspace = await createWorkspace();
+
+    const defaultResult = await compileCatalog({ cwd: workspace });
+    const strictResult = await compileCatalog({
+      cwd: workspace,
+      config: { validation: { minimumServiceCount: 1 } }
+    });
+
+    expect(defaultResult.snapshot.summary).toMatchObject({ serviceCount: 0, errorCount: 0 });
+    expect(strictResult.snapshot.summary).toMatchObject({ serviceCount: 0, errorCount: 1 });
+    expect(strictResult.snapshot.diagnostics).toContainEqual({
+      severity: "error",
+      code: "catalog.minimum_service_count",
+      field: "validation.minimumServiceCount",
+      message: "Catalog contains 0 normalized services, below the configured minimum of 1.",
+      hint: "Add valid service manifests, expand scan roots, or lower validation.minimumServiceCount."
+    });
+  });
+
+  it("evaluates minimum service count after duplicate ids are excluded", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(workspace, "services/one/service.yaml", serviceYaml({ id: "shared-api" }));
+    await writeManifest(workspace, "services/two/service.yaml", serviceYaml({ id: "shared-api" }));
+
+    const result = await compileCatalog({
+      cwd: workspace,
+      config: { validation: { minimumServiceCount: 1 } }
+    });
+
+    expect(result.snapshot.summary).toMatchObject({ serviceCount: 0, errorCount: 3 });
+    expect(
+      result.snapshot.diagnostics.filter(
+        (diagnostic) => diagnostic.code === "catalog.minimum_service_count"
+      )
+    ).toHaveLength(1);
+  });
+
   it("emits invalid YAML diagnostics without embedding manifest contents", async () => {
     const workspace = await createWorkspace();
     await writeManifest(workspace, "services/broken/service.yaml", "schemaVersion: [");

@@ -36,6 +36,7 @@ describe("schema package contract", () => {
     expect(result.scan.roots).toEqual(["."]);
     expect(result.scan.manifestNames).toEqual(["service.yaml"]);
     expect(result.validation.allowUnknownDependencies).toBe(false);
+    expect(result.validation.minimumServiceCount).toBe(0);
     expect(result.limits).toEqual({
       maxManifestBytes: 256 * 1024,
       maxTotalManifestBytes: 64 * 1024 * 1024,
@@ -49,6 +50,22 @@ describe("schema package contract", () => {
     expect(result.output.directory).toBe(".catalog");
     expect("deterministic" in result.output).toBe(false);
     expect(result.privacy.redactOwnerEmails).toBe(true);
+  });
+
+  it("rejects impossible minimum service count policies", () => {
+    expect(
+      CatalogConfigSchema.safeParse({
+        schemaVersion: "scg.config/v1alpha1",
+        validation: { minimumServiceCount: -1 }
+      }).success
+    ).toBe(false);
+    expect(
+      CatalogConfigSchema.safeParse({
+        schemaVersion: "scg.config/v1alpha1",
+        validation: { minimumServiceCount: 3 },
+        limits: { maxManifests: 2 }
+      }).success
+    ).toBe(false);
   });
 
   it("accepts an empty catalog snapshot", () => {

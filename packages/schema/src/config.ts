@@ -22,13 +22,15 @@ export const CatalogConfigSchema = z
       .object({
         failOnWarnings: z.boolean().default(false),
         allowUnknownDependencies: z.boolean().default(false),
-        staleAfterDays: z.number().int().positive().default(90)
+        staleAfterDays: z.number().int().positive().default(90),
+        minimumServiceCount: z.number().int().nonnegative().max(10_000).default(0)
       })
       .strict()
       .default({
         failOnWarnings: false,
         allowUnknownDependencies: false,
-        staleAfterDays: 90
+        staleAfterDays: 90,
+        minimumServiceCount: 0
       }),
     limits: z
       .object({
@@ -87,6 +89,15 @@ export const CatalogConfigSchema = z
         redactOwnerEmails: true
       })
   })
-  .strict();
+  .strict()
+  .superRefine((config, context) => {
+    if (config.validation.minimumServiceCount > config.limits.maxManifests) {
+      context.addIssue({
+        code: "custom",
+        path: ["validation", "minimumServiceCount"],
+        message: "minimumServiceCount must not exceed limits.maxManifests."
+      });
+    }
+  });
 
 export type CatalogConfig = z.infer<typeof CatalogConfigSchema>;

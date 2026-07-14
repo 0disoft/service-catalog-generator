@@ -51,6 +51,9 @@ behavior rather than duplicating validation logic.
 
 Use `input-schema: zdp-v2` only when the checked-in manifests are ZDP v2 contracts. The action maps
 the value to the CLI and must not implement a separate schema or policy layer.
+Catalog-wide minimum service policy remains config-owned and is supplied through the existing
+`config` input as `validation.minimumServiceCount`; the Action does not duplicate it as another
+input.
 
 ## ZDP Repository Gate
 

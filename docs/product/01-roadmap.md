@@ -17,6 +17,7 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 - Explicit owner, runtime, repository, deploy, data, review, and dependency fields.
 - Stable diagnostic categories, exit-code meanings, generated-artifact policy, and report security
   boundary.
+- Optional minimum normalized-service policy with an empty-catalog-compatible zero default.
 - Single public pnpm workspace with schema, core, CLI, report, and Action package boundaries.
 
 ### Compiler And Linter
@@ -46,8 +47,6 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 - Resolve the remaining experimental alpha-schema and resource-default decisions before the 1.0
   release candidate.
 - Maintain the pre-1.0-to-1.0 migration guide, removal rules, and deprecation window.
-- Decide whether `check` and `report` require a configurable minimum service count while preserving
-  intentional empty-repository validation.
 - Define explicit per-source adapter configuration without schema autodetection, including overlap
   and precedence errors.
 

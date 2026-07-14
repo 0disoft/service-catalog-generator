@@ -44,6 +44,7 @@ validation:
   failOnWarnings: false
   allowUnknownDependencies: false
   staleAfterDays: 90
+  minimumServiceCount: 0
 
 limits:
   maxManifestBytes: 262144
@@ -91,6 +92,9 @@ Environment variables must not override catalog semantics. `NO_COLOR` may affect
 - Formats: JSON for `scan`, no write for `check`, JSON/DOT/HTML for `report`.
 - Unknown dependencies: failing diagnostic by default.
 - Warnings: non-failing unless `--fail-on-warning` is set.
+- Minimum service count: `0`. Set `validation.minimumServiceCount` to a non-negative integer when a
+  catalog must contain at least that many valid, uniquely identified normalized services. The value
+  cannot exceed `limits.maxManifests`.
 - Resource limits: fail closed before publishing a partial catalog. Limits cover each manifest,
   aggregate input bytes, manifest count, object depth, aggregate collection entries, aggregate
   retained extensions, and the combined selected report formats.
@@ -108,6 +112,11 @@ manifests while stopping inputs that approach the previous theoretical 256 MiB a
 
 Limit increases are explicit capacity decisions. Reducing a limit can make an existing repository
 fail validation and should be rolled out with measured consumer evidence.
+
+`minimumServiceCount` is validation policy rather than a discovery limit. SCG evaluates it after
+manifest validation, normalization, and duplicate-id exclusion. A shortfall emits
+`catalog.minimum_service_count` and exit code 1. Keeping the default at zero preserves intentional
+empty-repository validation.
 
 ## Migrating From Removed No-Op Settings
 

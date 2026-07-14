@@ -57,6 +57,7 @@ Initial stable diagnostic codes include:
 - `manifest.invalid_value`;
 - `dependency.unknown_target`;
 - `adapter.invalid_input`;
+- `catalog.minimum_service_count`;
 - `metadata.future_review`;
 - `metadata.stale_review`;
 - `resource.limit_exceeded`;

@@ -257,6 +257,34 @@ describe("GitHub Action wrapper", () => {
     expect(outputs.get("service-count")).toBe("1");
   });
 
+  it("enforces minimum service count policy from the config input", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(workspace, "services/billing/service.yaml", serviceYaml("billing-api"));
+    await writeFile(
+      join(workspace, "scg.config.yaml"),
+      ["schemaVersion: scg.config/v1alpha1", "validation:", "  minimumServiceCount: 2"].join("\n"),
+      "utf8"
+    );
+    const outputs = new Map<string, string>();
+    const io = createIo();
+
+    const exitCode = await runAction({
+      cwd: workspace,
+      env: {
+        GITHUB_WORKSPACE: workspace,
+        INPUT_CONFIG: "scg.config.yaml"
+      },
+      stdout: io.stdout,
+      stderr: io.stderr,
+      writeOutput: (name, value) => outputs.set(name, value)
+    });
+
+    expect(exitCode).toBe(1);
+    expect(outputs.get("service-count")).toBe("1");
+    expect(outputs.get("error-count")).toBe("1");
+    expect(io.stdoutText()).toContain("catalog.minimum_service_count");
+  });
+
   it("maps explicit input schema values to CLI arguments", () => {
     const argv = buildCliArguments(
       {

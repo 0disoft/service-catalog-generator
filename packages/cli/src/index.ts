@@ -18,7 +18,7 @@ import {
 import { parseDocument } from "yaml";
 
 export const packageName = "@scg/cli";
-export const cliVersion = "0.5.17";
+export const cliVersion = "0.5.18";
 
 export type CliPackageBoundary =
   | "commands"

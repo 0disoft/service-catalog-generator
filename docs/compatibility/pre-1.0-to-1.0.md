@@ -32,6 +32,9 @@ Owner: 0disoft
   catalog instead of emitting a partial service map.
 - Report output is a dedicated generated directory. Unknown user-owned files block replacement, and
   `.scg-generation.json` is internal ownership metadata.
+- Version `0.5.18` added optional `validation.minimumServiceCount`. It defaults to zero, so existing
+  empty-catalog behavior is unchanged. Positive values count valid normalized services after
+  duplicate-id exclusion and emit `catalog.minimum_service_count` when the policy is unmet.
 
 ## 1.0 Release-Candidate Checklist
 

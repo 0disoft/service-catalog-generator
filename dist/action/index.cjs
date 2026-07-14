@@ -22187,11 +22187,13 @@ var CatalogConfigSchema = external_exports.object({
   validation: external_exports.object({
     failOnWarnings: external_exports.boolean().default(false),
     allowUnknownDependencies: external_exports.boolean().default(false),
-    staleAfterDays: external_exports.number().int().positive().default(90)
+    staleAfterDays: external_exports.number().int().positive().default(90),
+    minimumServiceCount: external_exports.number().int().nonnegative().max(1e4).default(0)
   }).strict().default({
     failOnWarnings: false,
     allowUnknownDependencies: false,
-    staleAfterDays: 90
+    staleAfterDays: 90,
+    minimumServiceCount: 0
   }),
   limits: external_exports.object({
     maxManifestBytes: external_exports.number().int().positive().default(256 * 1024),
@@ -22224,7 +22226,15 @@ var CatalogConfigSchema = external_exports.object({
     redactRepositoryUrls: false,
     redactOwnerEmails: true
   })
-}).strict();
+}).strict().superRefine((config2, context) => {
+  if (config2.validation.minimumServiceCount > config2.limits.maxManifests) {
+    context.addIssue({
+      code: "custom",
+      path: ["validation", "minimumServiceCount"],
+      message: "minimumServiceCount must not exceed limits.maxManifests."
+    });
+  }
+});
 
 // packages/core/dist/discovery.js
 var import_promises = require("fs/promises");
@@ -22998,6 +23008,18 @@ function unknownDependencyDiagnostics(sourceId, sourceFile, dependencies, knownS
     hint: "Add a service.yaml for the target service or allow unknown dependencies in policy."
   }));
 }
+function minimumServiceCountDiagnostic(serviceCount, minimumServiceCount) {
+  if (serviceCount >= minimumServiceCount) {
+    return void 0;
+  }
+  return createDiagnostic({
+    severity: "error",
+    code: "catalog.minimum_service_count",
+    field: "validation.minimumServiceCount",
+    message: `Catalog contains ${serviceCount} normalized services, below the configured minimum of ${minimumServiceCount}.`,
+    hint: "Add valid service manifests, expand scan roots, or lower validation.minimumServiceCount."
+  });
+}
 function parseDateOnly(value) {
   const [yearText, monthText, dayText] = value.split("-");
   const year = Number(yearText);
@@ -23014,7 +23036,7 @@ function parseDateOnly(value) {
 }
 
 // packages/core/dist/scan.js
-var DEFAULT_TOOL_VERSION = "0.5.17";
+var DEFAULT_TOOL_VERSION = "0.5.18";
 var DEFAULT_PARSE_CONCURRENCY = 16;
 async function compileCatalog(options = {}) {
   const cwd = options.cwd ?? process.cwd();
@@ -23065,6 +23087,10 @@ async function compileCatalog(options = {}) {
   const duplicateResult = isolateDuplicateServiceIds(normalizedServices);
   const services = duplicateResult.services;
   diagnostics.push(...duplicateResult.diagnostics);
+  const serviceCountDiagnostic = minimumServiceCountDiagnostic(services.length, config2.validation.minimumServiceCount);
+  if (serviceCountDiagnostic) {
+    diagnostics.push(serviceCountDiagnostic);
+  }
   const knownServiceIds = new Set(services.map((service) => service.id));
   for (const service of services) {
     const staleDiagnostic = staleReviewDiagnostic(service.source.path, service.metadata.lastReviewedAt, options.now ?? /* @__PURE__ */ new Date(), config2.validation.staleAfterDays);
@@ -23669,7 +23695,7 @@ function throwWriteError(file2, message, hint) {
 
 // packages/cli/dist/index.js
 var import_yaml2 = __toESM(require_dist(), 1);
-var cliVersion = "0.5.17";
+var cliVersion = "0.5.18";
 var DEFAULT_CONFIG_FILE = "scg.config.yaml";
 async function runCli(options = {}) {
   const argv = options.argv ?? process.argv.slice(2);

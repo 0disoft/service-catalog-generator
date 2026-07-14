@@ -19,7 +19,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 - Release blocker status: any missing implemented validation is a blocker unless documented as not
   yet configured
 - Remaining operational risk: package availability, Trusted Publishing, and Action runtime support
-  are verified for `0.5.16`; each future release must rerun `release-evidence` and reverify Trusted
+  are verified for `0.5.17`; each future release must rerun `release-evidence` and reverify Trusted
   Publishing before promotion
 
 ## Release Units
@@ -94,7 +94,7 @@ For npm CLI smoke tests, run from a temporary directory outside this repository 
 resolve the local workspace package instead of the published package:
 
 ```sh
-npm exec --yes --package @0disoft/service-catalog-generator@0.5.16 -- scg --version
+npm exec --yes --package @0disoft/service-catalog-generator@0.5.17 -- scg --version
 ```
 
 On Windows, a full install smoke test should also confirm `node_modules/.bin/scg.cmd` is created
@@ -140,21 +140,21 @@ The workflow must not use npm token secrets such as `NPM_PUBLISH_TOKEN`, `NPM_TO
 
 Current verified release evidence:
 
-- npm package: `@0disoft/service-catalog-generator@0.5.16`.
+- npm package: `@0disoft/service-catalog-generator@0.5.17`.
 - npm integrity:
-  `sha512-DyLIVhscJSW3oYcOqmNO2tZmP3clu2eg2LAL/X9mpm5K2bUfmSEvHlgtsh1vXnTm9Sm/QGs5gy65ow/w2erqWw==`.
+  `sha512-92CPm5XsgGV+I7ClGtUmwjWKsuXKUV8+iKK2eXm8qRJLZ3YDwYv9kUDbmVnwQ+8pnRnP8sQuoAWUKNCm37TA/A==`.
 - npm provenance predicate: `https://slsa.dev/provenance/v1`.
 - npm signature audit: `invalid: 0`, `missing: 0`.
-- GitHub Release: `v0.5.16`.
-- Release workflow run: `29239566146`, conclusion `success`.
-- Release commit: `a3b9f501bb80aba2c6fa45957b5b1faa23fd88a2`.
-- Mutable Action tag: `v0` points to the `0.5.16` release commit.
+- GitHub Release: `v0.5.17`.
+- Release workflow run: `29304392643`, conclusion `success`.
+- Release commit: `1495cd7259cbb37c8347b0460c5c0565c2c11a99`.
+- Mutable Action tag: `v0` points to the `0.5.17` release commit.
 - Published CLI smoke: clean npm installation created `node_modules/.bin/scg.cmd` and returned
-  `0.5.16`.
+  `0.5.17`.
 - Windows install smoke: clean temporary npm install created `node_modules/.bin/scg.cmd`, returned
-  `0.5.16`, and compiled the native consumer fixture as 2 services, 1 edge, and 0 errors.
-- Hosted post-publish smoke: workflow run `29242587621` installed and compiled the exact `0.5.16`
-  package on Ubuntu and Windows before the release-evidence job succeeded.
+  `0.5.17`, and compiled the native consumer fixture as 2 services, 1 edge, and 0 errors.
+- Hosted post-publish smoke: automatic workflow run `29304434402` installed and compiled the exact
+  `0.5.17` package on Ubuntu and Windows before the release-evidence job succeeded.
 - CodeQL: JavaScript/TypeScript and Actions analysis succeeded at the release commit with zero open
   code-scanning alerts.
 - Trusted Publishing dry-run: `pnpm run release:trust:dry-run` returned publish permission for
@@ -187,7 +187,7 @@ the npm package access configuration before pushing the release tag.
 After a release is promoted, verify the published package and GitHub release evidence:
 
 ```sh
-pnpm run release-evidence -- 0.5.16
+pnpm run release-evidence -- 0.5.17
 ```
 
 The command checks npm integrity, SLSA provenance subject/workflow/tag/commit identity, installed
@@ -197,7 +197,7 @@ release workflow run, and published CLI version smoke.
 To run the same exact-package fixture validation used by the hosted Ubuntu and Windows jobs:
 
 ```sh
-pnpm run registry-smoke -- 0.5.16
+pnpm run registry-smoke -- 0.5.17
 ```
 
 ## Stop Conditions

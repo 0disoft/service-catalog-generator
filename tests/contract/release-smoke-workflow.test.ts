@@ -65,6 +65,7 @@ describe("release smoke workflow contract", () => {
     "utf8"
   );
   const workflow = parse(workflowText) as ReleaseSmokeWorkflow;
+  const registrySmokeText = readFileSync(join(process.cwd(), "scripts/registry-smoke.mjs"), "utf8");
 
   it("runs after successful releases and supports exact-version replay", () => {
     const packageJson = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8")) as {
@@ -111,6 +112,9 @@ describe("release smoke workflow contract", () => {
         run: "node scripts/release-evidence.mjs"
       })
     );
+    expect(registrySmokeText).toContain('join(root, "examples", "native-consumer")');
+    expect(registrySmokeText).toContain('join(root, "examples", "mixed-consumer")');
+    expect(registrySmokeText).toContain('edge.resolution === "catalog"');
   });
 
   it("pins Actions, checks out the release commit, and does not persist credentials", () => {

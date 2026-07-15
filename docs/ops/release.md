@@ -56,6 +56,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 | `0.5.16` | Release evidence and Oxc quality-toolchain migration.      |
 | `0.5.17` | Cross-platform post-publish registry smoke automation.     |
 | `0.5.18` | Minimum normalized-service validation policy.              |
+| `0.5.19` | Source-scoped mixed input adapters and consumer evidence.   |
 | `1.0.0` | Manifest schema and CLI contract freeze.                  |
 
 Pre-1.0 breaking changes are allowed only with clear migration notes. After 1.0, manifest schema,

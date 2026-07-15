@@ -24,6 +24,8 @@ This repository type owns command behavior, arguments, flags, config loading, ex
 ## Config File
 
 The default config filename is `scg.config.yaml`.
+The CLI reads at most 1 MiB before YAML parsing because config-owned resource limits cannot safely
+govern the config file that defines them.
 
 ```yaml
 schemaVersion: scg.config/v1alpha1
@@ -99,8 +101,9 @@ scan:
 ```
 
 Each source requires a workspace-relative `root` and explicit `inputSchema`. `manifestNames`
-defaults to `service.yaml`. Roots must exist, remain inside the workspace after realpath resolution,
-and be disjoint from every other source, including symlink and junction aliases.
+defaults to `service.yaml` and accepts filenames, not paths containing `/` or `\`. Roots must exist,
+remain inside the workspace after realpath resolution, and be disjoint from every other source,
+including symlink and junction aliases.
 
 With `sources`, do not configure `scan.roots` or `scan.manifestNames`, and do not pass `--root`,
 `--manifest`, or `--input-schema`. These combinations fail with `config.invalid`; they do not

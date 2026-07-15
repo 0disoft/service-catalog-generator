@@ -39,6 +39,9 @@ Initial budgets:
 - 500 manifests: under 2 seconds on a typical developer laptop.
 - 500 manifests: under 5 seconds on a GitHub hosted runner.
 - 1,000 manifests: bounded memory, target peak below 256 MB.
+- 5,000 source declarations: schema ownership validation under 2 seconds.
+- 100 real source roots and 500 mixed manifests: no looser latency budget than legacy scans.
+- 1,000 mixed manifests: target peak below 256 MB.
 - Aggregate manifest bytes: 64 MiB.
 - Aggregate collection entries: 100,000; object depth: 32.
 - Aggregate retained extension JSON: 8 MiB.

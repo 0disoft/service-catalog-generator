@@ -84,6 +84,11 @@ describe("source-scoped adapter decision fixtures", () => {
         reason: "manifest names must be non-empty strings"
       },
       {
+        file: "invalid-manifest-path.yaml",
+        expected: "config.invalid",
+        reason: "manifest names must not contain path separators"
+      },
+      {
         file: "invalid-absolute-root.yaml",
         expected: "config.invalid",
         reason: "source roots must be workspace-relative"
@@ -110,6 +115,27 @@ describe("source-scoped adapter decision fixtures", () => {
       const result = CatalogConfigSchema.safeParse(value);
       expect(result.success, `${testCase.file}: ${testCase.reason}`).toBe(
         testCase.expected === "valid"
+      );
+    }
+  });
+
+  it("detects ancestor overlap when a lexical sibling would interrupt plain string ordering", () => {
+    const result = CatalogConfigSchema.safeParse({
+      schemaVersion: "scg.config/v1alpha1",
+      sources: [
+        { root: "service", inputSchema: "scg-v1" },
+        { root: "service-other", inputSchema: "scg-v1" },
+        { root: "service/child", inputSchema: "zdp-v2" }
+      ]
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues).toContainEqual(
+        expect.objectContaining({
+          path: ["sources", 2, "root"],
+          message: "Source root overlaps sources.0.root after lexical normalization."
+        })
       );
     }
   });

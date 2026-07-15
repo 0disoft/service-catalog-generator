@@ -19,7 +19,7 @@ release assets, and future integration pressure.
 | Threat | Scenario | Required mitigation |
 | --- | --- | --- |
 | Malicious manifest strings | Service name contains HTML, DOT syntax, ANSI, or control characters. | Escape by output target and strip terminal controls. |
-| Oversized or hostile YAML | Manifest triggers parser blowup or expensive processing. | Safe parsing, size limits, count limits, parse diagnostics. |
+| Oversized or hostile YAML | Config or manifest triggers parser blowup or expensive processing. | Safe parsing, a fixed 1 MiB config bootstrap limit, manifest size/count limits, parse diagnostics. |
 | Secret-like values | Manifest includes token-like values, private URLs, cloud account IDs, or real emails. | Redaction, diagnostics, synthetic examples only. |
 | Path traversal | Config or manifest path escapes scan root. | Normalize and reject outside-root paths. |
 | Symlink loop | Scan follows cyclic links or unexpected directories. | Do not follow symlinks by default; track real paths. |

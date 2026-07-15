@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { existsSync, realpathSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { open } from "node:fs/promises";
 import { resolve } from "node:path";
 import {
   CatalogConfigError,
@@ -73,6 +73,7 @@ type CliDiagnostic = {
 };
 
 const DEFAULT_CONFIG_FILE = "scg.config.yaml";
+const MAX_CONFIG_BYTES = 1024 * 1024;
 
 export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> {
   const argv = options.argv ?? process.argv.slice(2);
@@ -368,7 +369,7 @@ async function loadConfigInput(
   }
 
   try {
-    const source = await readFile(configPath, "utf8");
+    const source = await readBoundedConfigFile(configPath);
     const document = parseDocument(source, {
       prettyErrors: false,
       schema: "core",
@@ -404,7 +405,17 @@ async function loadConfigInput(
       ok: true,
       config: config as CatalogConfigInput
     };
-  } catch {
+  } catch (error) {
+    if (error instanceof ConfigFileTooLargeError) {
+      return {
+        ok: false,
+        diagnostic: configDiagnostic(
+          explicitConfigPath ?? DEFAULT_CONFIG_FILE,
+          "Config file exceeds the 1 MiB size limit.",
+          "Reduce scg.config.yaml before running the CLI."
+        )
+      };
+    }
     return {
       ok: false,
       diagnostic: configDiagnostic(
@@ -413,6 +424,33 @@ async function loadConfigInput(
         "Check the config path and file permissions."
       )
     };
+  }
+}
+
+async function readBoundedConfigFile(path: string): Promise<string> {
+  let handle: Awaited<ReturnType<typeof open>> | undefined;
+  try {
+    handle = await open(path, "r");
+    const fileStat = await handle.stat();
+    if (fileStat.size > MAX_CONFIG_BYTES) {
+      throw new ConfigFileTooLargeError();
+    }
+
+    const buffer = Buffer.alloc(MAX_CONFIG_BYTES + 1);
+    let offset = 0;
+    while (offset < buffer.length) {
+      const { bytesRead } = await handle.read(buffer, offset, buffer.length - offset, offset);
+      if (bytesRead === 0) {
+        break;
+      }
+      offset += bytesRead;
+    }
+    if (offset > MAX_CONFIG_BYTES) {
+      throw new ConfigFileTooLargeError();
+    }
+    return buffer.subarray(0, offset).toString("utf8");
+  } finally {
+    await handle?.close();
   }
 }
 
@@ -617,6 +655,7 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
 }
 
 class CliUsageError extends Error {}
+class ConfigFileTooLargeError extends Error {}
 
 if (process.argv[1] && isCliEntrypoint(process.argv[1])) {
   runCli()

@@ -28,9 +28,9 @@ configured roots
 ## Scan Flow
 
 1. Load CLI flags and optional `scg.config.yaml`.
-2. Resolve scan roots and manifest names.
+2. Resolve legacy roots or source-scoped roots, manifest names, and explicit input adapters.
 3. Apply default excludes for `.git`, `node_modules`, `dist`, `coverage`, and output directories.
-4. Resolve real paths and prevent traversal outside allowed roots.
+4. Resolve real paths, sort ownership hierarchically, and reject outside or overlapping roots.
 5. Read candidate manifest files within size and count limits.
 6. Parse YAML with safe parser settings.
 7. Validate schema and emit diagnostics.

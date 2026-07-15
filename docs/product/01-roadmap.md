@@ -30,6 +30,8 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
   moving ZDP policy into SCG.
 - Source-scoped mixed adapters with disjoint realpath ownership, combined dependency resolution,
   global budgets, and deterministic source-order independence.
+- Hierarchy-sorted source ownership with 5,000-declaration, 100-root, and mixed 500/1,000-manifest
+  performance contracts.
 
 ### Reports And Automation
 
@@ -39,6 +41,8 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 - Packed-package, installed-CLI, Action self-smoke, release recovery, secret, dependency, and
   repository-contract validation.
 - Full-SHA workflow pins, CodeQL, bounded Dependabot updates, and explicit runner timeouts.
+- Ubuntu and Windows source-filesystem compatibility plus exact published native/mixed consumer
+  registry smoke.
 
 ## Pre-1.0 Work
 
@@ -63,8 +67,8 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 
 - Keep repository-local ZDP gates and the central 40-service catalog green against released Action
   bundles.
-- Keep the standalone non-ZDP synthetic consumer fixture green through source, packed npm CLI, and
-  GitHub Action execution before freezing the native `scg-v1` contract.
+- Keep standalone native and mixed synthetic consumers green through source, packed npm CLI,
+  released-package, and GitHub Action execution before freezing adapter contracts.
 - Record Windows and Linux installed-package evidence for each release candidate.
 
 ### Release Confidence

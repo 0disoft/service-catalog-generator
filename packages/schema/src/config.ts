@@ -11,11 +11,17 @@ const DEFAULT_EXCLUDE = [
 
 export const CatalogInputSchemaSchema = z.enum(["scg-v1", "zdp-v2"]);
 
+const ManifestNameSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .refine(isManifestFileName, "Manifest names must be filenames without path separators.");
+
 const CatalogSourceSchema = z
   .object({
     root: z.string().trim().min(1),
     inputSchema: CatalogInputSchemaSchema,
-    manifestNames: z.array(z.string().trim().min(1)).min(1).optional()
+    manifestNames: z.array(ManifestNameSchema).min(1).optional()
   })
   .strict();
 
@@ -26,7 +32,7 @@ const RawCatalogConfigSchema = z
     scan: z
       .object({
         roots: z.array(z.string().min(1)).optional(),
-        manifestNames: z.array(z.string().min(1)).optional(),
+        manifestNames: z.array(ManifestNameSchema).optional(),
         exclude: z.array(z.string().min(1)).optional()
       })
       .strict()
@@ -102,19 +108,20 @@ const RawCatalogConfigSchema = z
       normalizedRoots.push({ index, root: normalizedRoot });
     }
 
-    for (let leftIndex = 0; leftIndex < normalizedRoots.length; leftIndex += 1) {
-      for (let rightIndex = leftIndex + 1; rightIndex < normalizedRoots.length; rightIndex += 1) {
-        const left = normalizedRoots[leftIndex];
-        const right = normalizedRoots[rightIndex];
-        if (!sourceRootsOverlap(left.root, right.root)) {
-          continue;
-        }
-        context.addIssue({
-          code: "custom",
-          path: ["sources", right.index, "root"],
-          message: `Source root overlaps sources.${left.index}.root after lexical normalization.`
-        });
+    const sortedRoots = normalizedRoots.sort(
+      (left, right) => comparePathHierarchy(left.root, right.root) || left.index - right.index
+    );
+    for (let index = 1; index < sortedRoots.length; index += 1) {
+      const left = sortedRoots[index - 1];
+      const right = sortedRoots[index];
+      if (!sourceRootsOverlap(left.root, right.root)) {
+        continue;
       }
+      context.addIssue({
+        code: "custom",
+        path: ["sources", right.index, "root"],
+        message: `Source root overlaps sources.${left.index}.root after lexical normalization.`
+      });
     }
   });
 
@@ -238,6 +245,10 @@ function normalizeRelativeSourceRoot(root: string): string | undefined {
   return segments.join("/") || ".";
 }
 
+function isManifestFileName(value: string): boolean {
+  return value !== "." && value !== ".." && !value.includes("/") && !value.includes("\\");
+}
+
 function sourceRootsOverlap(left: string, right: string): boolean {
   return (
     left === "." ||
@@ -246,6 +257,21 @@ function sourceRootsOverlap(left: string, right: string): boolean {
     left.startsWith(`${right}/`) ||
     right.startsWith(`${left}/`)
   );
+}
+
+function comparePathHierarchy(left: string, right: string): number {
+  const leftSegments = left === "." ? [] : left.split("/");
+  const rightSegments = right === "." ? [] : right.split("/");
+  const sharedLength = Math.min(leftSegments.length, rightSegments.length);
+
+  for (let index = 0; index < sharedLength; index += 1) {
+    if (leftSegments[index] === rightSegments[index]) {
+      continue;
+    }
+    return leftSegments[index] < rightSegments[index] ? -1 : 1;
+  }
+
+  return leftSegments.length - rightSegments.length;
 }
 
 export type CatalogConfig = z.output<typeof CatalogConfigSchema>;

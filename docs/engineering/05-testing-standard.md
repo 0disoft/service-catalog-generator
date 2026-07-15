@@ -29,7 +29,8 @@ Testing standard defines merge-blocking expectations for unit, integration, cont
 | Action tests | Cover input mapping, permission assumptions, output mapping, and CLI exit propagation. |
 | E2E tests | Run a tiny synthetic workspace through scan, check, and report. |
 | Native consumer tests | Compile the standalone `examples/native-consumer` repository through source, packed CLI, and Action paths. |
-| Performance tests | Measure 500 and 1,000 manifest workspaces against documented budgets. |
+| Source compatibility tests | Verify custom manifest names, global excludes, case semantics, and realpath aliases on Ubuntu and Windows. |
+| Performance tests | Measure native and mixed 500/1,000-manifest workspaces plus 100/5,000-source scaling against documented budgets. |
 
 ## Required Fixtures
 
@@ -47,6 +48,9 @@ Fixtures must be synthetic and must not include real organization data.
 - 500 manifests under 2 seconds on a typical developer laptop.
 - 500 manifests under 5 seconds on a GitHub hosted runner.
 - 1,000 manifests with peak memory below 256 MB as an initial target.
+- 5,000 source declarations under 2 seconds.
+- 100 real roots and 500 mixed manifests within the normal scan budget.
+- 1,000 mixed manifests with peak memory below 256 MB.
 
 Budgets may be revised with measurement evidence.
 

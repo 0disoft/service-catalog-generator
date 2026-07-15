@@ -81,7 +81,11 @@ function configIssueHint(issue: ConfigIssue, field: string | undefined): string 
   if (issue.code === "unrecognized_keys") {
     return "Remove unsupported config fields; the config schema is strict.";
   }
-  if (issue.code === "custom" && field?.startsWith("scan.")) {
+  if (
+    issue.code === "custom" &&
+    field?.startsWith("scan.") &&
+    issue.message.includes("cannot be combined with sources")
+  ) {
     return "Remove legacy scan selectors when sources is configured.";
   }
   if (issue.code === "custom" && field?.endsWith(".root")) {

@@ -74,30 +74,46 @@ export async function resolveDiscoverySources(
   }
 
   const sortedSources = resolvedSources.sort((left, right) =>
-    (left.rootRealPath ?? left.root).localeCompare(right.rootRealPath ?? right.root)
+    comparePathHierarchy(left.rootRealPath as string, right.rootRealPath as string)
   );
-  for (let leftIndex = 0; leftIndex < sortedSources.length; leftIndex += 1) {
-    for (let rightIndex = leftIndex + 1; rightIndex < sortedSources.length; rightIndex += 1) {
-      const left = sortedSources[leftIndex];
-      const right = sortedSources[rightIndex];
-      const leftRealPath = left.rootRealPath as string;
-      const rightRealPath = right.rootRealPath as string;
-      if (
-        !isPathInside(leftRealPath, rightRealPath) &&
-        !isPathInside(rightRealPath, leftRealPath)
-      ) {
-        continue;
-      }
-
-      throw new SourceConfigError(
-        `Source roots overlap after realpath resolution: ${toPosixPath(left.root)} and ${toPosixPath(right.root)}`,
-        "Use disjoint source roots so every manifest has exactly one input schema owner.",
-        "sources"
-      );
+  for (let index = 1; index < sortedSources.length; index += 1) {
+    const left = sortedSources[index - 1];
+    const right = sortedSources[index];
+    const leftRealPath = left.rootRealPath as string;
+    const rightRealPath = right.rootRealPath as string;
+    if (!isPathInside(leftRealPath, rightRealPath) && !isPathInside(rightRealPath, leftRealPath)) {
+      continue;
     }
+
+    throw new SourceConfigError(
+      `Source roots overlap after realpath resolution: ${toPosixPath(left.root)} and ${toPosixPath(right.root)}`,
+      "Use disjoint source roots so every manifest has exactly one input schema owner.",
+      "sources"
+    );
   }
 
   return sortedSources;
+}
+
+function comparePathHierarchy(left: string, right: string): number {
+  const normalizeSegment = (segment: string) =>
+    process.platform === "win32" ? segment.toLowerCase() : segment;
+  const leftSegments = left.replaceAll("\\", "/").split("/").filter(Boolean).map(normalizeSegment);
+  const rightSegments = right
+    .replaceAll("\\", "/")
+    .split("/")
+    .filter(Boolean)
+    .map(normalizeSegment);
+  const sharedLength = Math.min(leftSegments.length, rightSegments.length);
+
+  for (let index = 0; index < sharedLength; index += 1) {
+    if (leftSegments[index] === rightSegments[index]) {
+      continue;
+    }
+    return leftSegments[index] < rightSegments[index] ? -1 : 1;
+  }
+
+  return leftSegments.length - rightSegments.length;
 }
 
 function invalidSourceRoot(index: number, root: string): SourceConfigError {

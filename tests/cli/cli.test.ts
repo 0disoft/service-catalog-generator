@@ -385,6 +385,29 @@ describe("scg CLI", () => {
     expect(io.stderrText()).not.toContain("schemaVersion: [");
   });
 
+  it("bounds config reads before YAML parsing", async () => {
+    const workspace = await createWorkspace();
+    await writeFile(
+      join(workspace, "scg.config.yaml"),
+      `schemaVersion: scg.config/v1alpha1\n#${"x".repeat(1024 * 1024)}`,
+      "utf8"
+    );
+    const io = createIo();
+
+    const exitCode = await runCli({ argv: ["check", "--json"], cwd: workspace, io });
+    const payload = JSON.parse(io.stderrText());
+
+    expect(exitCode).toBe(2);
+    expect(payload.diagnostics[0]).toEqual({
+      severity: "error",
+      code: "config.invalid",
+      file: "scg.config.yaml",
+      message: "Config file exceeds the 1 MiB size limit.",
+      hint: "Reduce scg.config.yaml before running the CLI."
+    });
+    expect(io.stderrText()).not.toContain("xxxxxxxxxxxxxxxx");
+  });
+
   it("returns exit code 2 for invalid config values", async () => {
     const workspace = await createWorkspace();
     await writeFile(
@@ -460,6 +483,32 @@ describe("scg CLI", () => {
       ],
       field: "sources.0.manifestNames",
       message: "manifestNames must contain at least one filename.",
+      hint: "Provide at least one non-empty manifest filename or omit manifestNames for service.yaml."
+    },
+    {
+      name: "manifest name containing a path",
+      yaml: [
+        "schemaVersion: scg.config/v1alpha1",
+        "sources:",
+        "  - root: services",
+        "    inputSchema: scg-v1",
+        "    manifestNames:",
+        "      - nested/service.yaml"
+      ],
+      field: "sources.0.manifestNames.0",
+      message: "Manifest names must be filenames without path separators.",
+      hint: "Provide at least one non-empty manifest filename or omit manifestNames for service.yaml."
+    },
+    {
+      name: "legacy manifest name containing a path",
+      yaml: [
+        "schemaVersion: scg.config/v1alpha1",
+        "scan:",
+        "  manifestNames:",
+        "    - nested/service.yaml"
+      ],
+      field: "scan.manifestNames.0",
+      message: "Manifest names must be filenames without path separators.",
       hint: "Provide at least one non-empty manifest filename or omit manifestNames for service.yaml."
     },
     {

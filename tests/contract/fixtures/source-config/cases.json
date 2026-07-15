@@ -45,6 +45,11 @@
     "reason": "manifest names must be non-empty strings"
   },
   {
+    "file": "invalid-manifest-path.yaml",
+    "expected": "config.invalid",
+    "reason": "manifest names must not contain path separators"
+  },
+  {
     "file": "invalid-absolute-root.yaml",
     "expected": "config.invalid",
     "reason": "source roots must be workspace-relative"

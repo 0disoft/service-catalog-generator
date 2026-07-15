@@ -22,7 +22,7 @@ files, filesystem paths, generated outputs, CI permissions, examples, and releas
 
 | Risk | Required control |
 | --- | --- |
-| YAML bombs or oversized manifests | Safe parser settings, file size limits, manifest count limits. |
+| YAML bombs or oversized manifests/config | Safe parser settings, bounded config and manifest reads, manifest count limits. |
 | HTML XSS | Escape every manifest-derived string before HTML output. |
 | DOT injection | Escape DOT labels and reject raw DOT fragments from manifests. |
 | Terminal log pollution | Strip ANSI and control characters from manifest-derived strings. |

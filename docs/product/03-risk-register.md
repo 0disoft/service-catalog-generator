@@ -65,8 +65,9 @@ Owner: 0disoft
 - Risk: individually valid manifests can collectively exceed practical memory and output budgets,
   especially when large extension payloads are retained in snapshots and reports.
 - Mitigation: per-manifest byte limits, manifest-count limits, bounded parsing concurrency, bounded
-  glob matching, aggregate input/extension/collection/report budgets, object-depth limits, and
-  summary-only Action output. Resource failures discard the partial catalog.
+  glob matching, a fixed config bootstrap limit, aggregate input/extension/collection/report
+  budgets, object-depth limits, hierarchy-sorted source overlap checks, and summary-only Action
+  output. Resource failures discard the partial catalog.
 - Remaining risk: defaults are measured against the maintained 1,000-service synthetic fixture and
   current ZDP adoption, not a broad distribution of unrelated public consumers.
 - Blocker: freezing 1.0 limits without published migration behavior and additional native consumer

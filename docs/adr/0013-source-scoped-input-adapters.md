@@ -102,7 +102,10 @@ Runtime support is implemented in the public config schema, core source resolver
 ownership metadata, CLI conflict handling, and Action-to-CLI propagation. The decision fixtures
 under `tests/contract/fixtures/source-config` are enforced by contract tests. Realpath overlap,
 source-order determinism, aggregate policy, cross-source dependencies, and duplicate IDs are
-covered by `tests/core/source-scoped-adapters.test.ts`.
+covered by `tests/core/source-scoped-adapters.test.ts`. Custom manifest names, global excludes,
+filesystem case behavior, and realpath aliases are covered on Ubuntu and Windows by the dedicated
+source compatibility CI matrix. Source overlap validation uses hierarchy sorting and adjacent
+comparisons to avoid quadratic work.
 
 The source-scoped surface remains experimental while the package is pre-1.0. Compatibility changes
 must retain the explicit adapter and disjoint-root guarantees in this ADR.
@@ -136,6 +139,7 @@ must retain the explicit adapter and disjoint-root guarantees in this ADR.
   combined duplicate IDs, and cross-source dependencies.
 - CLI and Action tests cover legacy compatibility and source-selector conflicts.
 - Packed CLI and hosted Action smoke use a mixed synthetic fixture before release.
+- Performance tests cover 5,000 declarations, 100 real roots, and mixed 500/1,000-manifest budgets.
 
 ## Review Blockers
 

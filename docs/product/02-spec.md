@@ -172,6 +172,8 @@ stable enough to justify splitting packages or repositories.
 - Report generation should be safe to rerun and overwrite only declared output paths.
 - Aggregate resource limits fail the complete catalog instead of publishing a plausible-looking
   partial service map.
+- Config loading has a fixed bootstrap byte limit because config-owned limits cannot govern the
+  file that defines them.
 - An optional minimum service count can fail a catalog whose final valid normalized service set is
   unexpectedly small; the default remains zero so intentional empty repositories stay valid.
 - Diagnostics use stable codes so CI, agents, and tests can key off them.

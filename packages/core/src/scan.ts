@@ -22,7 +22,7 @@ import {
   validateParsedManifest
 } from "./validator.js";
 
-const DEFAULT_TOOL_VERSION = "0.5.19";
+const DEFAULT_TOOL_VERSION = "0.5.20";
 const DEFAULT_PARSE_CONCURRENCY = 16;
 
 export async function compileCatalog(

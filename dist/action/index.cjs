@@ -22698,6 +22698,88 @@ function outsideScanRootDiagnostic(path) {
   });
 }
 
+// packages/core/dist/config-diagnostics.js
+var CatalogConfigError = class extends Error {
+  diagnostic;
+  constructor(issue2) {
+    const diagnostic = configIssueToDiagnostic(issue2);
+    super(diagnostic.message);
+    this.name = "CatalogConfigError";
+    this.diagnostic = diagnostic;
+  }
+};
+function configIssueToDiagnostic(issue2) {
+  const field = configIssueField(issue2);
+  return {
+    severity: "error",
+    code: "config.invalid",
+    ...field ? { field } : {},
+    message: configIssueMessage(issue2, field),
+    hint: configIssueHint(issue2, field)
+  };
+}
+function configIssueField(issue2) {
+  const segments = issue2.path.map(String);
+  if (issue2.code === "unrecognized_keys" && issue2.keys?.[0]) {
+    segments.push(issue2.keys[0]);
+  }
+  return segments.length > 0 ? segments.join(".") : void 0;
+}
+function configIssueMessage(issue2, field) {
+  if (issue2.code === "custom") {
+    return issue2.message;
+  }
+  if (field === "schemaVersion") {
+    return "Config schemaVersion is unsupported.";
+  }
+  if (field?.endsWith(".inputSchema")) {
+    return "Input schema adapter is unsupported.";
+  }
+  if (issue2.code === "unrecognized_keys") {
+    return field ? `Config field ${field} is not supported.` : "Config contains unsupported fields.";
+  }
+  if (issue2.code === "too_small" && field === "sources") {
+    return "sources must contain at least one entry.";
+  }
+  if (issue2.code === "too_small" && field?.endsWith(".manifestNames")) {
+    return "manifestNames must contain at least one filename.";
+  }
+  if (issue2.code === "too_small" && field?.includes(".manifestNames.")) {
+    return "Manifest names must not be empty.";
+  }
+  if (issue2.code === "too_small" && field?.endsWith(".root")) {
+    return "Source roots must not be empty.";
+  }
+  if (issue2.code === "invalid_type") {
+    return field ? `Config field ${field} has an invalid type.` : "Config has an invalid type.";
+  }
+  return field ? `Config field ${field} is invalid.` : "Config values are invalid.";
+}
+function configIssueHint(issue2, field) {
+  if (field === "schemaVersion") {
+    return "Use schemaVersion scg.config/v1alpha1.";
+  }
+  if (field?.endsWith(".inputSchema")) {
+    return "Use scg-v1 or zdp-v2.";
+  }
+  if (issue2.code === "unrecognized_keys") {
+    return "Remove unsupported config fields; the config schema is strict.";
+  }
+  if (issue2.code === "custom" && field?.startsWith("scan.")) {
+    return "Remove legacy scan selectors when sources is configured.";
+  }
+  if (issue2.code === "custom" && field?.endsWith(".root")) {
+    return "Use non-overlapping workspace-relative source roots.";
+  }
+  if (field === "sources") {
+    return "Add at least one source with root and inputSchema.";
+  }
+  if (field?.includes(".manifestNames")) {
+    return "Provide at least one non-empty manifest filename or omit manifestNames for service.yaml.";
+  }
+  return field ? `Update ${field} to match the scg.config/v1alpha1 contract.` : "Use schemaVersion scg.config/v1alpha1 and supported config fields.";
+}
+
 // packages/core/dist/graph.js
 function buildGraphEdges(services) {
   const knownServiceIds = new Set(services.map((service) => service.id));
@@ -23250,7 +23332,7 @@ function parseDateOnly(value) {
 }
 
 // packages/core/dist/scan.js
-var DEFAULT_TOOL_VERSION = "0.5.19";
+var DEFAULT_TOOL_VERSION = "0.5.20";
 var DEFAULT_PARSE_CONCURRENCY = 16;
 async function compileCatalog(options = {}) {
   const cwd = options.cwd ?? process.cwd();
@@ -23397,10 +23479,14 @@ function duplicateSourceHint(sourcePaths) {
   return `Use a unique service id. ${sourcePaths.length} duplicate sources: ${displayed.join(", ")}${suffix}.`.slice(0, 500);
 }
 function resolveCatalogConfig(input = {}) {
-  return CatalogConfigSchema.parse({
+  const result = CatalogConfigSchema.safeParse({
     schemaVersion: input.schemaVersion ?? CATALOG_CONFIG_SCHEMA_VERSION,
     ...input
   });
+  if (!result.success) {
+    throw new CatalogConfigError(result.error.issues[0]);
+  }
+  return result.data;
 }
 function resourceLimitDiagnostic(message, hint) {
   return {
@@ -23889,7 +23975,7 @@ function throwWriteError(file2, message, hint) {
 
 // packages/cli/dist/index.js
 var import_yaml2 = __toESM(require_dist(), 1);
-var cliVersion = "0.5.19";
+var cliVersion = "0.5.20";
 var DEFAULT_CONFIG_FILE = "scg.config.yaml";
 async function runCli(options = {}) {
   const argv = options.argv ?? process.argv.slice(2);
@@ -23979,6 +24065,9 @@ async function runCli(options = {}) {
     }
     if (error51 instanceof SourceConfigError) {
       return writeCliError(io, usesJsonOutput(argv), error51.diagnostic, 2);
+    }
+    if (error51 instanceof CatalogConfigError) {
+      return writeCliError(io, usesJsonOutput(argv), withConfigFile(error51.diagnostic), 2);
     }
     return writeCliError(io, usesJsonOutput(argv), {
       severity: "error",
@@ -24173,9 +24262,18 @@ function validateConfigInput(config2, explicitConfigPath) {
   try {
     resolveCatalogConfig(config2);
     return void 0;
-  } catch {
+  } catch (error51) {
+    if (error51 instanceof CatalogConfigError) {
+      return withConfigFile(error51.diagnostic, explicitConfigPath);
+    }
     return configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config values do not match the CLI configuration contract.", "Use schemaVersion scg.config/v1alpha1 and valid sources, scan, validation, limits, output, and privacy fields.");
   }
+}
+function withConfigFile(diagnostic, explicitConfigPath) {
+  return {
+    ...diagnostic,
+    file: explicitConfigPath ?? DEFAULT_CONFIG_FILE
+  };
 }
 function exitCodeForDiagnostics(diagnostics, failOnWarnings) {
   if (diagnostics.some((diagnostic) => diagnostic.code === "config.invalid")) {

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.5.20
+
+- Added field-specific, redacted `config.invalid` diagnostics for config schema failures across the
+  CLI and GitHub Action.
+- Extended exact published-package registry smoke to compile native and mixed adapter consumers on
+  Ubuntu and Windows before release evidence verification.
+
 ## 0.5.19
 
 - Added source-scoped `scg-v1` and `zdp-v2` adapters with fail-closed lexical and realpath ownership,

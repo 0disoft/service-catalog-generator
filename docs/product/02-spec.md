@@ -125,6 +125,7 @@ The CLI exposes these product-level actions:
 - `scan`: read manifests and print a normalized service list;
 - `check`: validate required fields and dependency references;
 - `report`: write static JSON, DOT, and HTML report artifacts.
+- `completion`: emit static Bash, Zsh, or PowerShell candidates from shared CLI metadata.
 
 Command names, documented flags, machine-readable JSON mode, and deterministic exit behavior are
 public pre-1.0 contracts. A breaking change requires a changelog entry and migration note.

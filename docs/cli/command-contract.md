@@ -30,6 +30,8 @@ This repository type owns command behavior, arguments, flags, config loading, ex
 - `scg report`: stage and publish declared static report artifacts such as catalog JSON, DOT graph,
   and HTML as one directory generation. The output path is a dedicated generated directory, not a
   container for user-owned files.
+- `scg completion <bash|zsh|powershell>`: print static shell completion source generated from the
+  same command and flag metadata as `scg --help`.
 
 Each command should support human-readable output and a JSON mode. JSON mode must be deterministic
 enough for CI and should never include secrets or full source file contents.
@@ -62,6 +64,8 @@ instead of precedence overrides. Output and validation-policy flags remain compa
 
 Environment variables must not change product behavior except for terminal conventions such as
 `NO_COLOR` and CI detection.
+
+Completion is metadata-only. It must not scan paths, load config, read manifests, or use the network.
 
 ## Package Boundary
 

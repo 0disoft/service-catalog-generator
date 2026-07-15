@@ -22,6 +22,7 @@ service editor. Its useful edge is manifest-first validation that can run locall
 scg scan --json
 scg check --fail-on-warning
 scg report --format json --format dot --format html
+scg completion powershell
 ```
 
 `scg report` treats its output path as a dedicated generated directory. It stages a complete report
@@ -99,6 +100,8 @@ scg report `
 - Export service lists and dependency graphs as deterministic JSON and DOT.
 - Generate a static HTML report suitable for small teams and agent workflows.
 - Provide a published GitHub Action wrapper that delegates to the same CLI behavior.
+- Generate Bash, Zsh, and PowerShell completion from the CLI help metadata without filesystem or
+  network access.
 
 ## Explicit Non-Goals
 

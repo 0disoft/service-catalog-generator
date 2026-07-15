@@ -18,6 +18,8 @@ import {
   type WrittenReportFile
 } from "@scg/report";
 import { parseDocument } from "yaml";
+import { cliCommandDefinitions, cliFlagDefinitions } from "./command-metadata.js";
+import { isCompletionShell, renderCompletion } from "./completion.js";
 
 export const packageName = "@scg/cli";
 export const cliVersion = "0.5.20";
@@ -84,6 +86,10 @@ export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> 
   };
 
   try {
+    if (argv[0] === "completion") {
+      return runCompletionCommand(argv.slice(1), io);
+    }
+
     const parsed = parseArgs(argv);
     if (parsed.version) {
       writeLine(io.stdout, cliVersion);
@@ -617,29 +623,38 @@ function configDiagnostic(file: string, message: string, hint: string): CliDiagn
 }
 
 function helpText(): string {
+  const commandLines = cliCommandDefinitions.map(
+    (command) => `  ${command.name.padEnd(12)}${command.description}`
+  );
+  const flagLines = cliFlagDefinitions.map((flag) => {
+    const usage = "value" in flag ? `${flag.name} ${flag.value}` : flag.name;
+    return `  ${usage.padEnd(38)}${flag.description}`;
+  });
+
   return [
-    "Usage: scg <scan|check|report> [flags]",
+    "Usage: scg <command> [flags]",
     "",
     "Commands:",
-    "  scan    Print a catalog snapshot",
-    "  check   Validate manifests and set the exit code",
-    "  report  Write catalog.json, graph.dot, and report.html",
+    ...commandLines,
     "",
     "Flags:",
-    "  --root <path>",
-    "  --config <path>",
-    "  --manifest <name>",
-    "  --format <json|dot|html>",
-    "  --out <path>",
-    "  --fail-on-warning",
-    "  --no-fail-on-warning",
-    "  --allow-unknown-dependencies",
-    "  --no-allow-unknown-dependencies",
-    "  --input-schema <scg-v1|zdp-v2>",
-    "  --json",
-    "  --summary-json",
-    "  --no-color"
+    ...flagLines
   ].join("\n");
+}
+
+function runCompletionCommand(args: string[], io: CliIo): CliExitCode {
+  const shell = args[0];
+  if (args.length !== 1 || !shell || !isCompletionShell(shell)) {
+    return writeCliError(io, false, {
+      severity: "error",
+      code: "config.invalid",
+      message: "Completion shell is missing or unsupported.",
+      hint: "Use scg completion bash, zsh, or powershell."
+    });
+  }
+
+  writeLine(io.stdout, renderCompletion(shell));
+  return 0;
 }
 
 function writeLine(output: Pick<NodeJS.WriteStream, "write">, value: string): void {

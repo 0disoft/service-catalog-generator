@@ -26,6 +26,7 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 - Safe YAML parsing, normalization, dependency resolution, graph construction, deterministic
   ordering, redaction, path containment, and symlink handling.
 - `scan`, `check`, and `report` commands with human and JSON output.
+- Bash, Zsh, and PowerShell completion generated from shared help metadata without I/O discovery.
 - Explicit `zdp-v2` adapter that preserves source-specific fields under `extensions.zdp` without
   moving ZDP policy into SCG.
 - Source-scoped mixed adapters with disjoint realpath ownership, combined dependency resolution,

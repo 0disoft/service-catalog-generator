@@ -1,0 +1,15 @@
+schemaVersion: scg.config/v1alpha1
+sources:
+  - root: services
+    inputSchema: scg-v1
+    manifestNames:
+      - service.yaml
+  - root: projects/zdp-platforms
+    inputSchema: zdp-v2
+scan:
+  exclude:
+    - .git/**
+    - node_modules/**
+    - .catalog/**
+validation:
+  minimumServiceCount: 2

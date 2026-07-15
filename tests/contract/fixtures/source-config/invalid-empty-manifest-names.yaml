@@ -1,0 +1,5 @@
+schemaVersion: scg.config/v1alpha1
+sources:
+  - root: services
+    inputSchema: scg-v1
+    manifestNames: []

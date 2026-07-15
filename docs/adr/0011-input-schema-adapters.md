@@ -14,11 +14,15 @@ formats into the SCG catalog model.
 - Product decision: docs/product/02-spec.md
 - Technical owner: 0disoft
 - Related ADR: docs/adr/0005-service-manifest-schema-v1alpha1.md
+- Source-scoped extension: docs/adr/0013-source-scoped-input-adapters.md
 
 ## Decision
 
 The core SCG manifest schema remains `scg.service/v1alpha1`. Adapter support is selected explicitly
 through the input schema option exposed by the CLI and GitHub Action.
+
+This ADR owns adapter identity and normalization boundaries. ADR 0013 owns the accepted design for
+assigning different explicit adapters to non-overlapping roots in one catalog run.
 
 The first first-party adapter is `zdp-v2`. It reads ZDP `service.yaml` manifests with
 `contract.schema_version: 2`, maps their stable service fields into the SCG catalog model, and keeps

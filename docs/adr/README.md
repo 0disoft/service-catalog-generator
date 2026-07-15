@@ -21,6 +21,7 @@ This directory records durable product and architecture decisions for Service Ca
 - 0010 Generated Artifacts Are Never Source Truth
 - 0011 Input Schema Adapters
 - 0012 Oxc Quality Toolchain
+- 0013 Source-Scoped Input Adapters
 
 ## Source of Truth
 

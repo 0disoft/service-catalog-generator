@@ -1,0 +1,4 @@
+schemaVersion: scg.config/v1alpha1
+sources:
+  - root: ../outside
+    inputSchema: scg-v1

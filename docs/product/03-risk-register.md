@@ -80,8 +80,8 @@ Owner: 0disoft
 - Mitigation: `validation.minimumServiceCount` defaults to zero and can require a positive final
   normalized-service count after duplicate-id exclusion. Consumers should also pin roots, manifest
   names, and input schema.
-- Blocker: adding implicit schema detection. Pre-1.0 design must still define per-source adapter
-  selection, including overlap and precedence errors.
+- Blocker: adding implicit schema detection. ADR 0013 defines source selection, overlap, and
+  precedence behavior; runtime implementation and mixed-source evidence remain required.
 
 ## Runtime and Release Drift
 

@@ -65,7 +65,7 @@ execFileSync(process.execPath, [actionPath], {
   cwd: process.cwd(),
   env: {
     ...process.env,
-    INPUT_ROOTS: ".",
+    INPUT_ROOTS: "examples/native-consumer/services",
     INPUT_MANIFEST_NAME: "service.yaml"
   },
   encoding: "utf8",

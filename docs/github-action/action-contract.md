@@ -55,6 +55,9 @@ Catalog-wide minimum service policy remains config-owned and is supplied through
 `config` input as `validation.minimumServiceCount`; the Action does not duplicate it as another
 input.
 
+Mixed adapters are also config-owned. A workflow passes a config containing `sources` and omits
+`roots`, `manifest-name`, and `input-schema`; those legacy inputs conflict with source-scoped mode.
+
 ## ZDP Repository Gate
 
 A repository-local ZDP check should point `roots` at the checkout path and run before private

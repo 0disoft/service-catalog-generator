@@ -67,6 +67,30 @@ try {
   assert(catalog.summary.serviceCount === 2, "native consumer must compile two services");
   assert(catalog.summary.edgeCount === 1, "native consumer must resolve one dependency edge");
 
+  await cp(
+    join(root, "examples", "mixed-consumer"),
+    join(installDirectory, "examples", "mixed-consumer"),
+    {
+      recursive: true
+    }
+  );
+  runInstalledCli(binPath, installDirectory, [
+    "report",
+    "--config",
+    "examples/mixed-consumer/scg.config.yaml",
+    "--no-color"
+  ]);
+  const mixedCatalog = JSON.parse(
+    await readFile(join(installDirectory, ".catalog-mixed", "catalog.json"))
+  );
+  assert(mixedCatalog.summary.serviceCount === 2, "mixed consumer must compile two services");
+  assert(mixedCatalog.summary.errorCount === 0, "mixed consumer must compile without errors");
+  assert(mixedCatalog.summary.edgeCount === 1, "mixed consumer must resolve a cross-source edge");
+  assert(
+    mixedCatalog.services.map((service) => service.id).join(",") === "billing-api,platform-runtime",
+    "mixed consumer must preserve native and ZDP services"
+  );
+
   console.log(`pack-smoke: ok ${packageJson.name}@${packageJson.version}`);
 } finally {
   await rm(packDirectory, { force: true, recursive: true });

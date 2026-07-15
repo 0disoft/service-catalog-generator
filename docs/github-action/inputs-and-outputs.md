@@ -39,6 +39,10 @@ This repository type owns action inputs, outputs, permissions, token handling, a
 Only explicitly supplied inputs map to CLI flags. Omitted inputs defer to `scg.config.yaml` and then
 CLI defaults so local and Action executions share one precedence contract.
 
+For source-scoped config, pass only `config` plus compatible report or validation inputs. The Action
+does not serialize `sources` as an input. Supplying `roots`, `manifest-name`, or `input-schema`
+alongside a config containing `sources` propagates CLI `config.invalid` and exit code 2.
+
 ## Outputs
 
 | Output             | Meaning                                                              |

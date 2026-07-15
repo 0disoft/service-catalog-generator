@@ -43,6 +43,16 @@ A standalone native `scg-v1` consumer fixture with two services, strict dependen
 its own config lives under `examples/native-consumer`. Packed-package and GitHub Action smoke tests
 both compile that fixture so native behavior does not depend on the ZDP adapter.
 
+One run can compile explicitly partitioned native and ZDP roots through source-scoped config:
+
+```powershell
+scg report --config examples/mixed-consumer/scg.config.yaml
+```
+
+The mixed fixture resolves a native-to-ZDP dependency in one catalog. When `sources` is present,
+put `root`, `manifestNames`, and `inputSchema` in each source and omit legacy `--root`, `--manifest`,
+and `--input-schema` flags.
+
 For a ZDP platform catalog run, materialize each repository root `service.yaml` under a temporary
 manifest directory and build a derived report from that directory:
 
@@ -82,6 +92,7 @@ scg report `
 
 - Define and validate `service.yaml` v1alpha1.
 - Read ZDP v2 `service.yaml` manifests through an explicit input adapter.
+- Compile disjoint `scg-v1` and `zdp-v2` source roots into one catalog without schema autodetection.
 - Scan one or more repositories or folders for manifests without network calls.
 - Validate required owner, runtime, repository, deploy target, data, review timestamp, and
   dependency fields.

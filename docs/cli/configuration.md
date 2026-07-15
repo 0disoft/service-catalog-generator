@@ -73,6 +73,40 @@ privacy:
 2. `scg.config.yaml` or file passed through `--config`.
 3. Built-in defaults.
 
+Source-scoped mode is the exception to selector override behavior: legacy source selectors are
+mutually exclusive rather than higher precedence.
+
+## Source-Scoped Adapters
+
+Use `sources` when one catalog contains explicitly partitioned manifest formats:
+
+```yaml
+schemaVersion: scg.config/v1alpha1
+
+sources:
+  - root: services/native
+    inputSchema: scg-v1
+  - root: services/zdp
+    inputSchema: zdp-v2
+    manifestNames:
+      - service.yaml
+
+scan:
+  exclude:
+    - .git/**
+    - node_modules/**
+    - .catalog/**
+```
+
+Each source requires a workspace-relative `root` and explicit `inputSchema`. `manifestNames`
+defaults to `service.yaml`. Roots must exist, remain inside the workspace after realpath resolution,
+and be disjoint from every other source, including symlink and junction aliases.
+
+With `sources`, do not configure `scan.roots` or `scan.manifestNames`, and do not pass `--root`,
+`--manifest`, or `--input-schema`. These combinations fail with `config.invalid`; they do not
+override source ownership. Global excludes, validation policy, limits, output, and privacy settings
+still apply once to the combined catalog.
+
 Environment variables must not override catalog semantics. `NO_COLOR` may affect terminal color and
 `CI` may affect human-output defaults, but neither may change validation policy.
 
@@ -82,7 +116,8 @@ Environment variables must not override catalog semantics. `NO_COLOR` may affect
 - Manifest name: `service.yaml`.
 - Scan excludes: POSIX-style glob patterns matched against paths relative to each scan root.
   `services/legacy/**` excludes only that subtree, not sibling manifests under `services/`.
-- Input schema: `scg-v1`; use `--input-schema zdp-v2` for ZDP v2 manifests.
+- Input schema: `scg-v1` in legacy mode; use `--input-schema zdp-v2` for a run-wide ZDP v2 scan or
+  `sources` for explicit mixed adapters.
 - Output directory: `.catalog`.
   When the configured output directory resolves below a scan root, only that generated subtree is
   skipped during discovery. The directory is owned as one generated report set: each successful

@@ -78,10 +78,11 @@ Owner: 0disoft
   service can break intentional empty-repository checks. A single run-wide adapter also prevents
   explicitly configured mixed-schema adoption.
 - Mitigation: `validation.minimumServiceCount` defaults to zero and can require a positive final
-  normalized-service count after duplicate-id exclusion. Consumers should also pin roots, manifest
-  names, and input schema.
+  normalized-service count after duplicate-id exclusion. Source-scoped adapters require explicit,
+  disjoint realpath owners and apply dependency resolution and budgets once to the combined catalog.
 - Blocker: adding implicit schema detection. ADR 0013 defines source selection, overlap, and
-  precedence behavior; runtime implementation and mixed-source evidence remain required.
+  precedence behavior; source, packed-package, and hosted Action mixed-consumer evidence must stay
+  green.
 
 ## Runtime and Release Drift
 

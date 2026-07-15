@@ -7375,12 +7375,12 @@ module.exports = __toCommonJS(index_exports);
 var import_node_crypto2 = require("crypto");
 var import_node_fs2 = require("fs");
 var import_node_os = require("os");
-var import_node_path6 = require("path");
+var import_node_path7 = require("path");
 
 // packages/cli/dist/index.js
 var import_node_fs = require("fs");
-var import_promises5 = require("fs/promises");
-var import_node_path5 = require("path");
+var import_promises6 = require("fs/promises");
+var import_node_path6 = require("path");
 
 // packages/schema/dist/versions.js
 var SERVICE_MANIFEST_SCHEMA_VERSION = "scg.service/v1alpha1";
@@ -22173,60 +22173,132 @@ var CatalogSnapshotSchema = external_exports.object({
 });
 
 // packages/schema/dist/config.js
-var CatalogConfigSchema = external_exports.object({
+var DEFAULT_EXCLUDE = [
+  ".git/**",
+  "node_modules/**",
+  "dist/**",
+  "coverage/**",
+  ".catalog/**"
+];
+var CatalogInputSchemaSchema = external_exports.enum(["scg-v1", "zdp-v2"]);
+var CatalogSourceSchema = external_exports.object({
+  root: external_exports.string().trim().min(1),
+  inputSchema: CatalogInputSchemaSchema,
+  manifestNames: external_exports.array(external_exports.string().trim().min(1)).min(1).optional()
+}).strict();
+var RawCatalogConfigSchema = external_exports.object({
   schemaVersion: external_exports.literal(CATALOG_CONFIG_SCHEMA_VERSION),
+  sources: external_exports.array(CatalogSourceSchema).min(1).optional(),
   scan: external_exports.object({
-    roots: external_exports.array(external_exports.string().min(1)).default(["."]),
-    manifestNames: external_exports.array(external_exports.string().min(1)).default(["service.yaml"]),
-    exclude: external_exports.array(external_exports.string().min(1)).default([".git/**", "node_modules/**", "dist/**", "coverage/**", ".catalog/**"])
-  }).strict().default({
-    roots: ["."],
-    manifestNames: ["service.yaml"],
-    exclude: [".git/**", "node_modules/**", "dist/**", "coverage/**", ".catalog/**"]
+    roots: external_exports.array(external_exports.string().min(1)).optional(),
+    manifestNames: external_exports.array(external_exports.string().min(1)).optional(),
+    exclude: external_exports.array(external_exports.string().min(1)).optional()
+  }).strict().optional(),
+  validation: external_exports.object({
+    failOnWarnings: external_exports.boolean().optional(),
+    allowUnknownDependencies: external_exports.boolean().optional(),
+    staleAfterDays: external_exports.number().int().positive().optional(),
+    minimumServiceCount: external_exports.number().int().nonnegative().max(1e4).optional()
+  }).strict().optional(),
+  limits: external_exports.object({
+    maxManifestBytes: external_exports.number().int().positive().optional(),
+    maxTotalManifestBytes: external_exports.number().int().positive().optional(),
+    maxManifests: external_exports.number().int().positive().max(1e4).optional(),
+    maxObjectDepth: external_exports.number().int().positive().max(256).optional(),
+    maxCollectionEntries: external_exports.number().int().positive().optional(),
+    maxExtensionBytes: external_exports.number().int().nonnegative().optional(),
+    maxReportBytes: external_exports.number().int().positive().optional()
+  }).strict().optional(),
+  output: external_exports.object({
+    directory: external_exports.string().min(1).optional(),
+    formats: external_exports.array(external_exports.enum(["json", "dot", "html"])).optional()
+  }).strict().optional(),
+  privacy: external_exports.object({
+    redactRepositoryUrls: external_exports.boolean().optional(),
+    redactOwnerEmails: external_exports.boolean().optional()
+  }).strict().optional()
+}).strict().superRefine((config2, context) => {
+  if (!config2.sources) {
+    return;
+  }
+  if (config2.scan?.roots !== void 0) {
+    context.addIssue({
+      code: "custom",
+      path: ["scan", "roots"],
+      message: "scan.roots cannot be combined with sources."
+    });
+  }
+  if (config2.scan?.manifestNames !== void 0) {
+    context.addIssue({
+      code: "custom",
+      path: ["scan", "manifestNames"],
+      message: "scan.manifestNames cannot be combined with sources."
+    });
+  }
+  const normalizedRoots = [];
+  for (const [index, source] of config2.sources.entries()) {
+    const normalizedRoot = normalizeRelativeSourceRoot(source.root);
+    if (!normalizedRoot) {
+      context.addIssue({
+        code: "custom",
+        path: ["sources", index, "root"],
+        message: "Source roots must be workspace-relative and remain inside the workspace."
+      });
+      continue;
+    }
+    normalizedRoots.push({ index, root: normalizedRoot });
+  }
+  for (let leftIndex = 0; leftIndex < normalizedRoots.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < normalizedRoots.length; rightIndex += 1) {
+      const left = normalizedRoots[leftIndex];
+      const right = normalizedRoots[rightIndex];
+      if (!sourceRootsOverlap(left.root, right.root)) {
+        continue;
+      }
+      context.addIssue({
+        code: "custom",
+        path: ["sources", right.index, "root"],
+        message: `Source root overlaps sources.${left.index}.root after lexical normalization.`
+      });
+    }
+  }
+});
+var NormalizedCatalogConfigSchema = external_exports.object({
+  schemaVersion: external_exports.literal(CATALOG_CONFIG_SCHEMA_VERSION),
+  sources: external_exports.array(external_exports.object({
+    root: external_exports.string(),
+    inputSchema: CatalogInputSchemaSchema,
+    manifestNames: external_exports.array(external_exports.string())
+  })).optional(),
+  scan: external_exports.object({
+    roots: external_exports.array(external_exports.string()),
+    manifestNames: external_exports.array(external_exports.string()),
+    exclude: external_exports.array(external_exports.string())
   }),
   validation: external_exports.object({
-    failOnWarnings: external_exports.boolean().default(false),
-    allowUnknownDependencies: external_exports.boolean().default(false),
-    staleAfterDays: external_exports.number().int().positive().default(90),
-    minimumServiceCount: external_exports.number().int().nonnegative().max(1e4).default(0)
-  }).strict().default({
-    failOnWarnings: false,
-    allowUnknownDependencies: false,
-    staleAfterDays: 90,
-    minimumServiceCount: 0
+    failOnWarnings: external_exports.boolean(),
+    allowUnknownDependencies: external_exports.boolean(),
+    staleAfterDays: external_exports.number(),
+    minimumServiceCount: external_exports.number()
   }),
   limits: external_exports.object({
-    maxManifestBytes: external_exports.number().int().positive().default(256 * 1024),
-    maxTotalManifestBytes: external_exports.number().int().positive().default(64 * 1024 * 1024),
-    maxManifests: external_exports.number().int().positive().max(1e4).default(1e3),
-    maxObjectDepth: external_exports.number().int().positive().max(256).default(32),
-    maxCollectionEntries: external_exports.number().int().positive().default(1e5),
-    maxExtensionBytes: external_exports.number().int().nonnegative().default(8 * 1024 * 1024),
-    maxReportBytes: external_exports.number().int().positive().default(64 * 1024 * 1024)
-  }).strict().default({
-    maxManifestBytes: 256 * 1024,
-    maxTotalManifestBytes: 64 * 1024 * 1024,
-    maxManifests: 1e3,
-    maxObjectDepth: 32,
-    maxCollectionEntries: 1e5,
-    maxExtensionBytes: 8 * 1024 * 1024,
-    maxReportBytes: 64 * 1024 * 1024
+    maxManifestBytes: external_exports.number(),
+    maxTotalManifestBytes: external_exports.number(),
+    maxManifests: external_exports.number(),
+    maxObjectDepth: external_exports.number(),
+    maxCollectionEntries: external_exports.number(),
+    maxExtensionBytes: external_exports.number(),
+    maxReportBytes: external_exports.number()
   }),
   output: external_exports.object({
-    directory: external_exports.string().min(1).default(".catalog"),
-    formats: external_exports.array(external_exports.enum(["json", "dot", "html"])).default(["json", "dot", "html"])
-  }).strict().default({
-    directory: ".catalog",
-    formats: ["json", "dot", "html"]
+    directory: external_exports.string(),
+    formats: external_exports.array(external_exports.enum(["json", "dot", "html"]))
   }),
   privacy: external_exports.object({
-    redactRepositoryUrls: external_exports.boolean().default(false),
-    redactOwnerEmails: external_exports.boolean().default(true)
-  }).strict().default({
-    redactRepositoryUrls: false,
-    redactOwnerEmails: true
+    redactRepositoryUrls: external_exports.boolean(),
+    redactOwnerEmails: external_exports.boolean()
   })
-}).strict().superRefine((config2, context) => {
+}).superRefine((config2, context) => {
   if (config2.validation.minimumServiceCount > config2.limits.maxManifests) {
     context.addIssue({
       code: "custom",
@@ -22235,6 +22307,68 @@ var CatalogConfigSchema = external_exports.object({
     });
   }
 });
+var CatalogConfigSchema = RawCatalogConfigSchema.transform((config2) => ({
+  schemaVersion: config2.schemaVersion,
+  ...config2.sources ? {
+    sources: config2.sources.map((source) => ({
+      ...source,
+      root: normalizeRelativeSourceRoot(source.root) ?? source.root,
+      manifestNames: source.manifestNames ?? ["service.yaml"]
+    }))
+  } : {},
+  scan: {
+    roots: config2.scan?.roots ?? ["."],
+    manifestNames: config2.scan?.manifestNames ?? ["service.yaml"],
+    exclude: config2.scan?.exclude ?? [...DEFAULT_EXCLUDE]
+  },
+  validation: {
+    failOnWarnings: config2.validation?.failOnWarnings ?? false,
+    allowUnknownDependencies: config2.validation?.allowUnknownDependencies ?? false,
+    staleAfterDays: config2.validation?.staleAfterDays ?? 90,
+    minimumServiceCount: config2.validation?.minimumServiceCount ?? 0
+  },
+  limits: {
+    maxManifestBytes: config2.limits?.maxManifestBytes ?? 256 * 1024,
+    maxTotalManifestBytes: config2.limits?.maxTotalManifestBytes ?? 64 * 1024 * 1024,
+    maxManifests: config2.limits?.maxManifests ?? 1e3,
+    maxObjectDepth: config2.limits?.maxObjectDepth ?? 32,
+    maxCollectionEntries: config2.limits?.maxCollectionEntries ?? 1e5,
+    maxExtensionBytes: config2.limits?.maxExtensionBytes ?? 8 * 1024 * 1024,
+    maxReportBytes: config2.limits?.maxReportBytes ?? 64 * 1024 * 1024
+  },
+  output: {
+    directory: config2.output?.directory ?? ".catalog",
+    formats: config2.output?.formats ?? ["json", "dot", "html"]
+  },
+  privacy: {
+    redactRepositoryUrls: config2.privacy?.redactRepositoryUrls ?? false,
+    redactOwnerEmails: config2.privacy?.redactOwnerEmails ?? true
+  }
+})).pipe(NormalizedCatalogConfigSchema);
+function normalizeRelativeSourceRoot(root) {
+  const normalizedSeparators = root.replaceAll("\\", "/");
+  if (normalizedSeparators.includes("\0") || normalizedSeparators.startsWith("/") || /^[A-Za-z]:/.test(normalizedSeparators)) {
+    return void 0;
+  }
+  const segments = [];
+  for (const segment of normalizedSeparators.split("/")) {
+    if (!segment || segment === ".") {
+      continue;
+    }
+    if (segment === "..") {
+      if (segments.length === 0) {
+        return void 0;
+      }
+      segments.pop();
+      continue;
+    }
+    segments.push(segment);
+  }
+  return segments.join("/") || ".";
+}
+function sourceRootsOverlap(left, right) {
+  return left === "." || right === "." || left === right || left.startsWith(`${right}/`) || right.startsWith(`${left}/`);
+}
 
 // packages/core/dist/discovery.js
 var import_promises = require("fs/promises");
@@ -22386,15 +22520,20 @@ async function discoverManifestFiles(options) {
   const diagnostics = [];
   const manifests = [];
   const visitedDirectories = /* @__PURE__ */ new Set();
-  for (const root of options.roots) {
-    const rootPath = (0, import_node_path2.resolve)(cwd, root);
+  const sources = options.sources ?? options.roots.map((root) => ({
+    root,
+    manifestNames: options.manifestNames,
+    inputSchema: options.inputSchema ?? "scg-v1"
+  }));
+  for (const source of sources) {
+    const rootPath = (0, import_node_path2.resolve)(cwd, source.root);
     if (!isPathInside(cwd, rootPath)) {
-      diagnostics.push(outsideScanRootDiagnostic(toPosixPath(root)));
+      diagnostics.push(outsideScanRootDiagnostic(toPosixPath(source.root)));
       continue;
     }
-    const rootRealPath = await safeRealpath(rootPath);
+    const rootRealPath = source.rootRealPath ?? await safeRealpath(rootPath);
     if (!rootRealPath || !isPathInside(cwdRealPath, rootRealPath)) {
-      diagnostics.push(outsideScanRootDiagnostic(toPosixPath(root)));
+      diagnostics.push(outsideScanRootDiagnostic(toPosixPath(source.root)));
       continue;
     }
     const excludeRules = createExcludeRules(options.exclude, options.outputDirectory, cwdRealPath, rootRealPath);
@@ -22402,7 +22541,8 @@ async function discoverManifestFiles(options) {
       directory: rootRealPath,
       rootRealPath,
       cwdRealPath,
-      manifestNames: new Set(options.manifestNames),
+      manifestNames: new Set(source.manifestNames),
+      inputSchema: source.inputSchema,
       excludeRules,
       followSymlinks: options.followSymlinks,
       maxManifests: options.maxManifests,
@@ -22455,12 +22595,14 @@ async function walkDirectory(state) {
       continue;
     }
     if (state.manifests.length >= state.maxManifests) {
-      state.diagnostics.push(createDiagnostic({
-        severity: "error",
-        code: "config.invalid",
-        message: "Manifest count exceeds the configured scan limit.",
-        hint: "Narrow scan.roots or raise the manifest count limit."
-      }));
+      if (!state.diagnostics.some(isManifestLimitDiagnostic)) {
+        state.diagnostics.push(createDiagnostic({
+          severity: "error",
+          code: "config.invalid",
+          message: "Manifest count exceeds the configured scan limit.",
+          hint: "Narrow scan.roots or raise the manifest count limit."
+        }));
+      }
       return;
     }
     const relativeToCwd = relativePathFrom(state.cwdRealPath, fileRealPath);
@@ -22473,9 +22615,13 @@ async function walkDirectory(state) {
       realPath: fileRealPath,
       relativePath: relativeToCwd,
       rootRealPath: state.rootRealPath,
-      sizeBytes: entryStats.size
+      sizeBytes: entryStats.size,
+      inputSchema: state.inputSchema
     });
   }
+}
+function isManifestLimitDiagnostic(diagnostic) {
+  return diagnostic.code === "config.invalid" && diagnostic.message === "Manifest count exceeds the configured scan limit.";
 }
 function createExcludeRules(exclude, outputDirectory, cwdRealPath, rootRealPath) {
   const patterns = [...DEFAULT_EXCLUDE_PATTERNS, ...exclude];
@@ -22735,6 +22881,74 @@ function invalidYaml(file2, message) {
     file: file2,
     diagnostics: [diagnostic]
   };
+}
+
+// packages/core/dist/source-config.js
+var import_promises3 = require("fs/promises");
+var import_node_path3 = require("path");
+var SourceConfigError = class extends Error {
+  diagnostic;
+  constructor(message, hint, field) {
+    super(message);
+    this.name = "SourceConfigError";
+    this.diagnostic = {
+      severity: "error",
+      code: "config.invalid",
+      ...field ? { field } : {},
+      message,
+      hint
+    };
+  }
+};
+async function resolveDiscoverySources(cwd, config2, legacyInputSchema = "scg-v1") {
+  if (!config2.sources) {
+    return config2.scan.roots.map((root) => ({
+      root,
+      manifestNames: config2.scan.manifestNames,
+      inputSchema: legacyInputSchema
+    }));
+  }
+  const workspacePath = normalizeAbsolutePath(cwd);
+  const workspaceRealPath = await (0, import_promises3.realpath)(workspacePath);
+  const resolvedSources = [];
+  for (const [index, source] of config2.sources.entries()) {
+    const sourcePath = (0, import_node_path3.resolve)(workspacePath, source.root);
+    if (!isPathInside(workspacePath, sourcePath)) {
+      throw invalidSourceRoot(index, source.root);
+    }
+    let sourceRealPath;
+    try {
+      sourceRealPath = await (0, import_promises3.realpath)(sourcePath);
+    } catch {
+      throw new SourceConfigError(`Source root does not exist or cannot be resolved: ${toPosixPath(source.root)}`, "Create the source directory or update sources[].root.", `sources.${index}.root`);
+    }
+    if (!isPathInside(workspaceRealPath, sourceRealPath)) {
+      throw invalidSourceRoot(index, source.root);
+    }
+    resolvedSources.push({
+      root: source.root,
+      rootRealPath: sourceRealPath,
+      manifestNames: source.manifestNames,
+      inputSchema: source.inputSchema
+    });
+  }
+  const sortedSources = resolvedSources.sort((left, right) => (left.rootRealPath ?? left.root).localeCompare(right.rootRealPath ?? right.root));
+  for (let leftIndex = 0; leftIndex < sortedSources.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < sortedSources.length; rightIndex += 1) {
+      const left = sortedSources[leftIndex];
+      const right = sortedSources[rightIndex];
+      const leftRealPath = left.rootRealPath;
+      const rightRealPath = right.rootRealPath;
+      if (!isPathInside(leftRealPath, rightRealPath) && !isPathInside(rightRealPath, leftRealPath)) {
+        continue;
+      }
+      throw new SourceConfigError(`Source roots overlap after realpath resolution: ${toPosixPath(left.root)} and ${toPosixPath(right.root)}`, "Use disjoint source roots so every manifest has exactly one input schema owner.", "sources");
+    }
+  }
+  return sortedSources;
+}
+function invalidSourceRoot(index, root) {
+  return new SourceConfigError(`Source root resolves outside the workspace: ${toPosixPath(root)}`, "Use a workspace-relative source root that does not traverse through an external symlink.", `sources.${index}.root`);
 }
 
 // packages/core/dist/adapters.js
@@ -23036,11 +23250,12 @@ function parseDateOnly(value) {
 }
 
 // packages/core/dist/scan.js
-var DEFAULT_TOOL_VERSION = "0.5.18";
+var DEFAULT_TOOL_VERSION = "0.5.19";
 var DEFAULT_PARSE_CONCURRENCY = 16;
 async function compileCatalog(options = {}) {
   const cwd = options.cwd ?? process.cwd();
   const config2 = resolveCatalogConfig(options.config);
+  const sources = await resolveDiscoverySources(cwd, config2, options.inputSchema ?? "scg-v1");
   const discovery = await discoverManifestFiles({
     cwd,
     roots: config2.scan.roots,
@@ -23048,7 +23263,8 @@ async function compileCatalog(options = {}) {
     exclude: config2.scan.exclude,
     outputDirectory: config2.output.directory,
     maxManifests: options.maxManifests ?? config2.limits.maxManifests,
-    followSymlinks: options.followSymlinks ?? false
+    followSymlinks: options.followSymlinks ?? false,
+    sources
   });
   const diagnostics = [...discovery.diagnostics];
   const validatedManifests = [];
@@ -23071,7 +23287,7 @@ async function compileCatalog(options = {}) {
     if (collectionBudgetExceeded) {
       break;
     }
-    const validated = validateParsedManifest(parsed, options.inputSchema ?? "scg-v1");
+    const validated = validateParsedManifest(parsed, parsed.file.inputSchema);
     if (validated.ok) {
       validatedManifests.push(validated);
     } else {
@@ -23181,31 +23397,9 @@ function duplicateSourceHint(sourcePaths) {
   return `Use a unique service id. ${sourcePaths.length} duplicate sources: ${displayed.join(", ")}${suffix}.`.slice(0, 500);
 }
 function resolveCatalogConfig(input = {}) {
-  const defaults = CatalogConfigSchema.parse({
-    schemaVersion: CATALOG_CONFIG_SCHEMA_VERSION
-  });
   return CatalogConfigSchema.parse({
-    schemaVersion: input.schemaVersion ?? defaults.schemaVersion,
-    scan: {
-      ...defaults.scan,
-      ...input.scan
-    },
-    validation: {
-      ...defaults.validation,
-      ...input.validation
-    },
-    limits: {
-      ...defaults.limits,
-      ...input.limits
-    },
-    output: {
-      ...defaults.output,
-      ...input.output
-    },
-    privacy: {
-      ...defaults.privacy,
-      ...input.privacy
-    }
+    schemaVersion: input.schemaVersion ?? CATALOG_CONFIG_SCHEMA_VERSION,
+    ...input
   });
 }
 function resourceLimitDiagnostic(message, hint) {
@@ -23218,13 +23412,13 @@ function resourceLimitDiagnostic(message, hint) {
 }
 
 // packages/report/dist/index.js
-var import_promises4 = require("fs/promises");
-var import_node_path4 = require("path");
+var import_promises5 = require("fs/promises");
+var import_node_path5 = require("path");
 
 // packages/report/dist/generation-publisher.js
 var import_node_crypto = require("crypto");
-var import_promises3 = require("fs/promises");
-var import_node_path3 = require("path");
+var import_promises4 = require("fs/promises");
+var import_node_path4 = require("path");
 var GENERATION_MARKER = ".scg-generation.json";
 var REPORT_FILE_NAMES = /* @__PURE__ */ new Set(["catalog.json", "graph.dot", "report.html"]);
 var ReportGenerationError = class extends Error {
@@ -23236,26 +23430,26 @@ var ReportGenerationError = class extends Error {
   }
 };
 async function publishReportGeneration(options) {
-  const outputDirectory = (0, import_node_path3.resolve)(options.outputDirectory);
-  const cwdPath = (0, import_node_path3.resolve)(options.cwdPath);
+  const outputDirectory = (0, import_node_path4.resolve)(options.outputDirectory);
+  const cwdPath = (0, import_node_path4.resolve)(options.cwdPath);
   if (!isPathInside2(cwdPath, outputDirectory)) {
     throw new ReportGenerationError("Output directory resolves outside the current workspace.", "Choose an --out path inside the current workspace.");
   }
   if (outputDirectory === cwdPath || await pathsReferToSameDirectory(options.cwdRealPath, outputDirectory)) {
     throw new ReportGenerationError("The workspace root cannot be used as the report output directory.", "Choose a dedicated generated directory such as .catalog.");
   }
-  const outputParent = (0, import_node_path3.dirname)(outputDirectory);
-  await (0, import_promises3.mkdir)(outputParent, { recursive: true });
-  const outputParentRealPath = await (0, import_promises3.realpath)(outputParent);
-  const canonicalOutputDirectory = (0, import_node_path3.resolve)(outputParentRealPath, (0, import_node_path3.basename)(outputDirectory));
+  const outputParent = (0, import_node_path4.dirname)(outputDirectory);
+  await (0, import_promises4.mkdir)(outputParent, { recursive: true });
+  const outputParentRealPath = await (0, import_promises4.realpath)(outputParent);
+  const canonicalOutputDirectory = (0, import_node_path4.resolve)(outputParentRealPath, (0, import_node_path4.basename)(outputDirectory));
   if (!await isDirectoryInside(options.cwdRealPath, outputParentRealPath)) {
     throw new ReportGenerationError("Output directory resolves outside the current workspace.", "Choose an --out path inside the current workspace and avoid symlinked parent directories.");
   }
   validateGenerationFiles(options.files);
   const generationId = (0, import_node_crypto.randomUUID)();
-  const lockDirectory = (0, import_node_path3.resolve)(outputParentRealPath, `.${(0, import_node_path3.basename)(canonicalOutputDirectory)}.scg-write-lock`);
-  const stagingDirectory = (0, import_node_path3.resolve)(outputParentRealPath, `.${(0, import_node_path3.basename)(canonicalOutputDirectory)}.scg-stage-${generationId}`);
-  const backupDirectory = (0, import_node_path3.resolve)(outputParentRealPath, `.${(0, import_node_path3.basename)(canonicalOutputDirectory)}.scg-backup-${generationId}`);
+  const lockDirectory = (0, import_node_path4.resolve)(outputParentRealPath, `.${(0, import_node_path4.basename)(canonicalOutputDirectory)}.scg-write-lock`);
+  const stagingDirectory = (0, import_node_path4.resolve)(outputParentRealPath, `.${(0, import_node_path4.basename)(canonicalOutputDirectory)}.scg-stage-${generationId}`);
+  const backupDirectory = (0, import_node_path4.resolve)(outputParentRealPath, `.${(0, import_node_path4.basename)(canonicalOutputDirectory)}.scg-backup-${generationId}`);
   let ownsLock = false;
   let preserveBackup = false;
   try {
@@ -23265,16 +23459,16 @@ async function publishReportGeneration(options) {
     await writeStagingGeneration(stagingDirectory, generationId, options.files);
     await options.hooks?.beforePromote?.();
     if (!outputExists) {
-      await (0, import_promises3.rename)(stagingDirectory, canonicalOutputDirectory);
+      await (0, import_promises4.rename)(stagingDirectory, canonicalOutputDirectory);
       return canonicalOutputDirectory;
     }
-    await (0, import_promises3.rename)(canonicalOutputDirectory, backupDirectory);
+    await (0, import_promises4.rename)(canonicalOutputDirectory, backupDirectory);
     try {
       await options.hooks?.beforeInstall?.();
-      await (0, import_promises3.rename)(stagingDirectory, canonicalOutputDirectory);
+      await (0, import_promises4.rename)(stagingDirectory, canonicalOutputDirectory);
     } catch (error51) {
       try {
-        await (0, import_promises3.rename)(backupDirectory, canonicalOutputDirectory);
+        await (0, import_promises4.rename)(backupDirectory, canonicalOutputDirectory);
       } catch {
         preserveBackup = true;
         throw new ReportGenerationError("Report generation promotion failed and the previous generation could not be restored.", `Preserve and inspect ${backupDirectory}; do not remove it until the previous reports are recovered.`);
@@ -23282,7 +23476,7 @@ async function publishReportGeneration(options) {
       throw error51;
     }
     try {
-      await (0, import_promises3.rm)(backupDirectory, { force: true, recursive: true });
+      await (0, import_promises4.rm)(backupDirectory, { force: true, recursive: true });
     } catch {
       preserveBackup = true;
       throw new ReportGenerationError("The new report generation was installed, but the previous backup could not be removed.", `Inspect and remove ${backupDirectory} after confirming the new reports are complete.`);
@@ -23300,7 +23494,7 @@ async function publishReportGeneration(options) {
 }
 async function acquireLock(lockDirectory, generationId, outputDirectory) {
   try {
-    await (0, import_promises3.mkdir)(lockDirectory);
+    await (0, import_promises4.mkdir)(lockDirectory);
   } catch (error51) {
     if (isNodeError(error51, "EEXIST")) {
       throw new ReportGenerationError("Another report writer owns the output directory lock.", `Wait for the writer to finish. If it crashed, inspect and remove ${lockDirectory} before retrying.`);
@@ -23308,7 +23502,7 @@ async function acquireLock(lockDirectory, generationId, outputDirectory) {
     throw error51;
   }
   try {
-    await (0, import_promises3.writeFile)((0, import_node_path3.resolve)(lockDirectory, "owner.json"), `${JSON.stringify({
+    await (0, import_promises4.writeFile)((0, import_node_path4.resolve)(lockDirectory, "owner.json"), `${JSON.stringify({
       schemaVersion: "scg.report-write-lock/v1",
       generationId,
       pid: process.pid,
@@ -23317,15 +23511,15 @@ async function acquireLock(lockDirectory, generationId, outputDirectory) {
     }, null, 2)}
 `, { encoding: "utf8", flag: "wx" });
   } catch (error51) {
-    await (0, import_promises3.rm)(lockDirectory, { force: true, recursive: true });
+    await (0, import_promises4.rm)(lockDirectory, { force: true, recursive: true });
     throw error51;
   }
 }
 async function releaseOwnedLock(lockDirectory, generationId) {
   try {
-    const owner = JSON.parse(await (0, import_promises3.readFile)((0, import_node_path3.resolve)(lockDirectory, "owner.json"), "utf8"));
+    const owner = JSON.parse(await (0, import_promises4.readFile)((0, import_node_path4.resolve)(lockDirectory, "owner.json"), "utf8"));
     if (owner.generationId === generationId) {
-      await (0, import_promises3.rm)(lockDirectory, { force: true, recursive: true });
+      await (0, import_promises4.rm)(lockDirectory, { force: true, recursive: true });
     }
   } catch {
   }
@@ -23333,7 +23527,7 @@ async function releaseOwnedLock(lockDirectory, generationId) {
 async function validateExistingOutput(outputDirectory) {
   let stats;
   try {
-    stats = await (0, import_promises3.lstat)(outputDirectory);
+    stats = await (0, import_promises4.lstat)(outputDirectory);
   } catch (error51) {
     if (isNodeError(error51, "ENOENT")) {
       return false;
@@ -23343,7 +23537,7 @@ async function validateExistingOutput(outputDirectory) {
   if (!stats.isDirectory() || stats.isSymbolicLink()) {
     throw new ReportGenerationError("Report output path must be a regular directory owned by the workspace.", "Remove the file or symlink and choose a dedicated generated directory.");
   }
-  const entries = await (0, import_promises3.readdir)(outputDirectory);
+  const entries = await (0, import_promises4.readdir)(outputDirectory);
   const unknownEntries = entries.filter((entry) => entry !== GENERATION_MARKER && !REPORT_FILE_NAMES.has(entry));
   if (unknownEntries.length > 0) {
     throw new ReportGenerationError("Report output directory contains files that are not owned by SCG.", `Move these entries before retrying: ${unknownEntries.sort().join(", ")}`);
@@ -23355,7 +23549,7 @@ async function validateExistingOutput(outputDirectory) {
 }
 async function validateGenerationMarker(outputDirectory, entries) {
   try {
-    const marker = JSON.parse(await (0, import_promises3.readFile)((0, import_node_path3.resolve)(outputDirectory, GENERATION_MARKER), "utf8"));
+    const marker = JSON.parse(await (0, import_promises4.readFile)((0, import_node_path4.resolve)(outputDirectory, GENERATION_MARKER), "utf8"));
     const reportEntries = entries.filter((entry) => REPORT_FILE_NAMES.has(entry)).sort();
     if (marker.schemaVersion !== "scg.report-generation/v1" || typeof marker.generationId !== "string" || marker.generationId.length === 0 || !Array.isArray(marker.files) || marker.files.some((file2) => typeof file2 !== "string") || JSON.stringify([...marker.files].sort()) !== JSON.stringify(reportEntries)) {
       throw new Error("invalid generation marker");
@@ -23365,8 +23559,8 @@ async function validateGenerationMarker(outputDirectory, entries) {
   }
 }
 async function writeStagingGeneration(stagingDirectory, generationId, files) {
-  await (0, import_promises3.mkdir)(stagingDirectory);
-  await Promise.all(files.map((file2) => (0, import_promises3.writeFile)((0, import_node_path3.resolve)(stagingDirectory, file2.name), file2.contents, {
+  await (0, import_promises4.mkdir)(stagingDirectory);
+  await Promise.all(files.map((file2) => (0, import_promises4.writeFile)((0, import_node_path4.resolve)(stagingDirectory, file2.name), file2.contents, {
     encoding: "utf8",
     flag: "wx"
   })));
@@ -23375,7 +23569,7 @@ async function writeStagingGeneration(stagingDirectory, generationId, files) {
     generationId,
     files: files.map((file2) => file2.name).sort()
   };
-  await (0, import_promises3.writeFile)((0, import_node_path3.resolve)(stagingDirectory, GENERATION_MARKER), `${JSON.stringify(marker, null, 2)}
+  await (0, import_promises4.writeFile)((0, import_node_path4.resolve)(stagingDirectory, GENERATION_MARKER), `${JSON.stringify(marker, null, 2)}
 `, { encoding: "utf8", flag: "wx" });
 }
 function validateGenerationFiles(files) {
@@ -23388,15 +23582,15 @@ function validateGenerationFiles(files) {
   }
 }
 function isPathInside2(parent, child) {
-  const relation = (0, import_node_path3.relative)((0, import_node_path3.resolve)(parent), (0, import_node_path3.resolve)(child));
-  return relation === "" || relation !== ".." && !relation.startsWith(`..${import_node_path3.sep}`) && !(0, import_node_path3.isAbsolute)(relation);
+  const relation = (0, import_node_path4.relative)((0, import_node_path4.resolve)(parent), (0, import_node_path4.resolve)(child));
+  return relation === "" || relation !== ".." && !relation.startsWith(`..${import_node_path4.sep}`) && !(0, import_node_path4.isAbsolute)(relation);
 }
 function isNodeError(error51, code) {
   return error51 instanceof Error && "code" in error51 && error51.code === code;
 }
 async function pathsReferToSameDirectory(left, right) {
   try {
-    const [leftStats, rightStats] = await Promise.all([(0, import_promises3.stat)(left), (0, import_promises3.stat)(right)]);
+    const [leftStats, rightStats] = await Promise.all([(0, import_promises4.stat)(left), (0, import_promises4.stat)(right)]);
     return sameFileIdentity(leftStats, rightStats);
   } catch (error51) {
     if (isNodeError(error51, "ENOENT")) {
@@ -23406,13 +23600,13 @@ async function pathsReferToSameDirectory(left, right) {
   }
 }
 async function isDirectoryInside(parent, child) {
-  const parentStats = await (0, import_promises3.stat)(parent);
-  let current = (0, import_node_path3.resolve)(child);
+  const parentStats = await (0, import_promises4.stat)(parent);
+  let current = (0, import_node_path4.resolve)(child);
   while (true) {
-    if (sameFileIdentity(parentStats, await (0, import_promises3.stat)(current))) {
+    if (sameFileIdentity(parentStats, await (0, import_promises4.stat)(current))) {
       return true;
     }
-    const next = (0, import_node_path3.dirname)(current);
+    const next = (0, import_node_path4.dirname)(current);
     if (next === current) {
       return false;
     }
@@ -23424,7 +23618,7 @@ function sameFileIdentity(left, right) {
 }
 async function removeBestEffort(path) {
   try {
-    await (0, import_promises3.rm)(path, { force: true, recursive: true });
+    await (0, import_promises4.rm)(path, { force: true, recursive: true });
   } catch {
   }
 }
@@ -23439,10 +23633,10 @@ var ReportWriteError = class extends Error {
   }
 };
 async function writeCatalogReports(snapshot, options) {
-  const cwd = (0, import_node_path4.resolve)(options.cwd ?? process.cwd());
-  const cwdRealPath = await (0, import_promises4.realpath)(cwd);
+  const cwd = (0, import_node_path5.resolve)(options.cwd ?? process.cwd());
+  const cwdRealPath = await (0, import_promises5.realpath)(cwd);
   validateOutputDirectory(options.outputDirectory);
-  const outputDirectory = (0, import_node_path4.resolve)(cwd, options.outputDirectory);
+  const outputDirectory = (0, import_node_path5.resolve)(cwd, options.outputDirectory);
   if (!isPathInside3(cwd, outputDirectory)) {
     throwWriteError(options.outputDirectory, "Output directory resolves outside the current workspace.", "Choose an --out path inside the current workspace.");
   }
@@ -23465,13 +23659,13 @@ async function writeCatalogReports(snapshot, options) {
     });
     for (const format of formats) {
       const fileName = reportFileName(format);
-      const absolutePath = (0, import_node_path4.resolve)(outputDirectoryRealPath, fileName);
+      const absolutePath = (0, import_node_path5.resolve)(outputDirectoryRealPath, fileName);
       if (!isPathInside3(outputDirectoryRealPath, absolutePath)) {
         throwWriteError(fileName, "Report file resolves outside the output directory.", "Use a safe output format.");
       }
       files.push({
         format,
-        path: toPosixPath2((0, import_node_path4.relative)(cwdRealPath, absolutePath))
+        path: toPosixPath2((0, import_node_path5.relative)(cwdRealPath, absolutePath))
       });
     }
   } catch (error51) {
@@ -23481,7 +23675,7 @@ async function writeCatalogReports(snapshot, options) {
     if (error51 instanceof ReportGenerationError) {
       throwWriteError(options.outputDirectory, error51.message, error51.hint);
     }
-    throwWriteError(toPosixPath2((0, import_node_path4.relative)(cwd, outputDirectory)), "Report output could not be written.", "Check --out permissions and ensure the path is a writable directory.");
+    throwWriteError(toPosixPath2((0, import_node_path5.relative)(cwd, outputDirectory)), "Report output could not be written.", "Check --out permissions and ensure the path is a writable directory.");
   }
   return { files };
 }
@@ -23672,11 +23866,11 @@ function dotString(value) {
   return `"${escapeDotString(value)}"`;
 }
 function isPathInside3(parent, child) {
-  const relation = (0, import_node_path4.relative)((0, import_node_path4.resolve)(parent), (0, import_node_path4.resolve)(child));
-  return relation === "" || relation !== ".." && !relation.startsWith(`..${import_node_path4.sep}`) && !(0, import_node_path4.isAbsolute)(relation);
+  const relation = (0, import_node_path5.relative)((0, import_node_path5.resolve)(parent), (0, import_node_path5.resolve)(child));
+  return relation === "" || relation !== ".." && !relation.startsWith(`..${import_node_path5.sep}`) && !(0, import_node_path5.isAbsolute)(relation);
 }
 function toPosixPath2(path) {
-  return path.split(import_node_path4.sep).join("/");
+  return path.split(import_node_path5.sep).join("/");
 }
 function validateOutputDirectory(path) {
   if (!path || path.includes("\0") || path.includes("\r") || path.includes("\n")) {
@@ -23695,11 +23889,11 @@ function throwWriteError(file2, message, hint) {
 
 // packages/cli/dist/index.js
 var import_yaml2 = __toESM(require_dist(), 1);
-var cliVersion = "0.5.18";
+var cliVersion = "0.5.19";
 var DEFAULT_CONFIG_FILE = "scg.config.yaml";
 async function runCli(options = {}) {
   const argv = options.argv ?? process.argv.slice(2);
-  const cwd = (0, import_node_path5.resolve)(options.cwd ?? process.cwd());
+  const cwd = (0, import_node_path6.resolve)(options.cwd ?? process.cwd());
   const io = options.io ?? {
     stdout: process.stdout,
     stderr: process.stderr
@@ -23717,6 +23911,10 @@ async function runCli(options = {}) {
     const configResult = await loadConfigInput(cwd, parsed.configPath);
     if (!configResult.ok) {
       return writeCliError(io, parsed.json || parsed.summaryJson, configResult.diagnostic);
+    }
+    const sourceSelectorConflict = validateSourceSelectorConflicts(configResult.config, parsed, parsed.configPath);
+    if (sourceSelectorConflict) {
+      return writeCliError(io, parsed.json || parsed.summaryJson, sourceSelectorConflict);
     }
     const config2 = mergeCliFlags(configResult.config, parsed);
     const configDiagnosticResult = validateConfigInput(config2, parsed.configPath);
@@ -23779,6 +23977,9 @@ async function runCli(options = {}) {
     if (error51 instanceof ReportWriteError) {
       return writeCliError(io, usesJsonOutput(argv), error51.diagnostic, 4);
     }
+    if (error51 instanceof SourceConfigError) {
+      return writeCliError(io, usesJsonOutput(argv), error51.diagnostic, 2);
+    }
     return writeCliError(io, usesJsonOutput(argv), {
       severity: "error",
       code: "config.invalid",
@@ -23796,8 +23997,7 @@ function parseArgs(argv) {
     version: false,
     roots: [],
     manifestNames: [],
-    formats: [],
-    inputSchema: "scg-v1"
+    formats: []
   };
   const remaining = [...argv];
   const first = remaining[0];
@@ -23889,7 +24089,7 @@ function readFlagValue(flag, remaining) {
   return value;
 }
 async function loadConfigInput(cwd, explicitConfigPath) {
-  const configPath = explicitConfigPath ? (0, import_node_path5.resolve)(cwd, explicitConfigPath) : (0, import_node_path5.resolve)(cwd, DEFAULT_CONFIG_FILE);
+  const configPath = explicitConfigPath ? (0, import_node_path6.resolve)(cwd, explicitConfigPath) : (0, import_node_path6.resolve)(cwd, DEFAULT_CONFIG_FILE);
   if (!(0, import_node_fs.existsSync)(configPath)) {
     if (explicitConfigPath) {
       return {
@@ -23903,7 +24103,7 @@ async function loadConfigInput(cwd, explicitConfigPath) {
     };
   }
   try {
-    const source = await (0, import_promises5.readFile)(configPath, "utf8");
+    const source = await (0, import_promises6.readFile)(configPath, "utf8");
     const document = (0, import_yaml2.parseDocument)(source, {
       prettyErrors: false,
       schema: "core",
@@ -23955,12 +24155,26 @@ function mergeCliFlags(config2, parsed) {
     }
   };
 }
+function validateSourceSelectorConflicts(config2, parsed, explicitConfigPath) {
+  if (!Array.isArray(config2.sources)) {
+    return void 0;
+  }
+  const conflicts = [
+    ...parsed.roots.length > 0 ? ["--root"] : [],
+    ...parsed.manifestNames.length > 0 ? ["--manifest"] : [],
+    ...parsed.inputSchema !== void 0 ? ["--input-schema"] : []
+  ];
+  if (conflicts.length === 0) {
+    return void 0;
+  }
+  return configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, `Source-scoped config cannot be combined with ${conflicts.join(", ")}.`, "Remove legacy source selector flags and configure root, manifestNames, and inputSchema inside sources.");
+}
 function validateConfigInput(config2, explicitConfigPath) {
   try {
     resolveCatalogConfig(config2);
     return void 0;
   } catch {
-    return configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config values do not match the CLI configuration contract.", "Use schemaVersion scg.config/v1alpha1 and valid scan, validation, limits, output, and privacy fields.");
+    return configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config values do not match the CLI configuration contract.", "Use schemaVersion scg.config/v1alpha1 and valid sources, scan, validation, limits, output, and privacy fields.");
   }
 }
 function exitCodeForDiagnostics(diagnostics, failOnWarnings) {
@@ -24072,7 +24286,7 @@ function isCliEntrypoint(path) {
   return normalized.endsWith("/dist/cli/index.js") || normalized.endsWith("/packages/cli/dist/index.js") || normalized.endsWith("/packages/cli/src/index.ts");
 }
 function normalizeCliPath(path) {
-  const resolved = (0, import_node_path5.resolve)(path);
+  const resolved = (0, import_node_path6.resolve)(path);
   try {
     return (0, import_node_fs.realpathSync)(resolved).replaceAll("\\", "/");
   } catch {
@@ -24276,7 +24490,7 @@ if (process.argv[1] && isActionEntrypoint(process.argv[1])) {
   });
 }
 function isActionEntrypoint(path) {
-  const normalized = (0, import_node_path6.resolve)(path).replaceAll("\\", "/");
+  const normalized = (0, import_node_path7.resolve)(path).replaceAll("\\", "/");
   return normalized.endsWith("/dist/action/index.cjs") || normalized.endsWith("/packages/action/dist/index.cjs") || normalized.endsWith("/packages/action/src/index.ts");
 }
 // Annotate the CommonJS export names for ESM import in node:

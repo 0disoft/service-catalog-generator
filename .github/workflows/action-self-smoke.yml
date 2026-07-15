@@ -37,6 +37,22 @@ jobs:
           test -f .tmp/action-smoke/.catalog/graph.dot
           test -f .tmp/action-smoke/.catalog/report.html
 
+      - id: scg_mixed
+        uses: ./
+        with:
+          config: examples/mixed-consumer/scg.config.yaml
+          report: "true"
+          format: json
+          output-directory: .tmp/action-smoke/mixed
+
+      - name: Assert mixed source action outputs
+        run: |
+          test "${{ steps.scg_mixed.outputs.service-count }}" = "2"
+          test "${{ steps.scg_mixed.outputs.error-count }}" = "0"
+          test "${{ steps.scg_mixed.outputs.warning-count }}" = "0"
+          test "${{ steps.scg_mixed.outputs.report-directory }}" = ".tmp/action-smoke/mixed"
+          node -e "const c=require('./.tmp/action-smoke/mixed/catalog.json'); if(c.summary.edgeCount!==1) process.exit(1)"
+
       - name: Create synthetic ZDP service manifests
         run: |
           mkdir -p .tmp/action-smoke/zdp-valid/client-surfaces/zdp-web-apps

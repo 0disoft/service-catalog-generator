@@ -35,6 +35,9 @@ Owner: 0disoft
 - Version `0.5.18` added optional `validation.minimumServiceCount`. It defaults to zero, so existing
   empty-catalog behavior is unchanged. Positive values count valid normalized services after
   duplicate-id exclusion and emit `catalog.minimum_service_count` when the policy is unmet.
+- Version `0.5.19` adds optional `sources` for explicit mixed adapters. Legacy `scan.roots`,
+  `scan.manifestNames`, `--root`, `--manifest`, and `--input-schema` remain supported when `sources`
+  is absent, but are rejected when source-scoped ownership is configured.
 
 ## 1.0 Release-Candidate Checklist
 

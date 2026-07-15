@@ -107,6 +107,7 @@ describe("GitHub Action wrapper", () => {
 
     const steps = workflow.jobs["self-smoke"].steps;
     const actionStep = steps.find((step) => step.id === "scg");
+    const mixedActionStep = steps.find((step) => step.id === "scg_mixed");
     const zdpActionStep = steps.find((step) => step.id === "scg_zdp");
     const zdpWarningStep = steps.find((step) => step.id === "scg_zdp_warning");
 
@@ -140,6 +141,17 @@ describe("GitHub Action wrapper", () => {
           "input-schema": "zdp-v2",
           "allow-unknown-dependencies": "true",
           "fail-on-warning": "true"
+        }
+      })
+    );
+    expect(mixedActionStep).toEqual(
+      expect.objectContaining({
+        uses: "./",
+        with: {
+          config: "examples/mixed-consumer/scg.config.yaml",
+          report: "true",
+          format: "json",
+          "output-directory": ".tmp/action-smoke/mixed"
         }
       })
     );

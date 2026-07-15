@@ -28,6 +28,8 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 - `scan`, `check`, and `report` commands with human and JSON output.
 - Explicit `zdp-v2` adapter that preserves source-specific fields under `extensions.zdp` without
   moving ZDP policy into SCG.
+- Source-scoped mixed adapters with disjoint realpath ownership, combined dependency resolution,
+  global budgets, and deterministic source-order independence.
 
 ### Reports And Automation
 
@@ -47,8 +49,6 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 - Resolve the remaining experimental alpha-schema and resource-default decisions before the 1.0
   release candidate.
 - Maintain the pre-1.0-to-1.0 migration guide, removal rules, and deprecation window.
-- Implement accepted ADR 0013 source-scoped adapter configuration without schema autodetection,
-  including overlap and precedence errors.
 
 ### Resource And Publication Safety
 

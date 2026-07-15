@@ -57,6 +57,8 @@ top-level `files` array describing written artifacts without removing snapshot f
 
 Input schema adapters normalize existing manifest formats into the SCG catalog model. Adapter
 selection must be explicit; the CLI must not silently autodetect competing service manifest formats.
+When config defines `sources`, `--root`, `--manifest`, and `--input-schema` are configuration errors
+instead of precedence overrides. Output and validation-policy flags remain compatible.
 
 Environment variables must not change product behavior except for terminal conventions such as
 `NO_COLOR` and CI detection.

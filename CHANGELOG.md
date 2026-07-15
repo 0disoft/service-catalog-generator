@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.5.19
+
+- Added source-scoped `scg-v1` and `zdp-v2` adapters with fail-closed lexical and realpath ownership,
+  aggregate catalog policy, cross-source dependencies, and explicit legacy-selector conflicts.
+- Added a mixed synthetic consumer to source tests, packed-package smoke, and hosted Action smoke.
+
 ## 0.5.18
 
 - Added optional `validation.minimumServiceCount` policy with a zero default, fail-closed normalized

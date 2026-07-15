@@ -113,6 +113,11 @@ must normalize external records into the SCG catalog model without turning those
 contracts into the core SCG schema. Adapter-specific fields may be preserved under `extensions`, but
 policy validation remains owned by the source contract.
 
+Mixed catalogs may assign adapters through config `sources`. Every manifest has one disjoint
+workspace-contained root owner, while duplicate IDs, dependencies, graph generation, validation
+policy, and resource limits are evaluated once across the combined normalized catalog. SCG never
+autodetects a schema from YAML shape.
+
 ## CLI Contract
 
 The CLI exposes these product-level actions:

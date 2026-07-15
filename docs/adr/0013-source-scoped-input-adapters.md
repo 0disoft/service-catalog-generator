@@ -1,6 +1,6 @@
 # Source-Scoped Input Adapters
 
-Status: Accepted
+Status: Implemented
 Owner: 0disoft
 
 ## Purpose
@@ -96,13 +96,16 @@ legacy source selectors.
 Legacy mode remains supported throughout the current pre-1.0 line. Any future removal requires a
 separate deprecation decision and migration window.
 
-## Implementation Staging
+## Implementation Status
 
-This ADR accepts the design before runtime support lands. The decision fixtures under
-`tests/contract/fixtures/source-config` are acceptance inputs, not currently supported user
-configuration. Until the implementation commit updates the production schema, CLI, core, Action
-tests, and documentation together, `CatalogConfigSchema` and the CLI must continue to reject
-`sources` as `config.invalid`.
+Runtime support is implemented in the public config schema, core source resolver, discovery
+ownership metadata, CLI conflict handling, and Action-to-CLI propagation. The decision fixtures
+under `tests/contract/fixtures/source-config` are enforced by contract tests. Realpath overlap,
+source-order determinism, aggregate policy, cross-source dependencies, and duplicate IDs are
+covered by `tests/core/source-scoped-adapters.test.ts`.
+
+The source-scoped surface remains experimental while the package is pre-1.0. Compatibility changes
+must retain the explicit adapter and disjoint-root guarantees in this ADR.
 
 ## Consequences
 

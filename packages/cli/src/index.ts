@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import {
   compileCatalog,
   resolveCatalogConfig,
+  SourceConfigError,
   type CatalogConfigInput,
   type CorePackageBoundary,
   type InputSchema
@@ -58,7 +59,7 @@ type ParsedArgs = {
   out?: string;
   failOnWarnings?: boolean;
   allowUnknownDependencies?: boolean;
-  inputSchema: InputSchema;
+  inputSchema?: InputSchema;
 };
 
 type CliDiagnostic = {
@@ -95,6 +96,15 @@ export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> 
     const configResult = await loadConfigInput(cwd, parsed.configPath);
     if (!configResult.ok) {
       return writeCliError(io, parsed.json || parsed.summaryJson, configResult.diagnostic);
+    }
+
+    const sourceSelectorConflict = validateSourceSelectorConflicts(
+      configResult.config,
+      parsed,
+      parsed.configPath
+    );
+    if (sourceSelectorConflict) {
+      return writeCliError(io, parsed.json || parsed.summaryJson, sourceSelectorConflict);
     }
 
     const config = mergeCliFlags(configResult.config, parsed);
@@ -188,6 +198,10 @@ export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> 
       return writeCliError(io, usesJsonOutput(argv), error.diagnostic, 4);
     }
 
+    if (error instanceof SourceConfigError) {
+      return writeCliError(io, usesJsonOutput(argv), error.diagnostic, 2);
+    }
+
     return writeCliError(
       io,
       usesJsonOutput(argv),
@@ -211,8 +225,7 @@ function parseArgs(argv: string[]): ParsedArgs {
     version: false,
     roots: [],
     manifestNames: [],
-    formats: [],
-    inputSchema: "scg-v1"
+    formats: []
   };
 
   const remaining = [...argv];
@@ -421,6 +434,31 @@ function mergeCliFlags(config: CatalogConfigInput, parsed: ParsedArgs): CatalogC
   };
 }
 
+function validateSourceSelectorConflicts(
+  config: CatalogConfigInput,
+  parsed: ParsedArgs,
+  explicitConfigPath: string | undefined
+): CliDiagnostic | undefined {
+  if (!Array.isArray(config.sources)) {
+    return undefined;
+  }
+
+  const conflicts = [
+    ...(parsed.roots.length > 0 ? ["--root"] : []),
+    ...(parsed.manifestNames.length > 0 ? ["--manifest"] : []),
+    ...(parsed.inputSchema !== undefined ? ["--input-schema"] : [])
+  ];
+  if (conflicts.length === 0) {
+    return undefined;
+  }
+
+  return configDiagnostic(
+    explicitConfigPath ?? DEFAULT_CONFIG_FILE,
+    `Source-scoped config cannot be combined with ${conflicts.join(", ")}.`,
+    "Remove legacy source selector flags and configure root, manifestNames, and inputSchema inside sources."
+  );
+}
+
 function validateConfigInput(
   config: CatalogConfigInput,
   explicitConfigPath: string | undefined
@@ -432,7 +470,7 @@ function validateConfigInput(
     return configDiagnostic(
       explicitConfigPath ?? DEFAULT_CONFIG_FILE,
       "Config values do not match the CLI configuration contract.",
-      "Use schemaVersion scg.config/v1alpha1 and valid scan, validation, limits, output, and privacy fields."
+      "Use schemaVersion scg.config/v1alpha1 and valid sources, scan, validation, limits, output, and privacy fields."
     );
   }
 }

@@ -11,7 +11,13 @@ export {
   type CatalogSnapshot,
   type GraphEdge
 } from "./catalog.js";
-export { CatalogConfigSchema, type CatalogConfig } from "./config.js";
+export {
+  CatalogConfigSchema,
+  CatalogInputSchemaSchema,
+  type CatalogConfig,
+  type CatalogConfigInput,
+  type CatalogInputSchema
+} from "./config.js";
 export { DiagnosticSchema, type Diagnostic } from "./diagnostic.js";
 export {
   CostRefSchema,

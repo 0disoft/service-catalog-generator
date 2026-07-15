@@ -232,6 +232,67 @@ describe("scg CLI", () => {
     });
   });
 
+  it("compiles source-scoped adapters without legacy selector flags", async () => {
+    const workspace = await createWorkspace();
+    await writeManifest(workspace, "native/billing/service.yaml", serviceYaml("billing-api"));
+    await writeManifest(workspace, "zdp/runtime/service.yaml", zdpV2ServiceYaml());
+    await writeSourceConfig(workspace);
+    const io = createIo();
+
+    const exitCode = await runCli({ argv: ["check", "--json"], cwd: workspace, io });
+    const snapshot = JSON.parse(io.stdoutText());
+
+    expect(exitCode).toBe(0);
+    expect(snapshot.summary).toMatchObject({ serviceCount: 2, errorCount: 0 });
+  });
+
+  it("rejects CLI source selectors when sources are configured", async () => {
+    const workspace = await createWorkspace();
+    await writeSourceConfig(workspace);
+
+    for (const selector of [
+      ["--root", "native"],
+      ["--manifest", "service.yaml"],
+      ["--input-schema", "scg-v1"]
+    ]) {
+      const io = createIo();
+      const exitCode = await runCli({
+        argv: ["check", "--json", ...selector],
+        cwd: workspace,
+        io
+      });
+      const payload = JSON.parse(io.stderrText());
+
+      expect(exitCode, selector[0]).toBe(2);
+      expect(payload.diagnostics[0], selector[0]).toMatchObject({ code: "config.invalid" });
+      expect(payload.diagnostics[0].message, selector[0]).toContain(selector[0]);
+    }
+  });
+
+  it("returns exit code 2 when a configured source root cannot be resolved", async () => {
+    const workspace = await createWorkspace();
+    await writeFile(
+      join(workspace, "scg.config.yaml"),
+      [
+        "schemaVersion: scg.config/v1alpha1",
+        "sources:",
+        "  - root: missing",
+        "    inputSchema: scg-v1"
+      ].join("\n"),
+      "utf8"
+    );
+    const io = createIo();
+
+    const exitCode = await runCli({ argv: ["check", "--json"], cwd: workspace, io });
+    const payload = JSON.parse(io.stderrText());
+
+    expect(exitCode).toBe(2);
+    expect(payload.diagnostics[0]).toMatchObject({
+      code: "config.invalid",
+      field: "sources.0.root"
+    });
+  });
+
   it("returns exit code 2 for unsupported input schemas", async () => {
     const workspace = await createWorkspace();
     const io = createIo();
@@ -539,6 +600,23 @@ async function writeManifest(
   const absolutePath = join(workspace, relativePath);
   await mkdir(dirname(absolutePath), { recursive: true });
   await writeFile(absolutePath, contents, "utf8");
+}
+
+async function writeSourceConfig(workspace: string): Promise<void> {
+  await writeFile(
+    join(workspace, "scg.config.yaml"),
+    [
+      "schemaVersion: scg.config/v1alpha1",
+      "sources:",
+      "  - root: native",
+      "    inputSchema: scg-v1",
+      "  - root: zdp",
+      "    inputSchema: zdp-v2",
+      "validation:",
+      "  minimumServiceCount: 2"
+    ].join("\n"),
+    "utf8"
+  );
 }
 
 function serviceYaml(

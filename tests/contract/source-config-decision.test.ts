@@ -102,10 +102,16 @@ describe("source-scoped adapter decision fixtures", () => {
     }
   });
 
-  it("keeps source-scoped config rejected until the production implementation lands", async () => {
-    const value = await readYamlFixture("valid-mixed-sources.yaml");
+  it("enforces the accepted static source-scoped config decisions", async () => {
+    const cases = await readCases();
 
-    expect(CatalogConfigSchema.safeParse(value).success).toBe(false);
+    for (const testCase of cases) {
+      const value = await readYamlFixture(testCase.file);
+      const result = CatalogConfigSchema.safeParse(value);
+      expect(result.success, `${testCase.file}: ${testCase.reason}`).toBe(
+        testCase.expected === "valid"
+      );
+    }
   });
 
   it("records ownership, aggregation, migration, and implementation staging in the ADR", async () => {
@@ -115,6 +121,6 @@ describe("source-scoped adapter decision fixtures", () => {
     expect(adr).toContain("realpath resolution");
     expect(adr).toContain("Cross-source dependencies");
     expect(adr).toContain("Legacy mode remains supported");
-    expect(adr).toContain("must continue to reject");
+    expect(adr).toContain("Status: Implemented");
   });
 });

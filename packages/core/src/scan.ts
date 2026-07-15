@@ -12,6 +12,7 @@ import { buildGraphEdges } from "./graph.js";
 import { normalizeServiceRecord, sortServiceRecords } from "./normalizer.js";
 import { parseManifestFile } from "./parser.js";
 import { serializedByteLength } from "./resource-policy.js";
+import { resolveDiscoverySources } from "./source-config.js";
 import type { CatalogConfigInput, CompileCatalogOptions, CompileCatalogResult } from "./types.js";
 import {
   minimumServiceCountDiagnostic,
@@ -28,6 +29,7 @@ export async function compileCatalog(
 ): Promise<CompileCatalogResult> {
   const cwd = options.cwd ?? process.cwd();
   const config = resolveCatalogConfig(options.config);
+  const sources = await resolveDiscoverySources(cwd, config, options.inputSchema ?? "scg-v1");
   const discovery = await discoverManifestFiles({
     cwd,
     roots: config.scan.roots,
@@ -35,7 +37,8 @@ export async function compileCatalog(
     exclude: config.scan.exclude,
     outputDirectory: config.output.directory,
     maxManifests: options.maxManifests ?? config.limits.maxManifests,
-    followSymlinks: options.followSymlinks ?? false
+    followSymlinks: options.followSymlinks ?? false,
+    sources
   });
   const diagnostics: Diagnostic[] = [...discovery.diagnostics];
   const validatedManifests = [];
@@ -84,7 +87,7 @@ export async function compileCatalog(
     if (collectionBudgetExceeded) {
       break;
     }
-    const validated = validateParsedManifest(parsed, options.inputSchema ?? "scg-v1");
+    const validated = validateParsedManifest(parsed, parsed.file.inputSchema);
     if (validated.ok) {
       validatedManifests.push(validated);
     } else {
@@ -266,32 +269,9 @@ function duplicateSourceHint(sourcePaths: string[]): string {
 }
 
 export function resolveCatalogConfig(input: CatalogConfigInput = {}): CatalogConfig {
-  const defaults = CatalogConfigSchema.parse({
-    schemaVersion: CATALOG_CONFIG_SCHEMA_VERSION
-  });
-
   return CatalogConfigSchema.parse({
-    schemaVersion: input.schemaVersion ?? defaults.schemaVersion,
-    scan: {
-      ...defaults.scan,
-      ...input.scan
-    },
-    validation: {
-      ...defaults.validation,
-      ...input.validation
-    },
-    limits: {
-      ...defaults.limits,
-      ...input.limits
-    },
-    output: {
-      ...defaults.output,
-      ...input.output
-    },
-    privacy: {
-      ...defaults.privacy,
-      ...input.privacy
-    }
+    schemaVersion: input.schemaVersion ?? CATALOG_CONFIG_SCHEMA_VERSION,
+    ...input
   });
 }
 

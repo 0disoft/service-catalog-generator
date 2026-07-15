@@ -8,7 +8,8 @@ import {
   relativePathFrom,
   toPosixPath
 } from "./path-policy.js";
-import type { DiscoveredManifest } from "./types.js";
+import type { DiscoveredManifest, InputSchema } from "./types.js";
+import type { ResolvedDiscoverySource } from "./source-config.js";
 
 const DEFAULT_EXCLUDE_PATTERNS = [
   ".git/**",
@@ -26,6 +27,8 @@ export type DiscoverManifestOptions = {
   outputDirectory: string;
   maxManifests: number;
   followSymlinks: boolean;
+  inputSchema?: InputSchema;
+  sources?: ResolvedDiscoverySource[];
 };
 
 export type DiscoverManifestResult = {
@@ -42,16 +45,24 @@ export async function discoverManifestFiles(
   const manifests: DiscoveredManifest[] = [];
   const visitedDirectories = new Set<string>();
 
-  for (const root of options.roots) {
-    const rootPath = resolve(cwd, root);
+  const sources: ResolvedDiscoverySource[] =
+    options.sources ??
+    options.roots.map((root) => ({
+      root,
+      manifestNames: options.manifestNames,
+      inputSchema: options.inputSchema ?? "scg-v1"
+    }));
+
+  for (const source of sources) {
+    const rootPath = resolve(cwd, source.root);
     if (!isPathInside(cwd, rootPath)) {
-      diagnostics.push(outsideScanRootDiagnostic(toPosixPath(root)));
+      diagnostics.push(outsideScanRootDiagnostic(toPosixPath(source.root)));
       continue;
     }
 
-    const rootRealPath = await safeRealpath(rootPath);
+    const rootRealPath = source.rootRealPath ?? (await safeRealpath(rootPath));
     if (!rootRealPath || !isPathInside(cwdRealPath, rootRealPath)) {
-      diagnostics.push(outsideScanRootDiagnostic(toPosixPath(root)));
+      diagnostics.push(outsideScanRootDiagnostic(toPosixPath(source.root)));
       continue;
     }
     const excludeRules = createExcludeRules(
@@ -65,7 +76,8 @@ export async function discoverManifestFiles(
       directory: rootRealPath,
       rootRealPath,
       cwdRealPath,
-      manifestNames: new Set(options.manifestNames),
+      manifestNames: new Set(source.manifestNames),
+      inputSchema: source.inputSchema,
       excludeRules,
       followSymlinks: options.followSymlinks,
       maxManifests: options.maxManifests,
@@ -86,6 +98,7 @@ type WalkState = {
   rootRealPath: string;
   cwdRealPath: string;
   manifestNames: Set<string>;
+  inputSchema: InputSchema;
   excludeRules: ExcludeRule[];
   followSymlinks: boolean;
   maxManifests: number;
@@ -143,14 +156,16 @@ async function walkDirectory(state: WalkState): Promise<void> {
     }
 
     if (state.manifests.length >= state.maxManifests) {
-      state.diagnostics.push(
-        createDiagnostic({
-          severity: "error",
-          code: "config.invalid",
-          message: "Manifest count exceeds the configured scan limit.",
-          hint: "Narrow scan.roots or raise the manifest count limit."
-        })
-      );
+      if (!state.diagnostics.some(isManifestLimitDiagnostic)) {
+        state.diagnostics.push(
+          createDiagnostic({
+            severity: "error",
+            code: "config.invalid",
+            message: "Manifest count exceeds the configured scan limit.",
+            hint: "Narrow scan.roots or raise the manifest count limit."
+          })
+        );
+      }
       return;
     }
 
@@ -165,9 +180,17 @@ async function walkDirectory(state: WalkState): Promise<void> {
       realPath: fileRealPath,
       relativePath: relativeToCwd,
       rootRealPath: state.rootRealPath,
-      sizeBytes: entryStats.size
+      sizeBytes: entryStats.size,
+      inputSchema: state.inputSchema
     });
   }
+}
+
+function isManifestLimitDiagnostic(diagnostic: Diagnostic): boolean {
+  return (
+    diagnostic.code === "config.invalid" &&
+    diagnostic.message === "Manifest count exceeds the configured scan limit."
+  );
 }
 
 type ExcludeRule = {

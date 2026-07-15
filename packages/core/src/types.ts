@@ -1,5 +1,6 @@
 import type {
   CatalogConfig,
+  CatalogConfigInput as SchemaCatalogConfigInput,
   CatalogSnapshot,
   DependencyRef,
   Diagnostic,
@@ -8,15 +9,9 @@ import type {
   ServiceRecord
 } from "@scg/schema";
 
-export type InputSchema = "scg-v1" | "zdp-v2";
-
-export type CatalogConfigInput = {
+export type InputSchema = import("@scg/schema").CatalogInputSchema;
+export type CatalogConfigInput = Omit<SchemaCatalogConfigInput, "schemaVersion"> & {
   schemaVersion?: CatalogConfig["schemaVersion"];
-  scan?: Partial<CatalogConfig["scan"]>;
-  validation?: Partial<CatalogConfig["validation"]>;
-  limits?: Partial<CatalogConfig["limits"]>;
-  output?: Partial<CatalogConfig["output"]>;
-  privacy?: Partial<CatalogConfig["privacy"]>;
 };
 
 export type CompileCatalogOptions = {
@@ -37,6 +32,7 @@ export type DiscoveredManifest = {
   relativePath: string;
   rootRealPath: string;
   sizeBytes: number;
+  inputSchema: InputSchema;
 };
 
 export type ParsedManifest =

@@ -5,6 +5,7 @@ export { parseManifestFile } from "./parser.js";
 export { normalizeServiceRecord, sortServiceRecords } from "./normalizer.js";
 export { buildGraphEdges, sortGraphEdges } from "./graph.js";
 export { createDiagnostic, sortDiagnostics, summarizeDiagnostics } from "./diagnostics.js";
+export { CatalogConfigError, configIssueToDiagnostic } from "./config-diagnostics.js";
 export { SourceConfigError, resolveDiscoverySources } from "./source-config.js";
 export { redactOwnerRef, redactSecretLikeValue, stripAnsiAndControl } from "./redaction.js";
 export type {

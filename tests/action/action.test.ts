@@ -302,6 +302,39 @@ describe("GitHub Action wrapper", () => {
     expect(io.stderrText()).toContain("--root");
   });
 
+  it("propagates precise config schema diagnostics without fabricating outputs", async () => {
+    const workspace = await createWorkspace();
+    await writeFile(
+      join(workspace, "scg.config.yaml"),
+      [
+        "schemaVersion: scg.config/v1alpha1",
+        "sources:",
+        "  - root: services",
+        "    inputSchema: private-adapter"
+      ].join("\n"),
+      "utf8"
+    );
+    const outputs = new Map<string, string>();
+    const io = createIo();
+
+    const exitCode = await runAction({
+      cwd: workspace,
+      env: {
+        GITHUB_WORKSPACE: workspace,
+        INPUT_CONFIG: "scg.config.yaml"
+      },
+      stdout: io.stdout,
+      stderr: io.stderr,
+      writeOutput: (name, value) => outputs.set(name, value)
+    });
+
+    expect(exitCode).toBe(2);
+    expect(outputs.size).toBe(0);
+    expect(io.stderrText()).toContain('"field": "sources.0.inputSchema"');
+    expect(io.stderrText()).toContain("Input schema adapter is unsupported.");
+    expect(io.stderrText()).not.toContain("private-adapter");
+  });
+
   it("enforces minimum service count policy from the config input", async () => {
     const workspace = await createWorkspace();
     await writeManifest(workspace, "services/billing/service.yaml", serviceYaml("billing-api"));

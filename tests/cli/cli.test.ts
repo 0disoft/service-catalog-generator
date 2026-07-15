@@ -400,8 +400,93 @@ describe("scg CLI", () => {
     expect(exitCode).toBe(2);
     expect(error.diagnostics[0]).toMatchObject({
       code: "config.invalid",
-      file: "scg.config.yaml"
+      file: "scg.config.yaml",
+      field: "schemaVersion",
+      message: "Config schemaVersion is unsupported.",
+      hint: "Use schemaVersion scg.config/v1alpha1."
     });
+  });
+
+  it.each([
+    {
+      name: "unsupported source adapter",
+      yaml: [
+        "schemaVersion: scg.config/v1alpha1",
+        "sources:",
+        "  - root: services",
+        "    inputSchema: private-adapter"
+      ],
+      field: "sources.0.inputSchema",
+      message: "Input schema adapter is unsupported.",
+      hint: "Use scg-v1 or zdp-v2."
+    },
+    {
+      name: "overlapping source roots",
+      yaml: [
+        "schemaVersion: scg.config/v1alpha1",
+        "sources:",
+        "  - root: services",
+        "    inputSchema: scg-v1",
+        "  - root: services/legacy",
+        "    inputSchema: zdp-v2"
+      ],
+      field: "sources.1.root",
+      message: "Source root overlaps sources.0.root after lexical normalization.",
+      hint: "Use non-overlapping workspace-relative source roots."
+    },
+    {
+      name: "legacy source selector",
+      yaml: [
+        "schemaVersion: scg.config/v1alpha1",
+        "sources:",
+        "  - root: services",
+        "    inputSchema: scg-v1",
+        "scan:",
+        "  roots:",
+        "    - services"
+      ],
+      field: "scan.roots",
+      message: "scan.roots cannot be combined with sources.",
+      hint: "Remove legacy scan selectors when sources is configured."
+    },
+    {
+      name: "empty manifest names",
+      yaml: [
+        "schemaVersion: scg.config/v1alpha1",
+        "sources:",
+        "  - root: services",
+        "    inputSchema: scg-v1",
+        "    manifestNames: []"
+      ],
+      field: "sources.0.manifestNames",
+      message: "manifestNames must contain at least one filename.",
+      hint: "Provide at least one non-empty manifest filename or omit manifestNames for service.yaml."
+    },
+    {
+      name: "unknown validation key",
+      yaml: ["schemaVersion: scg.config/v1alpha1", "validation:", "  unknownPolicy: true"],
+      field: "validation.unknownPolicy",
+      message: "Config field validation.unknownPolicy is not supported.",
+      hint: "Remove unsupported config fields; the config schema is strict."
+    }
+  ])("returns a precise config diagnostic for $name", async ({ yaml, field, message, hint }) => {
+    const workspace = await createWorkspace();
+    await writeFile(join(workspace, "scg.config.yaml"), yaml.join("\n"), "utf8");
+    const io = createIo();
+
+    const exitCode = await runCli({ argv: ["check", "--json"], cwd: workspace, io });
+    const payload = JSON.parse(io.stderrText());
+
+    expect(exitCode).toBe(2);
+    expect(payload.diagnostics[0]).toEqual({
+      severity: "error",
+      code: "config.invalid",
+      file: "scg.config.yaml",
+      field,
+      message,
+      hint
+    });
+    expect(io.stderrText()).not.toContain("private-adapter");
   });
 
   it("enforces the configured minimum normalized service count", async () => {

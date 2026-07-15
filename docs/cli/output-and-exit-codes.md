@@ -66,6 +66,11 @@ Initial stable diagnostic codes include:
 - `output.write_failed`;
 - `config.invalid`.
 
+Config schema failures use `config.invalid` with the config file and the first failing field path,
+such as `sources.1.root`, `sources.0.inputSchema`, or `scan.roots`. Messages and hints describe the
+contract and remediation without echoing raw config values. This keeps CLI and GitHub Action errors
+useful without turning untrusted config content into log output.
+
 ## JSON Output Shape
 
 ```json

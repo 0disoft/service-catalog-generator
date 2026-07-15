@@ -7,6 +7,7 @@ import {
   type Diagnostic
 } from "@scg/schema";
 import { discoverManifestFiles } from "./discovery.js";
+import { CatalogConfigError } from "./config-diagnostics.js";
 import { sortDiagnostics, summarizeDiagnostics } from "./diagnostics.js";
 import { buildGraphEdges } from "./graph.js";
 import { normalizeServiceRecord, sortServiceRecords } from "./normalizer.js";
@@ -269,10 +270,14 @@ function duplicateSourceHint(sourcePaths: string[]): string {
 }
 
 export function resolveCatalogConfig(input: CatalogConfigInput = {}): CatalogConfig {
-  return CatalogConfigSchema.parse({
+  const result = CatalogConfigSchema.safeParse({
     schemaVersion: input.schemaVersion ?? CATALOG_CONFIG_SCHEMA_VERSION,
     ...input
   });
+  if (!result.success) {
+    throw new CatalogConfigError(result.error.issues[0]);
+  }
+  return result.data;
 }
 
 function resourceLimitDiagnostic(message: string, hint: string): Diagnostic {

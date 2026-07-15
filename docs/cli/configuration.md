@@ -107,6 +107,11 @@ With `sources`, do not configure `scan.roots` or `scan.manifestNames`, and do no
 override source ownership. Global excludes, validation policy, limits, output, and privacy settings
 still apply once to the combined catalog.
 
+Invalid source configuration exits with code 2 and a `config.invalid` diagnostic whose `field`
+identifies the first rejected config path. Unsupported adapter values, overlapping roots, legacy
+selector conflicts, empty manifest names, and strict unknown keys do not echo their raw values into
+CLI or Action logs.
+
 Environment variables must not override catalog semantics. `NO_COLOR` may affect terminal color and
 `CI` may affect human-output defaults, but neither may change validation policy.
 

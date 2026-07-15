@@ -3,6 +3,7 @@ import { existsSync, realpathSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import {
+  CatalogConfigError,
   compileCatalog,
   resolveCatalogConfig,
   SourceConfigError,
@@ -200,6 +201,10 @@ export async function runCli(options: RunCliOptions = {}): Promise<CliExitCode> 
 
     if (error instanceof SourceConfigError) {
       return writeCliError(io, usesJsonOutput(argv), error.diagnostic, 2);
+    }
+
+    if (error instanceof CatalogConfigError) {
+      return writeCliError(io, usesJsonOutput(argv), withConfigFile(error.diagnostic), 2);
     }
 
     return writeCliError(
@@ -466,13 +471,23 @@ function validateConfigInput(
   try {
     resolveCatalogConfig(config);
     return undefined;
-  } catch {
+  } catch (error) {
+    if (error instanceof CatalogConfigError) {
+      return withConfigFile(error.diagnostic, explicitConfigPath);
+    }
     return configDiagnostic(
       explicitConfigPath ?? DEFAULT_CONFIG_FILE,
       "Config values do not match the CLI configuration contract.",
       "Use schemaVersion scg.config/v1alpha1 and valid sources, scan, validation, limits, output, and privacy fields."
     );
   }
+}
+
+function withConfigFile(diagnostic: CliDiagnostic, explicitConfigPath?: string): CliDiagnostic {
+  return {
+    ...diagnostic,
+    file: explicitConfigPath ?? DEFAULT_CONFIG_FILE
+  };
 }
 
 function exitCodeForDiagnostics(

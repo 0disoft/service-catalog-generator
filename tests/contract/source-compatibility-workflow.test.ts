@@ -28,8 +28,14 @@ describe("source compatibility workflow contract", () => {
     });
     expect(job?.["runs-on"]).toBe("${{ matrix.os }}");
     expect(job?.["timeout-minutes"]).toBe(10);
-    expect(job?.steps.map((step) => step.run).filter(Boolean)).toContain(
-      "pnpm exec vitest run tests/core/source-scoped-adapters.test.ts tests/core/source-scoped-compatibility.test.ts"
-    );
+    const commands = job?.steps
+      .map((step) => step.run)
+      .filter((run): run is string => Boolean(run));
+    const focusedTestCommand =
+      "pnpm exec vitest run tests/core/source-scoped-adapters.test.ts tests/core/source-scoped-compatibility.test.ts";
+
+    expect(commands).toContain("pnpm run build");
+    expect(commands).toContain(focusedTestCommand);
+    expect(commands?.indexOf("pnpm run build")).toBeLessThan(commands?.indexOf(focusedTestCommand));
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "@0disoft/service-catalog-generator",
-  "version": "0.5.20",
+  "version": "0.5.21",
   "description": "Read-only service.yaml compiler and linter for deterministic service catalog artifacts.",
   "license": "Apache-2.0",
   "type": "module",
@@ -53,9 +53,9 @@
     "check": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run contract && pnpm run smoke && pnpm run docs && pnpm run recovery-drill && pnpm run secret-scan && pnpm run dependency-audit"
   },
   "devDependencies": {
-    "@types/node": "26.1.0",
-    "oxfmt": "0.58.0",
-    "oxlint": "1.73.0",
+    "@types/node": "26.1.1",
+    "oxfmt": "0.59.0",
+    "oxlint": "1.74.0",
     "tsup": "8.5.1",
     "typescript": "6.0.3",
     "vitest": "4.1.10"

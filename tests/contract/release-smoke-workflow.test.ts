@@ -115,6 +115,7 @@ describe("release smoke workflow contract", () => {
     expect(registrySmokeText).toContain('join(root, "examples", "native-consumer")');
     expect(registrySmokeText).toContain('join(root, "examples", "mixed-consumer")');
     expect(registrySmokeText).toContain('edge.resolution === "catalog"');
+    expect(registrySmokeText).toContain('["completion", "powershell"]');
   });
 
   it("pins Actions, checks out the release commit, and does not persist credentials", () => {

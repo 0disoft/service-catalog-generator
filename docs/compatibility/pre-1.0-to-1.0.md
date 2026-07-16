@@ -41,6 +41,9 @@ Owner: 0disoft
 - Version `0.5.20` adds precise `field`, `message`, and `hint` values to config schema diagnostics.
   Consumers should continue to key automation on `config.invalid` and exit code 2 rather than human
   wording.
+- Version `0.5.21` rejects `manifestNames` entries containing path separators and config files above
+  1 MiB. Replace path-like entries with a filename plus the correct source root before upgrading.
+  The release also adds the compatible `completion` command.
 
 ## 1.0 Release-Candidate Checklist
 

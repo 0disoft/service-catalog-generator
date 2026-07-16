@@ -52,6 +52,11 @@ try {
   );
   assert(existsSync(binPath), "published package must install the scg binary shim");
   assert(runInstalledCli(binPath, workspace, ["--version"]) === version, "CLI version mismatch");
+  const completion = runInstalledCli(binPath, workspace, ["completion", "powershell"]);
+  assert(
+    completion.includes("Register-ArgumentCompleter -Native -CommandName scg"),
+    "published CLI must generate PowerShell completion"
+  );
 
   await cp(join(root, "examples", "native-consumer"), workspace, { recursive: true });
   runInstalledCli(binPath, workspace, ["report", "--config", "scg.config.yaml", "--no-color"]);

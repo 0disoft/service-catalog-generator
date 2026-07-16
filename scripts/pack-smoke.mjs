@@ -50,6 +50,11 @@ try {
   assert(existsSync(binPath), "installed tarball must expose the scg binary shim");
   const version = runInstalledCli(binPath, installDirectory, ["--version"]);
   assert(version === packageJson.version, `installed CLI version mismatch: ${version}`);
+  const completion = runInstalledCli(binPath, installDirectory, ["completion", "powershell"]);
+  assert(
+    completion.includes("Register-ArgumentCompleter -Native -CommandName scg"),
+    "installed CLI must generate PowerShell completion"
+  );
 
   await cp(join(root, "examples", "native-consumer"), installDirectory, { recursive: true });
 

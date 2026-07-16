@@ -22,7 +22,7 @@ import { cliCommandDefinitions, cliFlagDefinitions } from "./command-metadata.js
 import { isCompletionShell, renderCompletion } from "./completion.js";
 
 export const packageName = "@scg/cli";
-export const cliVersion = "0.5.20";
+export const cliVersion = "0.5.21";
 
 export type CliPackageBoundary =
   | "commands"

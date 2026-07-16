@@ -22181,17 +22181,18 @@ var DEFAULT_EXCLUDE = [
   ".catalog/**"
 ];
 var CatalogInputSchemaSchema = external_exports.enum(["scg-v1", "zdp-v2"]);
+var ManifestNameSchema = external_exports.string().trim().min(1).refine(isManifestFileName, "Manifest names must be filenames without path separators.");
 var CatalogSourceSchema = external_exports.object({
   root: external_exports.string().trim().min(1),
   inputSchema: CatalogInputSchemaSchema,
-  manifestNames: external_exports.array(external_exports.string().trim().min(1)).min(1).optional()
+  manifestNames: external_exports.array(ManifestNameSchema).min(1).optional()
 }).strict();
 var RawCatalogConfigSchema = external_exports.object({
   schemaVersion: external_exports.literal(CATALOG_CONFIG_SCHEMA_VERSION),
   sources: external_exports.array(CatalogSourceSchema).min(1).optional(),
   scan: external_exports.object({
     roots: external_exports.array(external_exports.string().min(1)).optional(),
-    manifestNames: external_exports.array(external_exports.string().min(1)).optional(),
+    manifestNames: external_exports.array(ManifestNameSchema).optional(),
     exclude: external_exports.array(external_exports.string().min(1)).optional()
   }).strict().optional(),
   validation: external_exports.object({
@@ -22248,19 +22249,18 @@ var RawCatalogConfigSchema = external_exports.object({
     }
     normalizedRoots.push({ index, root: normalizedRoot });
   }
-  for (let leftIndex = 0; leftIndex < normalizedRoots.length; leftIndex += 1) {
-    for (let rightIndex = leftIndex + 1; rightIndex < normalizedRoots.length; rightIndex += 1) {
-      const left = normalizedRoots[leftIndex];
-      const right = normalizedRoots[rightIndex];
-      if (!sourceRootsOverlap(left.root, right.root)) {
-        continue;
-      }
-      context.addIssue({
-        code: "custom",
-        path: ["sources", right.index, "root"],
-        message: `Source root overlaps sources.${left.index}.root after lexical normalization.`
-      });
+  const sortedRoots = normalizedRoots.sort((left, right) => comparePathHierarchy(left.root, right.root) || left.index - right.index);
+  for (let index = 1; index < sortedRoots.length; index += 1) {
+    const left = sortedRoots[index - 1];
+    const right = sortedRoots[index];
+    if (!sourceRootsOverlap(left.root, right.root)) {
+      continue;
     }
+    context.addIssue({
+      code: "custom",
+      path: ["sources", right.index, "root"],
+      message: `Source root overlaps sources.${left.index}.root after lexical normalization.`
+    });
   }
 });
 var NormalizedCatalogConfigSchema = external_exports.object({
@@ -22366,8 +22366,23 @@ function normalizeRelativeSourceRoot(root) {
   }
   return segments.join("/") || ".";
 }
+function isManifestFileName(value) {
+  return value !== "." && value !== ".." && !value.includes("/") && !value.includes("\\");
+}
 function sourceRootsOverlap(left, right) {
   return left === "." || right === "." || left === right || left.startsWith(`${right}/`) || right.startsWith(`${left}/`);
+}
+function comparePathHierarchy(left, right) {
+  const leftSegments = left === "." ? [] : left.split("/");
+  const rightSegments = right === "." ? [] : right.split("/");
+  const sharedLength = Math.min(leftSegments.length, rightSegments.length);
+  for (let index = 0; index < sharedLength; index += 1) {
+    if (leftSegments[index] === rightSegments[index]) {
+      continue;
+    }
+    return leftSegments[index] < rightSegments[index] ? -1 : 1;
+  }
+  return leftSegments.length - rightSegments.length;
 }
 
 // packages/core/dist/discovery.js
@@ -22765,7 +22780,7 @@ function configIssueHint(issue2, field) {
   if (issue2.code === "unrecognized_keys") {
     return "Remove unsupported config fields; the config schema is strict.";
   }
-  if (issue2.code === "custom" && field?.startsWith("scan.")) {
+  if (issue2.code === "custom" && field?.startsWith("scan.") && issue2.message.includes("cannot be combined with sources")) {
     return "Remove legacy scan selectors when sources is configured.";
   }
   if (issue2.code === "custom" && field?.endsWith(".root")) {
@@ -23014,20 +23029,31 @@ async function resolveDiscoverySources(cwd, config2, legacyInputSchema = "scg-v1
       inputSchema: source.inputSchema
     });
   }
-  const sortedSources = resolvedSources.sort((left, right) => (left.rootRealPath ?? left.root).localeCompare(right.rootRealPath ?? right.root));
-  for (let leftIndex = 0; leftIndex < sortedSources.length; leftIndex += 1) {
-    for (let rightIndex = leftIndex + 1; rightIndex < sortedSources.length; rightIndex += 1) {
-      const left = sortedSources[leftIndex];
-      const right = sortedSources[rightIndex];
-      const leftRealPath = left.rootRealPath;
-      const rightRealPath = right.rootRealPath;
-      if (!isPathInside(leftRealPath, rightRealPath) && !isPathInside(rightRealPath, leftRealPath)) {
-        continue;
-      }
-      throw new SourceConfigError(`Source roots overlap after realpath resolution: ${toPosixPath(left.root)} and ${toPosixPath(right.root)}`, "Use disjoint source roots so every manifest has exactly one input schema owner.", "sources");
+  const sortedSources = resolvedSources.sort((left, right) => comparePathHierarchy2(left.rootRealPath, right.rootRealPath));
+  for (let index = 1; index < sortedSources.length; index += 1) {
+    const left = sortedSources[index - 1];
+    const right = sortedSources[index];
+    const leftRealPath = left.rootRealPath;
+    const rightRealPath = right.rootRealPath;
+    if (!isPathInside(leftRealPath, rightRealPath) && !isPathInside(rightRealPath, leftRealPath)) {
+      continue;
     }
+    throw new SourceConfigError(`Source roots overlap after realpath resolution: ${toPosixPath(left.root)} and ${toPosixPath(right.root)}`, "Use disjoint source roots so every manifest has exactly one input schema owner.", "sources");
   }
   return sortedSources;
+}
+function comparePathHierarchy2(left, right) {
+  const normalizeSegment = (segment) => process.platform === "win32" ? segment.toLowerCase() : segment;
+  const leftSegments = left.replaceAll("\\", "/").split("/").filter(Boolean).map(normalizeSegment);
+  const rightSegments = right.replaceAll("\\", "/").split("/").filter(Boolean).map(normalizeSegment);
+  const sharedLength = Math.min(leftSegments.length, rightSegments.length);
+  for (let index = 0; index < sharedLength; index += 1) {
+    if (leftSegments[index] === rightSegments[index]) {
+      continue;
+    }
+    return leftSegments[index] < rightSegments[index] ? -1 : 1;
+  }
+  return leftSegments.length - rightSegments.length;
 }
 function invalidSourceRoot(index, root) {
   return new SourceConfigError(`Source root resolves outside the workspace: ${toPosixPath(root)}`, "Use a workspace-relative source root that does not traverse through an external symlink.", `sources.${index}.root`);
@@ -23332,7 +23358,7 @@ function parseDateOnly(value) {
 }
 
 // packages/core/dist/scan.js
-var DEFAULT_TOOL_VERSION = "0.5.20";
+var DEFAULT_TOOL_VERSION = "0.5.21";
 var DEFAULT_PARSE_CONCURRENCY = 16;
 async function compileCatalog(options = {}) {
   const cwd = options.cwd ?? process.cwd();
@@ -23975,8 +24001,158 @@ function throwWriteError(file2, message, hint) {
 
 // packages/cli/dist/index.js
 var import_yaml2 = __toESM(require_dist(), 1);
-var cliVersion = "0.5.20";
+
+// packages/cli/dist/command-metadata.js
+var cliCommandDefinitions = [
+  { name: "scan", description: "Print a catalog snapshot." },
+  { name: "check", description: "Validate manifests and set the exit code." },
+  { name: "report", description: "Write catalog.json, graph.dot, and report.html." },
+  { name: "completion", description: "Print shell completion source." }
+];
+var cliFlagDefinitions = [
+  { name: "--root", value: "<path>", description: "Add a scan root." },
+  { name: "--config", value: "<path>", description: "Load a config file." },
+  { name: "--manifest", value: "<name>", description: "Select a manifest filename." },
+  {
+    name: "--format",
+    value: "<format>",
+    description: "Select a report format.",
+    choices: ["json", "dot", "html"]
+  },
+  { name: "--out", value: "<path>", description: "Select the report output directory." },
+  { name: "--fail-on-warning", description: "Fail when warnings are present." },
+  { name: "--no-fail-on-warning", description: "Keep warnings non-failing." },
+  {
+    name: "--allow-unknown-dependencies",
+    description: "Permit unresolved dependency references."
+  },
+  {
+    name: "--no-allow-unknown-dependencies",
+    description: "Reject unresolved dependency references."
+  },
+  {
+    name: "--input-schema",
+    value: "<schema>",
+    description: "Select an input manifest adapter.",
+    choices: ["scg-v1", "zdp-v2"]
+  },
+  { name: "--json", description: "Emit the complete JSON snapshot." },
+  { name: "--summary-json", description: "Emit bounded automation JSON." },
+  { name: "--no-color", description: "Disable terminal color." },
+  { name: "--help", description: "Show CLI help." },
+  { name: "--version", description: "Show the CLI version." }
+];
+var completionShells = ["bash", "zsh", "powershell"];
+
+// packages/cli/dist/completion.js
+function isCompletionShell(value) {
+  return completionShells.some((shell) => shell === value);
+}
+function renderCompletion(shell) {
+  switch (shell) {
+    case "bash":
+      return renderBashCompletion();
+    case "zsh":
+      return renderZshCompletion();
+    case "powershell":
+      return renderPowerShellCompletion();
+  }
+}
+function renderBashCompletion() {
+  const commands = cliCommandDefinitions.map((command) => command.name).join(" ");
+  const flags = cliFlagDefinitions.map((flag) => flag.name).join(" ");
+  const choiceCases = cliFlagDefinitions.filter((flag) => "choices" in flag).map((flag) => `    ${flag.name}) COMPREPLY=( $(compgen -W "${flag.choices.join(" ")}" -- "$current") ); return ;;`).join("\n");
+  return `# bash completion for scg
+_scg_completion() {
+  local current previous
+  current="\${COMP_WORDS[COMP_CWORD]}"
+  previous="\${COMP_WORDS[COMP_CWORD-1]}"
+
+  case "$previous" in
+${choiceCases}
+  esac
+
+  if [[ "$COMP_CWORD" -eq 1 ]]; then
+    COMPREPLY=( $(compgen -W "${commands} ${flags}" -- "$current") )
+  elif [[ "\${COMP_WORDS[1]}" == "completion" ]]; then
+    COMPREPLY=( $(compgen -W "${completionShells.join(" ")}" -- "$current") )
+  else
+    COMPREPLY=( $(compgen -W "${flags}" -- "$current") )
+  fi
+}
+complete -F _scg_completion scg`;
+}
+function renderZshCompletion() {
+  const commands = cliCommandDefinitions.map((command) => `    '${command.name}:${escapeSingleQuotes(command.description)}'`).join("\n");
+  const flags = cliFlagDefinitions.map((flag) => `    '${flag.name}:${escapeSingleQuotes(flag.description)}'`).join("\n");
+  const choiceCases = cliFlagDefinitions.filter((flag) => "choices" in flag).map((flag) => `    ${flag.name}) _values '${flag.name}' ${flag.choices.join(" ")} ;;`).join("\n");
+  return `#compdef scg
+_scg() {
+  local -a commands flags
+  commands=(
+${commands}
+  )
+  flags=(
+${flags}
+  )
+
+  if (( CURRENT == 2 )); then
+    _describe 'command' commands
+    _describe 'flag' flags
+    return
+  fi
+
+  if [[ "$words[2]" == "completion" ]]; then
+    _values 'shell' ${completionShells.join(" ")}
+    return
+  fi
+
+  case "$words[CURRENT-1]" in
+${choiceCases}
+  esac
+  _describe 'flag' flags
+}
+compdef _scg scg`;
+}
+function renderPowerShellCompletion() {
+  const commands = toPowerShellArray(cliCommandDefinitions.map((command) => command.name));
+  const flags = toPowerShellArray(cliFlagDefinitions.map((flag) => flag.name));
+  const shells = toPowerShellArray([...completionShells]);
+  const choiceCases = cliFlagDefinitions.filter((flag) => "choices" in flag).map((flag) => `      '${flag.name}' { $candidates = ${toPowerShellArray([...flag.choices])} }`).join("\n");
+  return `# PowerShell completion for scg
+Register-ArgumentCompleter -Native -CommandName scg -ScriptBlock {
+  param($wordToComplete, $commandAst, $cursorPosition)
+  $elements = @($commandAst.CommandElements | ForEach-Object { $_.Extent.Text })
+  $commands = ${commands}
+  $flags = ${flags}
+  $candidates = $flags
+
+  if ($elements.Count -le 2) {
+    $candidates = $commands + $flags
+  } elseif ($elements[1] -eq 'completion') {
+    $candidates = ${shells}
+  } else {
+    switch ($elements[$elements.Count - 2]) {
+${choiceCases}
+    }
+  }
+
+  $candidates |
+    Where-Object { $_ -like "$wordToComplete*" } |
+    ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
+}`;
+}
+function toPowerShellArray(values) {
+  return `@(${values.map((value) => `'${value.replaceAll("'", "''")}'`).join(", ")})`;
+}
+function escapeSingleQuotes(value) {
+  return value.replaceAll("'", "'\\''");
+}
+
+// packages/cli/dist/index.js
+var cliVersion = "0.5.21";
 var DEFAULT_CONFIG_FILE = "scg.config.yaml";
+var MAX_CONFIG_BYTES = 1024 * 1024;
 async function runCli(options = {}) {
   const argv = options.argv ?? process.argv.slice(2);
   const cwd = (0, import_node_path6.resolve)(options.cwd ?? process.cwd());
@@ -23985,6 +24161,9 @@ async function runCli(options = {}) {
     stderr: process.stderr
   };
   try {
+    if (argv[0] === "completion") {
+      return runCompletionCommand(argv.slice(1), io);
+    }
     const parsed = parseArgs(argv);
     if (parsed.version) {
       writeLine(io.stdout, cliVersion);
@@ -24192,7 +24371,7 @@ async function loadConfigInput(cwd, explicitConfigPath) {
     };
   }
   try {
-    const source = await (0, import_promises6.readFile)(configPath, "utf8");
+    const source = await readBoundedConfigFile(configPath);
     const document = (0, import_yaml2.parseDocument)(source, {
       prettyErrors: false,
       schema: "core",
@@ -24217,11 +24396,42 @@ async function loadConfigInput(cwd, explicitConfigPath) {
       ok: true,
       config: config2
     };
-  } catch {
+  } catch (error51) {
+    if (error51 instanceof ConfigFileTooLargeError) {
+      return {
+        ok: false,
+        diagnostic: configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config file exceeds the 1 MiB size limit.", "Reduce scg.config.yaml before running the CLI.")
+      };
+    }
     return {
       ok: false,
       diagnostic: configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config file could not be read.", "Check the config path and file permissions.")
     };
+  }
+}
+async function readBoundedConfigFile(path) {
+  let handle;
+  try {
+    handle = await (0, import_promises6.open)(path, "r");
+    const fileStat = await handle.stat();
+    if (fileStat.size > MAX_CONFIG_BYTES) {
+      throw new ConfigFileTooLargeError();
+    }
+    const buffer = Buffer.alloc(MAX_CONFIG_BYTES + 1);
+    let offset = 0;
+    while (offset < buffer.length) {
+      const { bytesRead } = await handle.read(buffer, offset, buffer.length - offset, offset);
+      if (bytesRead === 0) {
+        break;
+      }
+      offset += bytesRead;
+    }
+    if (offset > MAX_CONFIG_BYTES) {
+      throw new ConfigFileTooLargeError();
+    }
+    return buffer.subarray(0, offset).toString("utf8");
+  } finally {
+    await handle?.close();
   }
 }
 function mergeCliFlags(config2, parsed) {
@@ -24336,29 +24546,33 @@ function configDiagnostic(file2, message, hint) {
   };
 }
 function helpText() {
+  const commandLines = cliCommandDefinitions.map((command) => `  ${command.name.padEnd(12)}${command.description}`);
+  const flagLines = cliFlagDefinitions.map((flag) => {
+    const usage = "value" in flag ? `${flag.name} ${flag.value}` : flag.name;
+    return `  ${usage.padEnd(38)}${flag.description}`;
+  });
   return [
-    "Usage: scg <scan|check|report> [flags]",
+    "Usage: scg <command> [flags]",
     "",
     "Commands:",
-    "  scan    Print a catalog snapshot",
-    "  check   Validate manifests and set the exit code",
-    "  report  Write catalog.json, graph.dot, and report.html",
+    ...commandLines,
     "",
     "Flags:",
-    "  --root <path>",
-    "  --config <path>",
-    "  --manifest <name>",
-    "  --format <json|dot|html>",
-    "  --out <path>",
-    "  --fail-on-warning",
-    "  --no-fail-on-warning",
-    "  --allow-unknown-dependencies",
-    "  --no-allow-unknown-dependencies",
-    "  --input-schema <scg-v1|zdp-v2>",
-    "  --json",
-    "  --summary-json",
-    "  --no-color"
+    ...flagLines
   ].join("\n");
+}
+function runCompletionCommand(args, io) {
+  const shell = args[0];
+  if (args.length !== 1 || !shell || !isCompletionShell(shell)) {
+    return writeCliError(io, false, {
+      severity: "error",
+      code: "config.invalid",
+      message: "Completion shell is missing or unsupported.",
+      hint: "Use scg completion bash, zsh, or powershell."
+    });
+  }
+  writeLine(io.stdout, renderCompletion(shell));
+  return 0;
 }
 function writeLine(output, value) {
   output.write(`${value}
@@ -24371,6 +24585,8 @@ function isPlainRecord(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 var CliUsageError = class extends Error {
+};
+var ConfigFileTooLargeError = class extends Error {
 };
 if (process.argv[1] && isCliEntrypoint(process.argv[1])) {
   runCli().then((exitCode) => {

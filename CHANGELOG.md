@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 0.5.21
+
+- Replaced quadratic source overlap checks with hierarchy sorting and added 5,000-declaration,
+  100-root, and mixed 500/1,000-manifest performance contracts.
+- Added Ubuntu and Windows source compatibility coverage for custom manifest names, global excludes,
+  filesystem case behavior, junction aliases, and outside-workspace links.
+- Bounded config reads at 1 MiB and rejected manifest-name paths that would otherwise produce silent
+  empty catalogs.
+- Added Bash, Zsh, and PowerShell completion generated from the same metadata as CLI help.
+- Updated `@types/node`, Oxlint, and Oxfmt to current compatible patch/minor releases.
+
 ## 0.5.20
 
 - Added field-specific, redacted `config.invalid` diagnostics for config schema failures across the

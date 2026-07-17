@@ -39,6 +39,12 @@ updates weekly, groups compatible minor and patch updates, and limits each ecosy
 pull requests. Major dependency updates remain separate review units. Every hosted job has an
 explicit timeout so a stalled registry, build, or analysis cannot consume the runner indefinitely.
 
+Generated shell completion is parsed and registered by the native shell before merge: Bash on
+Ubuntu 24.04, Zsh on macOS 15, and PowerShell on Windows Server 2025. These checks run without user
+profiles, filesystem discovery, network access from completion, or interactive completion state.
+The PowerShell check also requests a candidate through `TabExpansion2` so successful parsing alone
+cannot hide a broken registration path.
+
 The `release-smoke` workflow is a post-publish evidence gate rather than a publishing gate. After a
 successful release it installs the exact npm version on Ubuntu and Windows, compiles the native
 consumer fixture, and then verifies provenance, package signatures, release state, and tag state on

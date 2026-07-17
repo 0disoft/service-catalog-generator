@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added native Bash, Zsh, and PowerShell parsing and registration checks on pinned Ubuntu, macOS,
+  and Windows hosted runners for generated completion scripts.
+
 ## 0.5.21
 
 - Replaced quadratic source overlap checks with hierarchy sorting and added 5,000-declaration,

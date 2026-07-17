@@ -28,6 +28,81 @@ jobs:
       - name: Verify committed Action bundle
         run: git diff --exit-code -- dist/action/index.cjs
 
+  shell-completion:
+    name: shell completion (${{ matrix.completion_shell }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            completion_shell: bash
+          - os: macos-15
+            completion_shell: zsh
+          - os: windows-2025
+            completion_shell: powershell
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - run: corepack enable
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+
+      - name: Validate Bash completion
+        if: ${{ matrix.completion_shell == 'bash' }}
+        shell: bash
+        run: |
+          output_path="${RUNNER_TEMP}/scg-completion.bash"
+          node dist/cli/index.js completion bash > "$output_path"
+          bash --noprofile --norc -n "$output_path"
+          bash --noprofile --norc -c 'source "$1"; declare -F _scg_completion >/dev/null; complete -p scg >/dev/null' _ "$output_path"
+
+      - name: Validate Zsh completion
+        if: ${{ matrix.completion_shell == 'zsh' }}
+        shell: bash
+        run: |
+          output_path="${RUNNER_TEMP}/_scg"
+          node dist/cli/index.js completion zsh > "$output_path"
+          zsh -dfn "$output_path"
+          zsh -dfc 'autoload -Uz compinit; compinit -d "$1/.zcompdump"; source "$2"; (( $+functions[_scg] )); (( $+_comps[scg] ))' _ "$RUNNER_TEMP" "$output_path"
+
+      - name: Validate PowerShell completion
+        if: ${{ matrix.completion_shell == 'powershell' }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $outputPath = Join-Path $env:RUNNER_TEMP 'scg-completion.ps1'
+          $completionSource = (& node dist/cli/index.js completion powershell | Out-String)
+          if ($LASTEXITCODE -ne 0) {
+            throw "Completion generation failed with exit code $LASTEXITCODE."
+          }
+          [System.IO.File]::WriteAllText(
+            $outputPath,
+            $completionSource,
+            [System.Text.UTF8Encoding]::new($false)
+          )
+          $tokens = $null
+          $parseErrors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            $outputPath,
+            [ref] $tokens,
+            [ref] $parseErrors
+          ) | Out-Null
+          if ($parseErrors.Count -ne 0) {
+            throw ($parseErrors | Out-String)
+          }
+          . $outputPath
+          $completionResult = TabExpansion2 -inputScript 'scg ch' -cursorColumn 6
+          if ($completionResult.CompletionMatches.CompletionText -notcontains 'check') {
+            throw 'Registered completion did not return the expected check command.'
+          }
+
   report-publication:
     name: report publication (${{ matrix.os }})
     strategy:

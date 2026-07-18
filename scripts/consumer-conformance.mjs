@@ -211,7 +211,7 @@ async function main() {
   const options = parseArguments(process.argv.slice(2));
   const root = resolve(options.root ?? process.cwd());
   const manifestPath = resolve(root, options.manifest ?? "examples/consumer-conformance.json");
-  const binPath = resolve(root, options.bin ?? join("dist", "cli", "index.js"));
+  const binPath = resolveContainedPath(root, options.bin ?? join("dist", "cli", "index.js"), "cli");
 
   if (options["action-case"]) {
     assert(options.catalog, "--action-case requires --catalog");

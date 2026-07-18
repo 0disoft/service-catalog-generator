@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 
 export function resolveNpmCommand() {
   const nodeDir = dirname(process.execPath);
@@ -16,17 +16,36 @@ export function resolveNpmCommand() {
 }
 
 export function runInstalledCli(binPath, cwd, args) {
-  if (process.platform === "win32") {
-    return execFileSync(process.env.ComSpec ?? "cmd.exe", ["/d", "/c", "call", binPath, ...args], {
-      cwd,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"]
-    }).trim();
-  }
+  const invocation = resolveInstalledCliInvocation(binPath);
 
-  return execFileSync(binPath, args, {
+  return execFileSync(invocation.file, [...invocation.prefixArgs, ...args], {
     cwd,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"]
   }).trim();
+}
+
+export function resolveInstalledCliInvocation(binPath, platform = process.platform) {
+  if (platform !== "win32") {
+    return { file: binPath, prefixArgs: [] };
+  }
+
+  if (basename(binPath).toLowerCase() !== "scg.cmd" || basename(dirname(binPath)) !== ".bin") {
+    throw new Error("Windows package smoke requires the installed node_modules/.bin/scg.cmd shim.");
+  }
+
+  const cliEntry = resolve(
+    dirname(binPath),
+    "..",
+    "@0disoft",
+    "service-catalog-generator",
+    "dist",
+    "cli",
+    "index.js"
+  );
+  if (!existsSync(cliEntry)) {
+    throw new Error("Installed package CLI entrypoint is missing.");
+  }
+
+  return { file: process.execPath, prefixArgs: [cliEntry] };
 }

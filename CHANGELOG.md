@@ -4,6 +4,8 @@
 
 - Recorded the published `1.0.0-rc.1` npm, provenance, signature, prerelease, hosted smoke, and
   stable-channel isolation evidence.
+- Removed Windows command-shell interpretation from installed-package smoke execution while keeping
+  the generated npm shim presence check and direct packaged CLI validation.
 
 ## 1.0.0-rc.1
 

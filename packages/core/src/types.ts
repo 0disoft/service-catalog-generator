@@ -11,7 +11,7 @@ import type {
 
 export type InputSchema = import("@scg/schema").CatalogInputSchema;
 export type CatalogConfigInput = Omit<SchemaCatalogConfigInput, "schemaVersion"> & {
-  schemaVersion?: CatalogConfig["schemaVersion"];
+  schemaVersion?: SchemaCatalogConfigInput["schemaVersion"];
 };
 
 export type CompileCatalogOptions = {

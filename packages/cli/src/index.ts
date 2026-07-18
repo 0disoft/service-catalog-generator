@@ -22,7 +22,7 @@ import { cliCommandDefinitions, cliFlagDefinitions } from "./command-metadata.js
 import { isCompletionShell, renderCompletion } from "./completion.js";
 
 export const packageName = "@scg/cli";
-export const cliVersion = "0.5.21";
+export const cliVersion = "1.0.0-rc.1";
 
 export type CliPackageBoundary =
   | "commands"
@@ -522,7 +522,7 @@ function validateConfigInput(
     return configDiagnostic(
       explicitConfigPath ?? DEFAULT_CONFIG_FILE,
       "Config values do not match the CLI configuration contract.",
-      "Use schemaVersion scg.config/v1alpha1 and valid sources, scan, validation, limits, output, and privacy fields."
+      "Use schemaVersion scg.config/v1 and valid sources, scan, validation, limits, output, and privacy fields."
     );
   }
 }

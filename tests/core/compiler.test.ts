@@ -263,7 +263,7 @@ describe("core catalog compiler", () => {
       workspace,
       "services/bad-version/service.yaml",
       serviceYaml({ id: "bad-version-api" }).replace(
-        "schemaVersion: scg.service/v1alpha1",
+        "schemaVersion: scg.service/v1",
         "schemaVersion: scg.service/v9"
       )
     );
@@ -737,7 +737,7 @@ function serviceYaml(options: {
   repositoryUrl?: string;
 }): string {
   return [
-    "schemaVersion: scg.service/v1alpha1",
+    "schemaVersion: scg.service/v1",
     `id: ${options.id}`,
     `name: ${options.id}`,
     "lifecycle: production",

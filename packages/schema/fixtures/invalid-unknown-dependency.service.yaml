@@ -1,4 +1,4 @@
-schemaVersion: scg.service/v1alpha1
+schemaVersion: scg.service/v1
 id: worker
 name: Worker
 lifecycle: production

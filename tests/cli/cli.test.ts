@@ -143,7 +143,7 @@ describe("scg CLI", () => {
     await writeFile(
       join(workspace, "scg.config.yaml"),
       [
-        "schemaVersion: scg.config/v1alpha1",
+        "schemaVersion: scg.config/v1",
         "scan:",
         "  roots:",
         "    - empty",
@@ -184,7 +184,7 @@ describe("scg CLI", () => {
     await writeFile(
       join(workspace, "scg.config.yaml"),
       [
-        "schemaVersion: scg.config/v1alpha1",
+        "schemaVersion: scg.config/v1",
         "validation:",
         "  failOnWarnings: true",
         "  allowUnknownDependencies: true"
@@ -274,7 +274,7 @@ describe("scg CLI", () => {
     await writeFile(
       join(workspace, "scg.config.yaml"),
       [
-        "schemaVersion: scg.config/v1alpha1",
+        "schemaVersion: scg.config/v1",
         "sources:",
         "  - root: missing",
         "    inputSchema: scg-v1"
@@ -389,7 +389,7 @@ describe("scg CLI", () => {
     const workspace = await createWorkspace();
     await writeFile(
       join(workspace, "scg.config.yaml"),
-      `schemaVersion: scg.config/v1alpha1\n#${"x".repeat(1024 * 1024)}`,
+      `schemaVersion: scg.config/v1\n#${"x".repeat(1024 * 1024)}`,
       "utf8"
     );
     const io = createIo();
@@ -426,7 +426,7 @@ describe("scg CLI", () => {
       file: "scg.config.yaml",
       field: "schemaVersion",
       message: "Config schemaVersion is unsupported.",
-      hint: "Use schemaVersion scg.config/v1alpha1."
+      hint: "Use schemaVersion scg.config/v1; scg.config/v1alpha1 remains accepted during 1.x."
     });
   });
 
@@ -434,7 +434,7 @@ describe("scg CLI", () => {
     {
       name: "unsupported source adapter",
       yaml: [
-        "schemaVersion: scg.config/v1alpha1",
+        "schemaVersion: scg.config/v1",
         "sources:",
         "  - root: services",
         "    inputSchema: private-adapter"
@@ -446,7 +446,7 @@ describe("scg CLI", () => {
     {
       name: "overlapping source roots",
       yaml: [
-        "schemaVersion: scg.config/v1alpha1",
+        "schemaVersion: scg.config/v1",
         "sources:",
         "  - root: services",
         "    inputSchema: scg-v1",
@@ -460,7 +460,7 @@ describe("scg CLI", () => {
     {
       name: "legacy source selector",
       yaml: [
-        "schemaVersion: scg.config/v1alpha1",
+        "schemaVersion: scg.config/v1",
         "sources:",
         "  - root: services",
         "    inputSchema: scg-v1",
@@ -475,7 +475,7 @@ describe("scg CLI", () => {
     {
       name: "empty manifest names",
       yaml: [
-        "schemaVersion: scg.config/v1alpha1",
+        "schemaVersion: scg.config/v1",
         "sources:",
         "  - root: services",
         "    inputSchema: scg-v1",
@@ -488,7 +488,7 @@ describe("scg CLI", () => {
     {
       name: "manifest name containing a path",
       yaml: [
-        "schemaVersion: scg.config/v1alpha1",
+        "schemaVersion: scg.config/v1",
         "sources:",
         "  - root: services",
         "    inputSchema: scg-v1",
@@ -502,7 +502,7 @@ describe("scg CLI", () => {
     {
       name: "legacy manifest name containing a path",
       yaml: [
-        "schemaVersion: scg.config/v1alpha1",
+        "schemaVersion: scg.config/v1",
         "scan:",
         "  manifestNames:",
         "    - nested/service.yaml"
@@ -513,7 +513,7 @@ describe("scg CLI", () => {
     },
     {
       name: "unknown validation key",
-      yaml: ["schemaVersion: scg.config/v1alpha1", "validation:", "  unknownPolicy: true"],
+      yaml: ["schemaVersion: scg.config/v1", "validation:", "  unknownPolicy: true"],
       field: "validation.unknownPolicy",
       message: "Config field validation.unknownPolicy is not supported.",
       hint: "Remove unsupported config fields; the config schema is strict."
@@ -543,7 +543,7 @@ describe("scg CLI", () => {
     await writeManifest(workspace, "services/billing/service.yaml", serviceYaml("billing-api"));
     await writeFile(
       join(workspace, "scg.config.yaml"),
-      ["schemaVersion: scg.config/v1alpha1", "validation:", "  minimumServiceCount: 2"].join("\n"),
+      ["schemaVersion: scg.config/v1", "validation:", "  minimumServiceCount: 2"].join("\n"),
       "utf8"
     );
 
@@ -566,7 +566,7 @@ describe("scg CLI", () => {
     await writeFile(
       join(workspace, "scg.config.yaml"),
       [
-        "schemaVersion: scg.config/v1alpha1",
+        "schemaVersion: scg.config/v1",
         "validation:",
         "  minimumServiceCount: 2",
         "limits:",
@@ -615,7 +615,7 @@ describe("scg CLI", () => {
 
     expect(exitCode).toBe(0);
     expect(result).toMatchObject({
-      schemaVersion: "scg.catalog/v1alpha1",
+      schemaVersion: "scg.catalog/v1",
       services: [expect.objectContaining({ id: "billing-api" })],
       diagnostics: [],
       graph: {
@@ -740,7 +740,7 @@ async function writeSourceConfig(workspace: string): Promise<void> {
   await writeFile(
     join(workspace, "scg.config.yaml"),
     [
-      "schemaVersion: scg.config/v1alpha1",
+      "schemaVersion: scg.config/v1",
       "sources:",
       "  - root: native",
       "    inputSchema: scg-v1",
@@ -759,7 +759,7 @@ function serviceYaml(
   lastReviewedAt = "2026-07-01"
 ): string {
   return [
-    "schemaVersion: scg.service/v1alpha1",
+    "schemaVersion: scg.service/v1",
     `id: ${id}`,
     `name: ${id}`,
     "lifecycle: production",

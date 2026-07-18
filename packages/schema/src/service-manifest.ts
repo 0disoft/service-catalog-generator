@@ -12,7 +12,17 @@ import {
   RelativePathSchema,
   StableIdSchema
 } from "./shared.js";
-import { SERVICE_MANIFEST_SCHEMA_VERSION } from "./versions.js";
+import {
+  LEGACY_SERVICE_MANIFEST_SCHEMA_VERSION,
+  SERVICE_MANIFEST_SCHEMA_VERSION
+} from "./versions.js";
+
+const ServiceManifestSchemaVersionSchema = z
+  .union([
+    z.literal(SERVICE_MANIFEST_SCHEMA_VERSION),
+    z.literal(LEGACY_SERVICE_MANIFEST_SCHEMA_VERSION)
+  ])
+  .transform(() => SERVICE_MANIFEST_SCHEMA_VERSION);
 
 export const OwnerRefSchema = z
   .object({
@@ -124,7 +134,7 @@ export const ServiceExtensionsSchema = z.record(z.string().min(1).max(80), z.unk
 
 const ServiceManifestObjectSchema = z
   .object({
-    schemaVersion: z.literal(SERVICE_MANIFEST_SCHEMA_VERSION),
+    schemaVersion: ServiceManifestSchemaVersionSchema,
     id: StableIdSchema,
     name: DisplayNameSchema,
     lifecycle: LifecycleSchema,

@@ -1,4 +1,4 @@
-schemaVersion: scg.service/v1alpha1
+schemaVersion: scg.service/v1
 id: auth-api
 name: Auth API
 lifecycle: production

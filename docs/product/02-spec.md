@@ -1,6 +1,6 @@
 # Product Specification
 
-Status: Active Pre-1.0
+Status: Active 1.0 RC
 Owner: 0disoft
 
 ## Purpose
@@ -35,7 +35,7 @@ manifest field is wrong, missing, stale, unsafe, or impossible to resolve.
 
 ## Manifest Contract
 
-The first manifest target is `service.yaml` with schema version `scg.service/v1alpha1`. The minimum
+The first manifest target is `service.yaml` with schema version `scg.service/v1`. The minimum
 useful record covers:
 
 - stable service id;
@@ -68,7 +68,7 @@ Required fields are:
 reviewed the service and found no declared dependencies.
 
 ```yaml
-schemaVersion: scg.service/v1alpha1
+schemaVersion: scg.service/v1
 id: billing-api
 name: Billing API
 lifecycle: production
@@ -105,8 +105,9 @@ metadata:
   lastReviewedAt: "2026-07-01"
 ```
 
-The schema remains pre-1.0 while external adoption, compatibility classification, and migration
-review continue. Fixtures and contract tests already lock current behavior against accidental drift.
+The v1 schema is stable for the 1.x line. Pre-1.0 service and config schema ids remain accepted as
+documented compatibility aliases, and fixtures plus migration tests lock their normalization against
+accidental drift.
 
 Existing manifest formats may be supported through explicit input schema adapters. These adapters
 must normalize external records into the SCG catalog model without turning those external policy
@@ -128,7 +129,8 @@ The CLI exposes these product-level actions:
 - `completion`: emit static Bash, Zsh, or PowerShell candidates from shared CLI metadata.
 
 Command names, documented flags, machine-readable JSON mode, and deterministic exit behavior are
-public pre-1.0 contracts. A breaking change requires a changelog entry and migration note.
+public 1.x contracts. A breaking change requires a 2.0 boundary unless a compatible deprecation path
+preserves existing callers.
 
 ## Outputs
 
@@ -151,8 +153,8 @@ Generated outputs are derived artifacts. They must never become the source of tr
 - Generated HTML reports: CI/internal artifacts by default; public release assets must use synthetic
   examples only.
 
-The repository should stay a single public monorepo until the manifest, CLI, and report contracts are
-stable enough to justify splitting packages or repositories.
+The repository stays a single public monorepo. Private workspace packages are implementation
+boundaries; only the root package, CLI, and Action are public distribution surfaces.
 
 ## Non-Goals
 

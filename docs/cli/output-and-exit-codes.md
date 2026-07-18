@@ -75,7 +75,7 @@ useful without turning untrusted config content into log output.
 
 ```json
 {
-  "schemaVersion": "scg.catalog/v1alpha1",
+  "schemaVersion": "scg.catalog/v1",
   "tool": {
     "name": "service-catalog-generator",
     "version": "0.5.3"

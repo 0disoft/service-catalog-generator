@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CATALOG_CONFIG_SCHEMA_VERSION } from "./versions.js";
+import { CATALOG_CONFIG_SCHEMA_VERSION, LEGACY_CATALOG_CONFIG_SCHEMA_VERSION } from "./versions.js";
 
 const DEFAULT_EXCLUDE = [
   ".git/**",
@@ -10,6 +10,23 @@ const DEFAULT_EXCLUDE = [
 ] as const;
 
 export const CatalogInputSchemaSchema = z.enum(["scg-v1", "zdp-v2"]);
+
+const CatalogConfigSchemaVersionSchema = z
+  .union([
+    z.literal(CATALOG_CONFIG_SCHEMA_VERSION),
+    z.literal(LEGACY_CATALOG_CONFIG_SCHEMA_VERSION)
+  ])
+  .transform(() => CATALOG_CONFIG_SCHEMA_VERSION);
+
+export const CATALOG_RESOURCE_LIMIT_DEFAULTS = {
+  maxManifestBytes: 256 * 1024,
+  maxTotalManifestBytes: 64 * 1024 * 1024,
+  maxManifests: 1000,
+  maxObjectDepth: 32,
+  maxCollectionEntries: 100_000,
+  maxExtensionBytes: 8 * 1024 * 1024,
+  maxReportBytes: 64 * 1024 * 1024
+} as const;
 
 const ManifestNameSchema = z
   .string()
@@ -27,7 +44,7 @@ const CatalogSourceSchema = z
 
 const RawCatalogConfigSchema = z
   .object({
-    schemaVersion: z.literal(CATALOG_CONFIG_SCHEMA_VERSION),
+    schemaVersion: CatalogConfigSchemaVersionSchema,
     sources: z.array(CatalogSourceSchema).min(1).optional(),
     scan: z
       .object({
@@ -199,13 +216,17 @@ export const CatalogConfigSchema = RawCatalogConfigSchema.transform((config) => 
     minimumServiceCount: config.validation?.minimumServiceCount ?? 0
   },
   limits: {
-    maxManifestBytes: config.limits?.maxManifestBytes ?? 256 * 1024,
-    maxTotalManifestBytes: config.limits?.maxTotalManifestBytes ?? 64 * 1024 * 1024,
-    maxManifests: config.limits?.maxManifests ?? 1000,
-    maxObjectDepth: config.limits?.maxObjectDepth ?? 32,
-    maxCollectionEntries: config.limits?.maxCollectionEntries ?? 100_000,
-    maxExtensionBytes: config.limits?.maxExtensionBytes ?? 8 * 1024 * 1024,
-    maxReportBytes: config.limits?.maxReportBytes ?? 64 * 1024 * 1024
+    maxManifestBytes:
+      config.limits?.maxManifestBytes ?? CATALOG_RESOURCE_LIMIT_DEFAULTS.maxManifestBytes,
+    maxTotalManifestBytes:
+      config.limits?.maxTotalManifestBytes ?? CATALOG_RESOURCE_LIMIT_DEFAULTS.maxTotalManifestBytes,
+    maxManifests: config.limits?.maxManifests ?? CATALOG_RESOURCE_LIMIT_DEFAULTS.maxManifests,
+    maxObjectDepth: config.limits?.maxObjectDepth ?? CATALOG_RESOURCE_LIMIT_DEFAULTS.maxObjectDepth,
+    maxCollectionEntries:
+      config.limits?.maxCollectionEntries ?? CATALOG_RESOURCE_LIMIT_DEFAULTS.maxCollectionEntries,
+    maxExtensionBytes:
+      config.limits?.maxExtensionBytes ?? CATALOG_RESOURCE_LIMIT_DEFAULTS.maxExtensionBytes,
+    maxReportBytes: config.limits?.maxReportBytes ?? CATALOG_RESOURCE_LIMIT_DEFAULTS.maxReportBytes
   },
   output: {
     directory: config.output?.directory ?? ".catalog",

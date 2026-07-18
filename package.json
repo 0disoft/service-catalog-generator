@@ -1,6 +1,6 @@
 {
   "name": "@0disoft/service-catalog-generator",
-  "version": "0.5.21",
+  "version": "1.0.0-rc.1",
   "description": "Read-only service.yaml compiler and linter for deterministic service catalog artifacts.",
   "license": "Apache-2.0",
   "type": "module",
@@ -33,15 +33,15 @@
     "yaml": "2.9.0"
   },
   "scripts": {
-    "format": "oxfmt --check \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \".ox*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"packages/**/*.{json,ts}\" \"scripts/**/*.mjs\" \"tests/**/*.ts\"",
-    "format:write": "oxfmt --write \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \".ox*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"packages/**/*.{json,ts}\" \"scripts/**/*.mjs\" \"tests/**/*.ts\"",
+    "format": "oxfmt --check \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \".ox*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"packages/**/*.{json,ts}\" \"scripts/**/*.{mjs,d.mts}\" \"tests/**/*.ts\"",
+    "format:write": "oxfmt --write \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \".ox*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"packages/**/*.{json,ts}\" \"scripts/**/*.{mjs,d.mts}\" \"tests/**/*.ts\"",
     "lint": "oxlint . --deny-warnings",
     "typecheck": "node node_modules/typescript/bin/tsc -b tsconfig.json && node node_modules/typescript/bin/tsc -p tsconfig.check.json --noEmit",
     "typecheck:native": "node node_modules/@typescript/native/bin/tsc -b tsconfig.json && node node_modules/@typescript/native/bin/tsc -p tsconfig.check.json --noEmit",
     "test": "vitest run tests/workspace.test.ts tests/schema tests/core tests/report tests/cli tests/action",
     "contract": "vitest run tests/contract",
     "build": "node node_modules/typescript/bin/tsc -b tsconfig.json && node scripts/build.mjs",
-    "migration-check": "node scripts/not-configured.mjs migration-check \"No schema migrations exist yet.\"",
+    "migration-check": "vitest run tests/contract/schema-migration.test.ts",
     "smoke": "pnpm run build && node scripts/smoke.mjs",
     "consumer-conformance": "node scripts/consumer-conformance.mjs",
     "docs": "node scripts/check-docs.mjs",
@@ -52,7 +52,7 @@
     "registry-smoke": "node scripts/registry-smoke.mjs",
     "release:trust:dry-run": "node scripts/trusted-publisher-dry-run.mjs",
     "prepack": "pnpm run build",
-    "check": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run typecheck:native && pnpm run test && pnpm run contract && pnpm run smoke && pnpm run consumer-conformance && pnpm run docs && pnpm run recovery-drill && pnpm run secret-scan && pnpm run dependency-audit"
+    "check": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run typecheck:native && pnpm run test && pnpm run contract && pnpm run migration-check && pnpm run smoke && pnpm run consumer-conformance && pnpm run docs && pnpm run recovery-drill && pnpm run secret-scan && pnpm run dependency-audit"
   },
   "devDependencies": {
     "@types/node": "26.1.1",

@@ -1,5 +1,6 @@
 import { pathToFileURL } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
+import { normalizeReleaseVersion } from "./release-version.mjs";
 
 const DEFAULT_ATTEMPTS = 6;
 const DEFAULT_DELAY_MS = 5_000;
@@ -76,8 +77,12 @@ function validatePackageName(packageName) {
 }
 
 function validateVersion(version) {
-  if (!/^\d+\.\d+\.\d+$/.test(version)) {
-    throw new Error("NPM_PACKAGE_VERSION must be release semver.");
+  try {
+    if (normalizeReleaseVersion(version) !== version) {
+      throw new Error();
+    }
+  } catch {
+    throw new Error("NPM_PACKAGE_VERSION must be stable or prerelease semver.");
   }
 }
 

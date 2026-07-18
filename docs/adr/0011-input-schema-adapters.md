@@ -14,12 +14,14 @@ formats into the SCG catalog model.
 - Product decision: docs/product/02-spec.md
 - Technical owner: 0disoft
 - Related ADR: docs/adr/0005-service-manifest-schema-v1alpha1.md
+- Stable schema promotion: docs/adr/0015-stable-v1-contract-and-release-channels.md
 - Source-scoped extension: docs/adr/0013-source-scoped-input-adapters.md
 
 ## Decision
 
-The core SCG manifest schema remains `scg.service/v1alpha1`. Adapter support is selected explicitly
-through the input schema option exposed by the CLI and GitHub Action.
+The core SCG manifest schema is `scg.service/v1`; the final alpha id remains a 1.x compatibility
+alias. Adapter support is selected explicitly through the input schema option exposed by the CLI
+and GitHub Action.
 
 This ADR owns adapter identity and normalization boundaries. ADR 0013 owns the accepted design for
 assigning different explicit adapters to non-overlapping roots in one catalog run.

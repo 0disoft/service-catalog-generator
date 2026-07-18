@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 1.0.0-rc.1
+
+- Promoted native manifest, config, and catalog contracts to `scg.service/v1`, `scg.config/v1`, and
+  `scg.catalog/v1`; pre-1.0 service and config ids remain accepted and normalize to v1 throughout
+  the 1.x line.
+- Added source, packed-package, registry, and hosted Action conformance coverage for legacy alpha
+  service and config inputs alongside canonical v1 consumers.
+- Replaced the placeholder migration validation with an executable alpha-to-v1 normalization and
+  catalog-output compatibility gate.
+- Froze the 1.0 resource defaults as compatibility floors and published the stable CLI, JSON,
+  report, diagnostic, Action, and release-channel contract.
+- Added prerelease-aware release validation: release candidates publish under npm `next`, create a
+  GitHub prerelease, and never move stable Action major tags or npm `latest`.
 - Added native Bash, Zsh, and PowerShell parsing and registration checks on pinned Ubuntu, macOS,
   and Windows hosted runners for generated completion scripts.
 - Added a reusable native/mixed consumer conformance manifest and runner shared by source,

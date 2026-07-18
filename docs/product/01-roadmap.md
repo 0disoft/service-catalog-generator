@@ -5,15 +5,16 @@ Owner: 0disoft
 
 ## Current Position
 
-The MVP phases are implemented and the latest verified public release is `0.5.21`. SCG is a
-read-only compiler and linter with a published npm CLI, a GitHub Action, deterministic JSON/DOT/HTML
-reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog adoption evidence.
+The MVP phases are implemented, `1.0.0-rc.1` is prepared, and the latest verified public release is
+`0.5.21`. SCG is a read-only compiler and linter with a published npm CLI, a GitHub Action,
+deterministic JSON/DOT/HTML reports, explicit ZDP v2 adaptation, and repository-local plus
+central-catalog adoption evidence.
 
 ## Delivered
 
 ### Catalog Contract And Architecture
 
-- `scg.service/v1alpha1`, `scg.catalog/v1alpha1`, and `scg.config/v1alpha1` contracts.
+- `scg.service/v1`, `scg.catalog/v1`, and `scg.config/v1` contracts.
 - Explicit owner, runtime, repository, deploy, data, review, and dependency fields.
 - Stable diagnostic categories, exit-code meanings, generated-artifact policy, and report security
   boundary.
@@ -38,7 +39,8 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 
 - Deterministic `catalog.json`, `graph.dot`, and static `report.html` output.
 - GitHub Action check/report wrapper using the same CLI and core behavior.
-- npm Trusted Publishing, GitHub Releases, immutable version tags, and moving major Action tags.
+- npm Trusted Publishing, GitHub Releases, immutable version tags, prerelease channels, and
+  stable-only moving major Action tags.
 - Packed-package, installed-CLI, Action self-smoke, release recovery, secret, dependency, and
   repository-contract validation.
 - Full-SHA workflow pins, CodeQL, bounded Dependabot updates, and explicit runner timeouts.
@@ -49,15 +51,15 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 - TypeScript 7 native compiler compatibility on Ubuntu and Windows while TypeScript 6 remains the
   explicit compiler API and package-build dependency.
 
-## Pre-1.0 Work
+## 1.0 Release-Candidate Work
 
 ### Compatibility Review
 
 - Keep the published 1.0 contract matrix synchronized with manifest, config, CLI JSON, diagnostic,
   exit-code, report, package, and Action surfaces.
-- Resolve the remaining experimental alpha-schema and resource-default decisions before the 1.0
-  release candidate.
-- Maintain the pre-1.0-to-1.0 migration guide, removal rules, and deprecation window.
+- Preserve the accepted alpha-input compatibility window and resource-default floors through hosted
+  release-candidate evidence.
+- Maintain the pre-1.0-to-1.0 migration guide, removal rules, and 2.0 deprecation boundary.
 
 ### Resource And Publication Safety
 
@@ -72,8 +74,8 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 
 - Keep repository-local ZDP gates and the central 40-service catalog green against released Action
   bundles.
-- Keep standalone native and mixed synthetic consumers green through source, packed npm CLI,
-  released-package, and GitHub Action execution before freezing adapter contracts.
+- Keep canonical v1, legacy alpha-input, and mixed synthetic consumers green through source, packed
+  npm CLI, released-package, and GitHub Action execution before stable promotion.
 - Record Windows and Linux installed-package evidence for each release candidate.
 
 ### Release Confidence

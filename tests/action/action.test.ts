@@ -250,7 +250,7 @@ describe("GitHub Action wrapper", () => {
     await writeFile(
       join(workspace, "scg.config.yaml"),
       [
-        "schemaVersion: scg.config/v1alpha1",
+        "schemaVersion: scg.config/v1",
         "scan:",
         "  roots:",
         "    - configured",
@@ -282,7 +282,7 @@ describe("GitHub Action wrapper", () => {
     await writeFile(
       join(workspace, "scg.config.yaml"),
       [
-        "schemaVersion: scg.config/v1alpha1",
+        "schemaVersion: scg.config/v1",
         "sources:",
         "  - root: services",
         "    inputSchema: scg-v1"
@@ -315,7 +315,7 @@ describe("GitHub Action wrapper", () => {
     await writeFile(
       join(workspace, "scg.config.yaml"),
       [
-        "schemaVersion: scg.config/v1alpha1",
+        "schemaVersion: scg.config/v1",
         "sources:",
         "  - root: services",
         "    inputSchema: private-adapter"
@@ -348,7 +348,7 @@ describe("GitHub Action wrapper", () => {
     await writeManifest(workspace, "services/billing/service.yaml", serviceYaml("billing-api"));
     await writeFile(
       join(workspace, "scg.config.yaml"),
-      ["schemaVersion: scg.config/v1alpha1", "validation:", "  minimumServiceCount: 2"].join("\n"),
+      ["schemaVersion: scg.config/v1", "validation:", "  minimumServiceCount: 2"].join("\n"),
       "utf8"
     );
     const outputs = new Map<string, string>();
@@ -548,7 +548,7 @@ async function writeManifest(
 
 function serviceYaml(id: string, dependencyBlock = "dependencies:\n  []"): string {
   return [
-    "schemaVersion: scg.service/v1alpha1",
+    "schemaVersion: scg.service/v1",
     `id: ${id}`,
     `name: ${id}`,
     "lifecycle: production",

@@ -1,6 +1,6 @@
 # Quality Attributes
 
-Status: Draft
+Status: Active
 
 ## Source of Truth
 

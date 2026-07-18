@@ -35,12 +35,14 @@ describe("1.0 compatibility documentation", () => {
     }
   });
 
-  it("keeps migration rules for every compatibility class", async () => {
+  it("keeps the v1 migration and release-channel boundaries explicit", async () => {
     const migration = await readFile("docs/compatibility/pre-1.0-to-1.0.md", "utf8");
 
-    expect(migration).toContain("Stable surfaces receive a changelog entry");
-    expect(migration).toContain("Experimental surfaces may change before 1.0");
-    expect(migration).toContain("Internal surfaces may change without migration support");
+    expect(migration).toContain("Removing either alpha input alias requires a 2.0 release");
+    expect(migration).toContain("Resource defaults may become more permissive");
+    expect(migration).toContain("compare human prose or `.scg-*` recovery metadata");
     expect(migration).toContain("Schema selection remains explicit");
+    expect(migration).toContain("Prereleases never move");
+    expect(migration).toContain("npm `latest` and Action `v1` are stable channels");
   });
 });

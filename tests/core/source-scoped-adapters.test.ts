@@ -170,7 +170,7 @@ function sourceConfig(): CatalogConfigInput {
 
 function nativeService(id: string, target?: string): string {
   return [
-    "schemaVersion: scg.service/v1alpha1",
+    "schemaVersion: scg.service/v1",
     `id: ${id}`,
     `name: ${id}`,
     "lifecycle: production",

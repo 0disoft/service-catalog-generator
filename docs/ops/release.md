@@ -1,6 +1,6 @@
 # Release
 
-Status: Draft
+Status: Active 1.0 RC
 
 ## Operational Contract
 
@@ -27,7 +27,8 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 - npm package: `@0disoft/service-catalog-generator`.
 - CLI binary: `scg`.
 - GitHub Release: same version as npm.
-- GitHub Action tag: same major stream as npm, for example `v0`.
+- GitHub Action tag: exact version tags for prereleases and a moving major tag for stable releases.
+- npm channel: `next` for prereleases and `latest` for stable releases.
 
 ## Version Plan
 
@@ -59,6 +60,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 | `0.5.19` | Source-scoped mixed input adapters and consumer evidence.   |
 | `0.5.20` | Precise config diagnostics and mixed registry smoke.         |
 | `0.5.21` | Source scaling, input bounds, compatibility, and completion. |
+| `1.0.0-rc.1` | Stable v1 schemas, compatibility aliases, and release-channel proof. |
 | `1.0.0` | Manifest schema and CLI contract freeze.                  |
 
 Pre-1.0 breaking changes are allowed only with clear migration notes. After 1.0, manifest schema,
@@ -75,8 +77,9 @@ CLI JSON output, and exit codes are compatibility contracts.
    drifted.
 7. Push an immutable `vX.Y.Z` tag that exactly matches `package.json.version`.
 8. Use the `release` workflow to create the GitHub Release.
-9. Move or create the corresponding major Action tag through the workflow, then publish through npm
-   Trusted Publishing and GitHub OIDC.
+9. For a stable release, move or create the corresponding major Action tag. For a prerelease, leave
+   the major tag unchanged. Publish through npm Trusted Publishing and GitHub OIDC using `latest`
+   for stable releases and `next` for prereleases.
 10. If the workflow fails before npm publish completes, confirm the automatic recovery step removed
    the GitHub Release and restored or deleted the mutable major Action tag.
 11. If npm publish succeeds but downstream evidence later fails, treat the package as immutable and
@@ -85,10 +88,11 @@ CLI JSON output, and exit codes are compatibility contracts.
 13. Run `pnpm run release-evidence -- <version>` after promotion.
 
 After a successful `release` workflow, `release-smoke` installs the exact published npm version on
-Ubuntu and Windows and compiles the native consumer fixture. The evidence job runs only after both
-registry smoke jobs pass, then verifies npm provenance and signatures, the GitHub Release, the
-immutable version tag, the mutable major Action tag, and the originating release workflow. Registry
-visibility is retried for up to 60 seconds before the smoke fails.
+Ubuntu and Windows and compiles canonical v1, legacy alpha-input, and mixed-adapter consumer
+fixtures. The evidence job runs only after both registry smoke jobs pass, then verifies npm
+provenance and signatures, npm dist-tag ownership, the GitHub Release, the immutable version tag,
+stable-only major Action tag policy, and the originating release workflow. Registry visibility is
+retried for up to 60 seconds before the smoke fails.
 
 The workflow also supports a manual `version` input, with or without a `v` prefix, for replaying
 evidence against an existing release. A post-publish failure never authorizes rollback or mutation
@@ -108,14 +112,15 @@ and runs from a clean temporary project.
 
 The release workflow runs only for `v*.*.*` tags. It validates package metadata, runs `check`, runs
 a packed tarball install smoke, verifies the exact npm version is not already published, creates the
-GitHub Release, moves the mutable major Action tag, and then publishes the scoped public package
-through npm Trusted Publishing.
+GitHub Release, conditionally moves the mutable major Action tag for stable versions, and then
+publishes the scoped public package through npm Trusted Publishing. A prerelease is marked as a
+GitHub prerelease, published under npm `next`, and never moves its major Action tag.
 
-The workflow captures the previous mutable major tag target before changing release state. If the
-workflow fails before npm publish completes, the recovery step deletes the just-created GitHub
-Release and restores the previous major Action tag target, or deletes the major tag when no previous
-target existed. Once npm publish succeeds, recovery switches to forward-fix mode because npm package
-publication is treated as immutable.
+The workflow captures the previous mutable major tag target before changing release state. If a
+stable workflow fails before npm publish completes, the recovery step deletes the just-created
+GitHub Release and restores the previous major Action tag target, or deletes the major tag when no
+previous target existed. A prerelease has no major-tag mutation to recover. Once npm publish
+succeeds, recovery switches to forward-fix mode because npm package publication is immutable.
 
 Recovery deletes a GitHub Release only when the create step emitted its run-local creation receipt.
 If preflight failed because a release already existed, automation leaves that existing release
@@ -198,9 +203,10 @@ After a release is promoted, verify the published package and GitHub release evi
 pnpm run release-evidence -- 0.5.21
 ```
 
-The command checks npm integrity, SLSA provenance subject/workflow/tag/commit identity, installed
-package signatures, the GitHub Release, immutable version tag, mutable major Action tag, successful
-release workflow run, and published CLI version smoke.
+The command checks npm integrity, dist-tag ownership, SLSA provenance
+subject/workflow/tag/commit identity, installed package signatures, the GitHub Release prerelease
+flag, immutable version tag, stable-only major Action tag policy, successful release workflow run,
+and published CLI version smoke.
 
 To run the same exact-package fixture validation used by the hosted Ubuntu and Windows jobs:
 

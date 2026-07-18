@@ -70,7 +70,7 @@ export async function runConsumerConformance({
 }
 
 export function selectContractResult(snapshot) {
-  assert(snapshot?.schemaVersion === "scg.catalog/v1alpha1", "catalog schema version mismatch");
+  assert(snapshot?.schemaVersion === "scg.catalog/v1", "catalog schema version mismatch");
   assert(typeof snapshot?.tool?.version === "string", "catalog tool version is missing");
   assert(Array.isArray(snapshot.services), "catalog services are missing");
   assert(Array.isArray(snapshot.diagnostics), "catalog diagnostics are missing");

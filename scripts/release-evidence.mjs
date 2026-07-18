@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -6,7 +6,11 @@ import { join } from "node:path";
 import { verifyNpmProvenance } from "./npm-provenance.mjs";
 import { resolveGitHubTagCommit } from "./github-tag-target.mjs";
 import { resolveNpmCommand, runInstalledCli } from "./package-smoke-helpers.mjs";
-import { normalizeReleaseVersion } from "./release-version.mjs";
+import {
+  isPrereleaseVersion,
+  normalizeReleaseVersion,
+  npmDistTagForVersion
+} from "./release-version.mjs";
 
 const root = process.cwd();
 const packageName = "@0disoft/service-catalog-generator";
@@ -18,9 +22,10 @@ const version = normalizeReleaseVersion(
 );
 const versionTag = `v${version}`;
 const majorTag = `v${version.split(".")[0]}`;
+const prerelease = isPrereleaseVersion(version);
+const npmDistTag = npmDistTagForVersion(version);
 const npmCommand = resolveNpmCommand();
 
-assert(/^\d+\.\d+\.\d+$/.test(version), "version argument must be release semver");
 assert(rootPackage.name === packageName, "package name must match release evidence package");
 
 const npmPackage = npmJson(["view", `${packageName}@${version}`, "--json"]);
@@ -29,6 +34,11 @@ assert(
   typeof npmPackage.dist?.integrity === "string" && npmPackage.dist.integrity.length > 0,
   "npm package must expose dist integrity"
 );
+const npmDistTags = npmJson(["view", packageName, "dist-tags", "--json"]);
+assert(npmDistTags[npmDistTag] === version, `npm dist-tag ${npmDistTag} must point to ${version}`);
+if (prerelease) {
+  assert(npmDistTags.latest !== version, "a prerelease must not become npm latest");
+}
 const attestationUrl = npmPackage.dist?.attestations?.url;
 assert(
   typeof attestationUrl === "string" && attestationUrl.startsWith("https://registry.npmjs.org/"),
@@ -46,17 +56,31 @@ const release = ghJson([
 ]);
 assert(release.tagName === versionTag, `GitHub Release must use tag ${versionTag}`);
 assert(release.isDraft === false, "GitHub Release must not be draft");
-assert(release.isPrerelease === false, "GitHub Release must not be prerelease");
+assert(
+  release.isPrerelease === prerelease,
+  `GitHub Release prerelease flag must be ${String(prerelease)}`
+);
 assert(
   typeof release.url === "string" && release.url.includes(versionTag),
   "GitHub Release URL missing"
 );
 
 const versionRef = ghJson(["api", `repos/${repository}/git/ref/tags/${versionTag}`]);
-const majorRef = ghJson(["api", `repos/${repository}/git/ref/tags/${majorTag}`]);
 const versionSha = await resolveGitHubTagCommit(versionRef.object, loadGitHubTag);
-const majorSha = await resolveGitHubTagCommit(majorRef.object, loadGitHubTag);
-assert(majorSha === versionSha, `${majorTag} must point to the same commit as ${versionTag}`);
+const majorRef = ghJsonOptional(["api", `repos/${repository}/git/ref/tags/${majorTag}`]);
+let majorTagEvidence = `${majorTag}=absent`;
+if (prerelease) {
+  if (majorRef) {
+    const majorSha = await resolveGitHubTagCommit(majorRef.object, loadGitHubTag);
+    assert(majorSha !== versionSha, `${majorTag} must not move to prerelease ${versionTag}`);
+    majorTagEvidence = `${majorTag}=preserved:${majorSha}`;
+  }
+} else {
+  assert(majorRef, `${majorTag} must exist for a stable release`);
+  const majorSha = await resolveGitHubTagCommit(majorRef.object, loadGitHubTag);
+  assert(majorSha === versionSha, `${majorTag} must point to the same commit as ${versionTag}`);
+  majorTagEvidence = `${majorTag}=${majorSha}`;
+}
 
 const provenance = verifyNpmProvenance({
   attestationDocument: await fetchJson(attestationUrl),
@@ -115,7 +139,8 @@ console.log(
     "npm_signature_audit=invalid:0,missing:0",
     `release_url=${release.url}`,
     `release_run=${successfulReleaseRun.url}`,
-    `${majorTag}=${majorSha}`
+    `npm_dist_tag=${npmDistTag}`,
+    majorTagEvidence
   ].join("\n")
 );
 
@@ -130,6 +155,23 @@ function ghJson(args) {
       stdio: ["ignore", "pipe", "pipe"]
     })
   );
+}
+
+function ghJsonOptional(args) {
+  const result = spawnSync("gh", args, {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+  if (result.error) {
+    throw result.error;
+  }
+  if (result.status === 0) {
+    return JSON.parse(result.stdout);
+  }
+  if (result.stderr.includes("HTTP 404")) {
+    return undefined;
+  }
+  throw new Error(`gh ${args[0]} failed: ${result.stderr.trim().slice(0, 500)}`);
 }
 
 function loadGitHubTag(sha) {

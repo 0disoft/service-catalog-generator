@@ -164,7 +164,7 @@ async function writeManifest(workspace: string, path: string, contents: string):
 
 function nativeService(id: string): string {
   return [
-    "schemaVersion: scg.service/v1alpha1",
+    "schemaVersion: scg.service/v1",
     `id: ${id}`,
     `name: ${id}`,
     "lifecycle: production",

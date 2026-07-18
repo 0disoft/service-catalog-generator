@@ -70,7 +70,9 @@ assertText(rollbackText, "docs/ops/rollback.md", [
 assertText(releaseText, "docs/ops/release.md", [
   "pnpm run release:trust:dry-run",
   "packed tarball install smoke",
-  "Move or create the corresponding major Action tag",
+  "For a stable release, move or create the corresponding major Action tag",
+  "A prerelease has no major-tag mutation to recover",
+  "published under npm `next`",
   "restores the previous major Action tag target",
   "Smoke test package installation and Action usage from the released tag.",
   "recovery-drill"

@@ -48,6 +48,15 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"
           MAJOR_TAG="v${VERSION%%.*}"
           PREVIOUS_MAJOR_TARGET="$(git rev-parse -q --verify "refs/tags/$MAJOR_TAG" || true)"
+          if [[ "$VERSION" == *-* ]]; then
+            NPM_DIST_TAG="next"
+            RELEASE_KIND="prerelease"
+            PROMOTE_MAJOR_TAG="false"
+          else
+            NPM_DIST_TAG="latest"
+            RELEASE_KIND="stable"
+            PROMOTE_MAJOR_TAG="true"
+          fi
 
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             echo "::error::GitHub Release $GITHUB_REF_NAME already exists."
@@ -58,6 +67,9 @@ jobs:
             echo "version=$VERSION"
             echo "major-tag=$MAJOR_TAG"
             echo "previous-major-target=$PREVIOUS_MAJOR_TARGET"
+            echo "npm-dist-tag=$NPM_DIST_TAG"
+            echo "release-kind=$RELEASE_KIND"
+            echo "promote-major-tag=$PROMOTE_MAJOR_TAG"
           } >> "$GITHUB_OUTPUT"
 
       - name: Verify npm version is unpublished
@@ -72,13 +84,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          RELEASE_FLAGS=()
+          if [ "${{ steps.release-preflight.outputs.release-kind }}" = "prerelease" ]; then
+            RELEASE_FLAGS+=(--prerelease)
+          fi
           gh release create "$GITHUB_REF_NAME" \
             --verify-tag \
             --title "$GITHUB_REF_NAME" \
-            --generate-notes
+            --generate-notes \
+            "${RELEASE_FLAGS[@]}"
           echo "created=true" >> "$GITHUB_OUTPUT"
 
       - name: Move major Action tag
+        if: ${{ steps.release-preflight.outputs.promote-major-tag == 'true' }}
         id: major-tag
         env:
           GH_TOKEN: ${{ github.token }}
@@ -90,7 +108,9 @@ jobs:
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Publish npm package
-        run: npm publish --access public
+        env:
+          NPM_DIST_TAG: ${{ steps.release-preflight.outputs.npm-dist-tag }}
+        run: npm publish --access public --tag "$NPM_DIST_TAG"
 
       - name: Recover GitHub release state when npm publish fails
         if: ${{ failure() }}
@@ -99,7 +119,7 @@ jobs:
           MAJOR_TAG: ${{ steps.release-preflight.outputs.major-tag }}
           PREVIOUS_MAJOR_TARGET: ${{ steps.release-preflight.outputs.previous-major-target }}
           RELEASE_CREATED: ${{ steps.release-create.outputs.created }}
-          MAJOR_TAG_CHANGED: ${{ steps.major-tag.outputs.changed }}
+          MAJOR_TAG_CHANGED: ${{ steps.major-tag.outputs.changed || 'false' }}
           NPM_PACKAGE_NAME: "@0disoft/service-catalog-generator"
           NPM_PACKAGE_VERSION: ${{ steps.release-preflight.outputs.version }}
         run: |

@@ -27,7 +27,7 @@ describe("report writers", () => {
     const json = renderCatalogJson(snapshot());
 
     expect(JSON.parse(json)).toMatchObject({
-      schemaVersion: "scg.catalog/v1alpha1",
+      schemaVersion: "scg.catalog/v1",
       summary: {
         serviceCount: 1,
         edgeCount: 1
@@ -424,7 +424,7 @@ async function createWorkspace(): Promise<string> {
 
 function snapshot(): CatalogSnapshot {
   return {
-    schemaVersion: "scg.catalog/v1alpha1",
+    schemaVersion: "scg.catalog/v1",
     tool: {
       name: "service-catalog-generator",
       version: "0.5.3"

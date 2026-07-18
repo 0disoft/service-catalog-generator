@@ -28,6 +28,27 @@
       }
     },
     {
+      "id": "legacy-alpha-input",
+      "cwd": "examples/legacy-alpha-consumer",
+      "config": "scg.config.yaml",
+      "reportFiles": [
+        ".catalog-legacy/catalog.json",
+        ".catalog-legacy/graph.dot",
+        ".catalog-legacy/report.html"
+      ],
+      "expected": {
+        "summary": {
+          "serviceCount": 1,
+          "errorCount": 0,
+          "warningCount": 0,
+          "edgeCount": 0
+        },
+        "serviceIds": ["legacy-api"],
+        "diagnosticCodes": [],
+        "edges": []
+      }
+    },
+    {
       "id": "mixed-scg-v1-zdp-v2",
       "cwd": ".",
       "config": "examples/mixed-consumer/scg.config.yaml",

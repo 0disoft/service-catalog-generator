@@ -28,7 +28,7 @@ The CLI reads at most 1 MiB before YAML parsing because config-owned resource li
 govern the config file that defines them.
 
 ```yaml
-schemaVersion: scg.config/v1alpha1
+schemaVersion: scg.config/v1
 
 scan:
   roots:
@@ -83,7 +83,7 @@ mutually exclusive rather than higher precedence.
 Use `sources` when one catalog contains explicitly partitioned manifest formats:
 
 ```yaml
-schemaVersion: scg.config/v1alpha1
+schemaVersion: scg.config/v1
 
 sources:
   - root: services/native

@@ -47,9 +47,10 @@ const requiredText = new Map([
   [
     "docs/product/01-roadmap.md",
     [
-      "`1.0.0-rc.1` is prepared",
+      "latest verified public release is `1.0.0-rc.1`",
       "latest verified public release",
       "`0.5.21`",
+      "intentionally absent until a stable 1.0 release",
       "## 1.0 Release-Candidate Work",
       "## 1.0 Exit Criteria"
     ]

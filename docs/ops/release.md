@@ -18,9 +18,9 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
   consumer-conformance, docs, recovery-drill, release-evidence, registry-smoke, check
 - Release blocker status: any missing implemented validation is a blocker unless documented as not
   yet configured
-- Remaining operational risk: package availability, Trusted Publishing, and Action runtime support
-  are verified for `0.5.21`; each future release must rerun `release-evidence` and reverify Trusted
-  Publishing before promotion
+- Remaining operational risk: package availability, Trusted Publishing, prerelease channel
+  isolation, and Action runtime support are verified for `1.0.0-rc.1`; each future release must
+  rerun `release-evidence` and reverify Trusted Publishing before promotion
 
 ## Release Units
 
@@ -149,29 +149,31 @@ The workflow must not use npm token secrets such as `NPM_PUBLISH_TOKEN`, `NPM_TO
 
 Current verified release evidence:
 
-- npm package: `@0disoft/service-catalog-generator@0.5.21`.
+- npm package: `@0disoft/service-catalog-generator@1.0.0-rc.1` under dist-tag `next`.
+- npm stable dist-tag: `latest` remains `0.5.21`.
 - npm integrity:
-  `sha512-yu9FAi/NigXYY5X14XyDrBZvyI+CyFa4bK/jw8QXUviCZG4wi2JraiR1XuRAMONpEe7i08dAWvpypjoaKsaKng==`.
+  `sha512-LKRPvY82lZUNITAAwnRng1d8A+R0VNvCiaV4KW3Vn+Z2CugdhThuavgJquy+4Erc6434d6+rwKxgGWWRv7753Q==`.
 - npm provenance predicate: `https://slsa.dev/provenance/v1`.
 - npm signature audit: `invalid: 0`, `missing: 0`.
-- GitHub Release: `v0.5.21`.
-- Release workflow run: `29466276500`, conclusion `success`.
-- Release commit: `33a0e03a67a877e8b8e9504988dbcdb657d65eaa`.
-- Mutable Action tag: `v0` points to the `0.5.21` release commit.
-- Published CLI smoke: a clean exact-version npm installation returned `0.5.21`, generated static
-  PowerShell completion, and compiled native plus mixed fixtures as 2 services, 1 edge, and 0 errors
-  each.
-- Hosted Action smoke: workflow run `29466178419` compiled native and mixed fixtures at the release
-  commit; the mixed fixture produced 2 services, 1 cross-source edge, and 0 errors.
-- Hosted source compatibility: CI workflow run `29466178443` passed source ownership and filesystem
-  compatibility tests on Ubuntu and Windows after a clean workspace build.
-- Hosted post-publish smoke: automatic workflow run `29466322405` installed the exact `0.5.21`
-  package, generated completion, and compiled native plus mixed fixtures on Ubuntu and Windows before
-  release evidence.
-- CodeQL: workflow run `29466178416` completed JavaScript/TypeScript and Actions analysis at the
+- GitHub prerelease: `v1.0.0-rc.1`, published and not a draft.
+- Release workflow run: `29645425489`, conclusion `success`; the stable-only major-tag step was
+  skipped.
+- Release commit: `879bf438eac24162e9f77f076c0dbdc271e45e39`.
+- Action channels: `v1` is absent and `v0` still points to
+  `33a0e03a67a877e8b8e9504988dbcdb657d65eaa`, the final `0.5.21` release commit.
+- Published CLI smoke: clean exact-version npm installations returned `1.0.0-rc.1`, generated static
+  PowerShell completion, and compiled canonical v1, legacy alpha-input, and mixed fixtures with the
+  expected service, edge, and diagnostic counts.
+- Hosted Action smoke: workflow run `29645316999` compiled canonical v1, legacy alpha-input, mixed,
+  and ZDP fixtures at the release commit.
+- Hosted CI: workflow run `29645317020` passed TypeScript 7, report publication, shell completion,
+  and source compatibility jobs across the declared Ubuntu, Windows, and macOS runners.
+- Hosted post-publish smoke: automatic workflow run `29645463785` installed the exact RC package and
+  compiled all three consumer-conformance cases on Ubuntu and Windows before release evidence.
+- CodeQL: workflow run `29645317004` completed JavaScript/TypeScript and Actions analysis at the
   release commit.
 - Trusted Publishing dry-run: `pnpm run release:trust:dry-run` returned publish permission for
-  `0disoft/service-catalog-generator/.github/workflows/release.yml`.
+  `0disoft/service-catalog-generator/.github/workflows/release.yml` immediately before the tag push.
 
 ## Trusted Publisher Setup and Verification
 
@@ -200,7 +202,7 @@ the npm package access configuration before pushing the release tag.
 After a release is promoted, verify the published package and GitHub release evidence:
 
 ```sh
-pnpm run release-evidence -- 0.5.21
+pnpm run release-evidence -- 1.0.0-rc.1
 ```
 
 The command checks npm integrity, dist-tag ownership, SLSA provenance
@@ -211,7 +213,7 @@ and published CLI version smoke.
 To run the same exact-package fixture validation used by the hosted Ubuntu and Windows jobs:
 
 ```sh
-pnpm run registry-smoke -- 0.5.21
+pnpm run registry-smoke -- 1.0.0-rc.1
 ```
 
 ## Stop Conditions

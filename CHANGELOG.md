@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Recorded the published `1.0.0-rc.1` npm, provenance, signature, prerelease, hosted smoke, and
+  stable-channel isolation evidence.
+
 ## 1.0.0-rc.1
 
 - Promoted native manifest, config, and catalog contracts to `scg.service/v1`, `scg.config/v1`, and

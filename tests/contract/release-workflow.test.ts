@@ -22,6 +22,7 @@ type ReleaseWorkflow = {
     publish: {
       steps: Array<{
         id?: string;
+        if?: string;
         name?: string;
         env?: Record<string, string>;
         run?: string;
@@ -93,8 +94,8 @@ describe("release workflow contract", () => {
       steps.some(
         (step) =>
           step.name === "Publish npm package" &&
-          step.run === "npm publish --access public" &&
-          step.env === undefined
+          step.run === 'npm publish --access public --tag "$NPM_DIST_TAG"' &&
+          step.env?.NPM_DIST_TAG === "${{ steps.release-preflight.outputs.npm-dist-tag }}"
       )
     ).toBe(true);
     expect(steps.some((step) => step.name === "Capture release recovery state")).toBe(true);
@@ -110,6 +111,7 @@ describe("release workflow contract", () => {
     expect(moveTagStep).toEqual(
       expect.objectContaining({
         id: "major-tag",
+        if: "${{ steps.release-preflight.outputs.promote-major-tag == 'true' }}",
         env: {
           GH_TOKEN: "${{ github.token }}",
           MAJOR_TAG: "${{ steps.release-preflight.outputs.major-tag }}",
@@ -125,6 +127,13 @@ describe("release workflow contract", () => {
       })
     );
     expect(createReleaseStep?.run).toContain('echo "created=true" >> "$GITHUB_OUTPUT"');
+    expect(createReleaseStep?.run).toContain("RELEASE_FLAGS+=(--prerelease)");
+    expect(createReleaseStep?.run).toContain('"${RELEASE_FLAGS[@]}"');
+    const preflightStep = steps.find((step) => step.id === "release-preflight");
+    expect(preflightStep?.run).toContain('NPM_DIST_TAG="next"');
+    expect(preflightStep?.run).toContain('NPM_DIST_TAG="latest"');
+    expect(preflightStep?.run).toContain('PROMOTE_MAJOR_TAG="false"');
+    expect(preflightStep?.run).toContain('PROMOTE_MAJOR_TAG="true"');
     expect(recoveryStep).toEqual(
       expect.objectContaining({
         env: {
@@ -132,7 +141,7 @@ describe("release workflow contract", () => {
           MAJOR_TAG: "${{ steps.release-preflight.outputs.major-tag }}",
           PREVIOUS_MAJOR_TARGET: "${{ steps.release-preflight.outputs.previous-major-target }}",
           RELEASE_CREATED: "${{ steps.release-create.outputs.created }}",
-          MAJOR_TAG_CHANGED: "${{ steps.major-tag.outputs.changed }}",
+          MAJOR_TAG_CHANGED: "${{ steps.major-tag.outputs.changed || 'false' }}",
           NPM_PACKAGE_NAME: "@0disoft/service-catalog-generator",
           NPM_PACKAGE_VERSION: "${{ steps.release-preflight.outputs.version }}"
         }
@@ -232,7 +241,7 @@ describe("release workflow contract", () => {
     };
 
     expect(packageJson.name).toBe("@0disoft/service-catalog-generator");
-    expect(packageJson.version).toBe("0.5.21");
+    expect(packageJson.version).toBe("1.0.0-rc.1");
     expect(packageJson.license).toBe("Apache-2.0");
     expect(packageJson.bin).toEqual({ scg: "dist/cli/index.js" });
     expect(packageJson.files).toEqual([

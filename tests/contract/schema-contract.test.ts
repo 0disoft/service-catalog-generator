@@ -1,18 +1,49 @@
 import { describe, expect, it } from "vitest";
 import {
   CATALOG_CONFIG_SCHEMA_VERSION,
+  CATALOG_RESOURCE_LIMIT_DEFAULTS,
   CATALOG_SNAPSHOT_SCHEMA_VERSION,
   CatalogConfigSchema,
   CatalogSnapshotSchema,
   DiagnosticSchema,
+  LEGACY_CATALOG_CONFIG_SCHEMA_VERSION,
+  LEGACY_SERVICE_MANIFEST_SCHEMA_VERSION,
+  ServiceManifestSchema,
   SERVICE_MANIFEST_SCHEMA_VERSION
 } from "../../packages/schema/src/index.js";
 
 describe("schema package contract", () => {
   it("exports the accepted schema version literals", () => {
-    expect(SERVICE_MANIFEST_SCHEMA_VERSION).toBe("scg.service/v1alpha1");
-    expect(CATALOG_SNAPSHOT_SCHEMA_VERSION).toBe("scg.catalog/v1alpha1");
-    expect(CATALOG_CONFIG_SCHEMA_VERSION).toBe("scg.config/v1alpha1");
+    expect(SERVICE_MANIFEST_SCHEMA_VERSION).toBe("scg.service/v1");
+    expect(LEGACY_SERVICE_MANIFEST_SCHEMA_VERSION).toBe("scg.service/v1alpha1");
+    expect(CATALOG_SNAPSHOT_SCHEMA_VERSION).toBe("scg.catalog/v1");
+    expect(CATALOG_CONFIG_SCHEMA_VERSION).toBe("scg.config/v1");
+    expect(LEGACY_CATALOG_CONFIG_SCHEMA_VERSION).toBe("scg.config/v1alpha1");
+  });
+
+  it("normalizes legacy 1alpha1 input schema ids to the v1 contract", () => {
+    const config = CatalogConfigSchema.parse({
+      schemaVersion: LEGACY_CATALOG_CONFIG_SCHEMA_VERSION
+    });
+    const manifest = ServiceManifestSchema.parse({
+      schemaVersion: LEGACY_SERVICE_MANIFEST_SCHEMA_VERSION,
+      id: "legacy-service",
+      name: "Legacy Service",
+      lifecycle: "production",
+      owner: { type: "team", ref: "platform" },
+      repository: { provider: "local", slug: "legacy-service" },
+      runtime: { language: "typescript", platform: "node" },
+      deploy: {
+        type: "container",
+        targets: [{ environment: "production", provider: "unknown", ref: "legacy-prod" }]
+      },
+      data: { storesPersonalData: false, classification: "internal" },
+      dependencies: [],
+      metadata: { lastReviewedAt: "2026-07-01" }
+    });
+
+    expect(config.schemaVersion).toBe(CATALOG_CONFIG_SCHEMA_VERSION);
+    expect(manifest.schemaVersion).toBe(SERVICE_MANIFEST_SCHEMA_VERSION);
   });
 
   it("accepts stable diagnostic objects", () => {
@@ -30,22 +61,14 @@ describe("schema package contract", () => {
 
   it("applies documented config defaults", () => {
     const result = CatalogConfigSchema.parse({
-      schemaVersion: "scg.config/v1alpha1"
+      schemaVersion: CATALOG_CONFIG_SCHEMA_VERSION
     });
 
     expect(result.scan.roots).toEqual(["."]);
     expect(result.scan.manifestNames).toEqual(["service.yaml"]);
     expect(result.validation.allowUnknownDependencies).toBe(false);
     expect(result.validation.minimumServiceCount).toBe(0);
-    expect(result.limits).toEqual({
-      maxManifestBytes: 256 * 1024,
-      maxTotalManifestBytes: 64 * 1024 * 1024,
-      maxManifests: 1000,
-      maxObjectDepth: 32,
-      maxCollectionEntries: 100_000,
-      maxExtensionBytes: 8 * 1024 * 1024,
-      maxReportBytes: 64 * 1024 * 1024
-    });
+    expect(result.limits).toEqual(CATALOG_RESOURCE_LIMIT_DEFAULTS);
     expect("requireLastReviewedAt" in result.validation).toBe(false);
     expect(result.output.directory).toBe(".catalog");
     expect("deterministic" in result.output).toBe(false);
@@ -55,13 +78,13 @@ describe("schema package contract", () => {
   it("rejects impossible minimum service count policies", () => {
     expect(
       CatalogConfigSchema.safeParse({
-        schemaVersion: "scg.config/v1alpha1",
+        schemaVersion: CATALOG_CONFIG_SCHEMA_VERSION,
         validation: { minimumServiceCount: -1 }
       }).success
     ).toBe(false);
     expect(
       CatalogConfigSchema.safeParse({
-        schemaVersion: "scg.config/v1alpha1",
+        schemaVersion: CATALOG_CONFIG_SCHEMA_VERSION,
         validation: { minimumServiceCount: 3 },
         limits: { maxManifests: 2 }
       }).success
@@ -71,7 +94,7 @@ describe("schema package contract", () => {
   it("accepts an empty catalog snapshot", () => {
     expect(
       CatalogSnapshotSchema.safeParse({
-        schemaVersion: "scg.catalog/v1alpha1",
+        schemaVersion: CATALOG_SNAPSHOT_SCHEMA_VERSION,
         tool: {
           name: "service-catalog-generator",
           version: "0.5.3"
@@ -94,7 +117,7 @@ describe("schema package contract", () => {
   it("accepts catalog service records with namespaced extensions", () => {
     expect(
       CatalogSnapshotSchema.safeParse({
-        schemaVersion: "scg.catalog/v1alpha1",
+        schemaVersion: CATALOG_SNAPSHOT_SCHEMA_VERSION,
         tool: {
           name: "service-catalog-generator",
           version: "0.5.3"
@@ -161,7 +184,7 @@ describe("schema package contract", () => {
   it("rejects catalog snapshots whose summary counts do not match payload arrays", () => {
     expect(
       CatalogSnapshotSchema.safeParse({
-        schemaVersion: "scg.catalog/v1alpha1",
+        schemaVersion: CATALOG_SNAPSHOT_SCHEMA_VERSION,
         tool: {
           name: "service-catalog-generator",
           version: "0.5.3"

@@ -1,4 +1,4 @@
-schemaVersion: scg.config/v1alpha1
+schemaVersion: scg.config/v1
 
 scan:
   roots:

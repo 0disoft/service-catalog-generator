@@ -1,6 +1,6 @@
 # Operational Contract
 
-Status: Draft
+Status: Active
 
 ## Operational Boundary
 

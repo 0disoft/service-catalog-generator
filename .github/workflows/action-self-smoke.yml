@@ -55,6 +55,25 @@ jobs:
           node scripts/consumer-conformance.mjs --action-case mixed-scg-v1-zdp-v2 --catalog .tmp/action-smoke/mixed/catalog.json
           test "${{ steps.scg_mixed.outputs.report-directory }}" = ".tmp/action-smoke/mixed"
 
+      - id: scg_legacy
+        uses: ./
+        with:
+          config: examples/legacy-alpha-consumer/scg.config.yaml
+          report: "true"
+          format: json,dot,html
+          output-directory: .tmp/action-smoke/legacy
+
+      - name: Assert legacy alpha input compatibility
+        env:
+          SCG_ACTION_SERVICE_COUNT: ${{ steps.scg_legacy.outputs.service-count }}
+          SCG_ACTION_ERROR_COUNT: ${{ steps.scg_legacy.outputs.error-count }}
+          SCG_ACTION_WARNING_COUNT: ${{ steps.scg_legacy.outputs.warning-count }}
+        run: |
+          node scripts/consumer-conformance.mjs --action-case legacy-alpha-input --catalog .tmp/action-smoke/legacy/catalog.json
+          test "${{ steps.scg_legacy.outputs.report-directory }}" = ".tmp/action-smoke/legacy"
+          test -f .tmp/action-smoke/legacy/graph.dot
+          test -f .tmp/action-smoke/legacy/report.html
+
       - name: Create synthetic ZDP service manifests
         run: |
           mkdir -p .tmp/action-smoke/zdp-valid/client-surfaces/zdp-web-apps

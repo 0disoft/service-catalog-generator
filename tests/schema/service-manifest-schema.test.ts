@@ -2,7 +2,11 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
 import { describe, expect, it } from "vitest";
-import { ServiceManifestSchema } from "../../packages/schema/src/index.js";
+import {
+  LEGACY_SERVICE_MANIFEST_SCHEMA_VERSION,
+  SERVICE_MANIFEST_SCHEMA_VERSION,
+  ServiceManifestSchema
+} from "../../packages/schema/src/index.js";
 
 function loadFixture(name: string): unknown {
   const path = join(process.cwd(), "packages", "schema", "fixtures", name);
@@ -20,6 +24,14 @@ describe("ServiceManifestSchema fixtures", () => {
   it.each(["valid-minimal.service.yaml", "valid-full.service.yaml"])("%s passes", (fixtureName) => {
     const result = ServiceManifestSchema.safeParse(loadFixture(fixtureName));
     expect(result.success).toBe(true);
+  });
+
+  it("accepts and normalizes the pre-1.0 schema id", () => {
+    const manifest = loadFixture("valid-minimal.service.yaml") as Record<string, unknown>;
+    manifest.schemaVersion = LEGACY_SERVICE_MANIFEST_SCHEMA_VERSION;
+
+    const result = ServiceManifestSchema.parse(manifest);
+    expect(result.schemaVersion).toBe(SERVICE_MANIFEST_SCHEMA_VERSION);
   });
 
   it("rejects manifests without an owner", () => {

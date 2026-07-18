@@ -1,11 +1,14 @@
 # Service Manifest Schema v1alpha1
 
-Status: Accepted
+Status: Superseded In Part By ADR 0015
 Owner: 0disoft
 
 ## Decision
 
 The first manifest schema is `scg.service/v1alpha1` in `service.yaml`.
+
+ADR 0015 promotes this unchanged field shape to `scg.service/v1` and retains the alpha id as a 1.x
+input compatibility alias.
 
 Required fields are `schemaVersion`, `id`, `name`, `lifecycle`, `owner.type`, `owner.ref`,
 `repository`, `runtime`, `deploy`, `data.classification`, and `metadata.lastReviewedAt`.

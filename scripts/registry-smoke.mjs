@@ -69,7 +69,7 @@ try {
   });
 
   console.log(
-    `registry-smoke: ok ${packageName}@${version} (${process.platform}, native=2/1/0, mixed=2/1/0)`
+    `registry-smoke: ok ${packageName}@${version} (${process.platform}, native=2/1/0, legacy=1/0/0, mixed=2/1/0)`
   );
 } finally {
   await rm(workspace, { force: true, recursive: true });

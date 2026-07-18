@@ -14,6 +14,7 @@ cross-source dependencies.
 - Product decision: docs/product/02-spec.md
 - Technical owner: 0disoft
 - Related ADR: docs/adr/0011-input-schema-adapters.md
+- Stable schema promotion: docs/adr/0015-stable-v1-contract-and-release-channels.md
 - Configuration contract: docs/cli/configuration.md
 
 ## Decision
@@ -22,7 +23,7 @@ Source-scoped adapter selection is configured through an optional top-level `sou
 `scg.config.yaml`:
 
 ```yaml
-schemaVersion: scg.config/v1alpha1
+schemaVersion: scg.config/v1
 
 sources:
   - root: services

@@ -1,6 +1,6 @@
 # Domain Model
 
-Status: Draft
+Status: Active
 
 ## Source of Truth
 
@@ -33,7 +33,7 @@ state, Kubernetes objects, or cost ledgers.
 
 ## Manifest Shape
 
-The first schema version is `scg.service/v1alpha1`. Initial manifests should stay mostly flat so a
+The first schema version is `scg.service/v1`. Initial manifests should stay mostly flat so a
 small team can write them without adopting a large taxonomy first.
 
 Required fields:

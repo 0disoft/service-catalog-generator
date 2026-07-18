@@ -30,8 +30,11 @@ generation, excludes concurrent SCG writers, and replaces the previous generatio
 JSON, DOT, and HTML files cannot be mixed across runs. Existing directories containing files other
 than SCG report artifacts are rejected instead of overwritten.
 
-SCG manifests use `scg.service/v1alpha1` by default. Existing ZDP v2 manifests can be read through
-the explicit adapter:
+SCG manifests use `scg.service/v1` by default. Pre-1.0 `scg.service/v1alpha1` manifests and
+`scg.config/v1alpha1` config files remain accepted throughout 1.x and normalize to the stable v1
+contract. Generated catalog JSON uses `scg.catalog/v1`.
+
+Existing ZDP v2 manifests can be read through the explicit adapter:
 
 ```powershell
 scg scan --json --input-schema zdp-v2 --allow-unknown-dependencies

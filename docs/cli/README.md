@@ -1,6 +1,6 @@
 # CLI Tool
 
-Status: Draft
+Status: Active
 Repository Type: cli-tool
 
 ## Repository Type Contract
@@ -28,7 +28,7 @@ selection, and exit-code mapping. Validation policy belongs to the core engine a
 
 ## Input Schemas
 
-The default input schema is `scg-v1`, which expects `schemaVersion: scg.service/v1alpha1`.
+The default input schema is `scg-v1`, which expects `schemaVersion: scg.service/v1`.
 Repositories that already own ZDP v2 manifests can select the first-party adapter explicitly:
 
 ```powershell

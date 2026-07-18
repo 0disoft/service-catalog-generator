@@ -1,6 +1,6 @@
 # Architecture
 
-Status: Draft
+Status: Active
 
 ## Decision Summary
 
@@ -13,7 +13,7 @@ back to source manifests.
 This repository owns the local catalog generation boundary:
 
 - input discovery for repository-owned `service.yaml` manifests;
-- schema contracts for `scg.service/v1alpha1`, `scg.catalog/v1alpha1`, and `scg.config/v1alpha1`;
+- schema contracts for `scg.service/v1`, `scg.catalog/v1`, and `scg.config/v1`;
 - manifest validation and stale-field linting;
 - normalized in-memory catalog records;
 - static JSON, DOT, and HTML report output;

@@ -102,7 +102,7 @@ describe("core catalog compiler performance", () => {
 
     const startedAt = performance.now();
     const result = CatalogConfigSchema.safeParse({
-      schemaVersion: "scg.config/v1alpha1",
+      schemaVersion: "scg.config/v1",
       sources
     });
     const elapsedMs = performance.now() - startedAt;
@@ -291,7 +291,7 @@ function scanBudgetMs(): number {
 
 function serviceYaml(id: string): string {
   return [
-    "schemaVersion: scg.service/v1alpha1",
+    "schemaVersion: scg.service/v1",
     `id: ${id}`,
     `name: ${id}`,
     "lifecycle: production",

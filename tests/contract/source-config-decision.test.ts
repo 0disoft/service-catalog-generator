@@ -103,7 +103,7 @@ describe("source-scoped adapter decision fixtures", () => {
 
     for (const testCase of cases) {
       const value = await readYamlFixture(testCase.file);
-      expect(value.schemaVersion, testCase.file).toBe("scg.config/v1alpha1");
+      expect(value.schemaVersion, testCase.file).toBe("scg.config/v1");
     }
   });
 
@@ -121,7 +121,7 @@ describe("source-scoped adapter decision fixtures", () => {
 
   it("detects ancestor overlap when a lexical sibling would interrupt plain string ordering", () => {
     const result = CatalogConfigSchema.safeParse({
-      schemaVersion: "scg.config/v1alpha1",
+      schemaVersion: "scg.config/v1",
       sources: [
         { root: "service", inputSchema: "scg-v1" },
         { root: "service-other", inputSchema: "scg-v1" },

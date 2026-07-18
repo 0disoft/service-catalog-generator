@@ -1,6 +1,6 @@
 # Validation
 
-Status: Draft
+Status: Active
 
 ## Validation Source of Truth
 

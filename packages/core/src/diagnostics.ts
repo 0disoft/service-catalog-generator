@@ -134,7 +134,7 @@ function schemaIssueMessage(code: Diagnostic["code"], field: string | undefined)
 
 function schemaIssueHint(code: Diagnostic["code"], field: string | undefined): string {
   if (code === "manifest.invalid_schema_version") {
-    return "Use schemaVersion scg.service/v1alpha1.";
+    return "Use schemaVersion scg.service/v1; scg.service/v1alpha1 remains accepted during 1.x.";
   }
 
   if (code === "security.secret_like_value") {

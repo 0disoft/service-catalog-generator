@@ -1,6 +1,6 @@
 # Agent Context Map
 
-Status: Draft
+Status: Active
 Scope: infra
 Repository Type: cli-tool
 Addons: github-action, docs-site

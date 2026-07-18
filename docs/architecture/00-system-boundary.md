@@ -1,6 +1,6 @@
 # System Boundary
 
-Status: Draft
+Status: Active
 
 ## Boundary
 

@@ -1,6 +1,8 @@
 export {
   CATALOG_CONFIG_SCHEMA_VERSION,
   CATALOG_SNAPSHOT_SCHEMA_VERSION,
+  LEGACY_CATALOG_CONFIG_SCHEMA_VERSION,
+  LEGACY_SERVICE_MANIFEST_SCHEMA_VERSION,
   SERVICE_MANIFEST_SCHEMA_VERSION
 } from "./versions.js";
 export {
@@ -12,6 +14,7 @@ export {
   type GraphEdge
 } from "./catalog.js";
 export {
+  CATALOG_RESOURCE_LIMIT_DEFAULTS,
   CatalogConfigSchema,
   CatalogInputSchemaSchema,
   type CatalogConfig,

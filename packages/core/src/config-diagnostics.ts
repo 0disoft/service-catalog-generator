@@ -73,7 +73,7 @@ function configIssueMessage(issue: ConfigIssue, field: string | undefined): stri
 
 function configIssueHint(issue: ConfigIssue, field: string | undefined): string {
   if (field === "schemaVersion") {
-    return "Use schemaVersion scg.config/v1alpha1.";
+    return "Use schemaVersion scg.config/v1; scg.config/v1alpha1 remains accepted during 1.x.";
   }
   if (field?.endsWith(".inputSchema")) {
     return "Use scg-v1 or zdp-v2.";
@@ -98,6 +98,6 @@ function configIssueHint(issue: ConfigIssue, field: string | undefined): string 
     return "Provide at least one non-empty manifest filename or omit manifestNames for service.yaml.";
   }
   return field
-    ? `Update ${field} to match the scg.config/v1alpha1 contract.`
-    : "Use schemaVersion scg.config/v1alpha1 and supported config fields.";
+    ? `Update ${field} to match the scg.config/v1 contract.`
+    : "Use schemaVersion scg.config/v1 and supported config fields.";
 }

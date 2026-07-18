@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parse } from "yaml";
+import { normalizeReleaseVersion } from "./release-version.mjs";
 
 const root = process.cwd();
 const workspacePackages = ["schema", "core", "cli", "report", "action"];
@@ -22,7 +23,10 @@ assert(rootPackage.private !== true, "root package must be publishable");
 assert(rootPackage.license === "Apache-2.0", "package license must be Apache-2.0");
 assert(rootPackage.repository?.url === expectedRepository, "repository URL must match GitHub repo");
 assert(rootPackage.publishConfig?.access === "public", "scoped package must publish as public");
-assert(isReleaseVersion(rootPackage.version), "package version must be a release semver");
+assert(
+  isReleaseVersion(rootPackage.version),
+  "package version must be stable or prerelease semver"
+);
 assert(
   rootPackage.bin?.scg === "dist/cli/index.js",
   "package bin.scg must point at the published CLI entrypoint"
@@ -104,7 +108,11 @@ async function readText(path) {
 }
 
 function isReleaseVersion(version) {
-  return /^\d+\.\d+\.\d+$/.test(version);
+  try {
+    return normalizeReleaseVersion(version) === version;
+  } catch {
+    return false;
+  }
 }
 
 function assert(condition, message) {

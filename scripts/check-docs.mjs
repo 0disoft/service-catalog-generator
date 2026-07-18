@@ -24,13 +24,14 @@ const requiredFiles = [
   "docs/adr/0007-no-network-and-no-telemetry-by-default.md",
   "docs/adr/0008-static-report-security-boundary.md",
   "docs/adr/0009-release-and-package-provenance.md",
-  "docs/adr/0010-generated-artifacts-are-never-source-truth.md"
+  "docs/adr/0010-generated-artifacts-are-never-source-truth.md",
+  "docs/adr/0015-stable-v1-contract-and-release-channels.md"
 ];
 
 const requiredText = new Map([
   [
     "docs/product/02-spec.md",
-    ["scg.service/v1alpha1", "@0disoft/service-catalog-generator", "Apache-2.0"]
+    ["scg.service/v1", "@0disoft/service-catalog-generator", "Apache-2.0"]
   ],
   ["docs/cli/output-and-exit-codes.md", ["Catalog validation error", "internal unexpected error"]],
   ["docs/github-action/permissions.md", ["contents: read"]],
@@ -45,7 +46,13 @@ const requiredText = new Map([
   ["DEVELOPMENT.md", ["Node.js: 24", "packages/schema/src", "tests/contract", "pnpm run check"]],
   [
     "docs/product/01-roadmap.md",
-    ["latest verified public release is `0.5.21`", "## Pre-1.0 Work", "## 1.0 Exit Criteria"]
+    [
+      "`1.0.0-rc.1` is prepared",
+      "latest verified public release",
+      "`0.5.21`",
+      "## 1.0 Release-Candidate Work",
+      "## 1.0 Exit Criteria"
+    ]
   ],
   [".github/CODEOWNERS", ["* @0disoft"]],
   [".github/ISSUE_TEMPLATE/config.yml", ["blank_issues_enabled: false", "/security/advisories/new"]]

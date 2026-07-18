@@ -7383,9 +7383,11 @@ var import_promises6 = require("fs/promises");
 var import_node_path6 = require("path");
 
 // packages/schema/dist/versions.js
-var SERVICE_MANIFEST_SCHEMA_VERSION = "scg.service/v1alpha1";
-var CATALOG_SNAPSHOT_SCHEMA_VERSION = "scg.catalog/v1alpha1";
-var CATALOG_CONFIG_SCHEMA_VERSION = "scg.config/v1alpha1";
+var SERVICE_MANIFEST_SCHEMA_VERSION = "scg.service/v1";
+var LEGACY_SERVICE_MANIFEST_SCHEMA_VERSION = "scg.service/v1alpha1";
+var CATALOG_SNAPSHOT_SCHEMA_VERSION = "scg.catalog/v1";
+var CATALOG_CONFIG_SCHEMA_VERSION = "scg.config/v1";
+var LEGACY_CATALOG_CONFIG_SCHEMA_VERSION = "scg.config/v1alpha1";
 
 // node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/external.js
 var external_exports = {};
@@ -21982,6 +21984,10 @@ function addSecretLikeIssues(value, ctx, path = []) {
 }
 
 // packages/schema/dist/service-manifest.js
+var ServiceManifestSchemaVersionSchema = external_exports.union([
+  external_exports.literal(SERVICE_MANIFEST_SCHEMA_VERSION),
+  external_exports.literal(LEGACY_SERVICE_MANIFEST_SCHEMA_VERSION)
+]).transform(() => SERVICE_MANIFEST_SCHEMA_VERSION);
 var OwnerRefSchema = external_exports.object({
   type: external_exports.enum(["team", "group", "user", "system"]),
   ref: ReferenceValueSchema
@@ -22053,7 +22059,7 @@ var ManifestMetadataSchema = external_exports.object({
 }).strict();
 var ServiceExtensionsSchema = external_exports.record(external_exports.string().min(1).max(80), external_exports.unknown());
 var ServiceManifestObjectSchema = external_exports.object({
-  schemaVersion: external_exports.literal(SERVICE_MANIFEST_SCHEMA_VERSION),
+  schemaVersion: ServiceManifestSchemaVersionSchema,
   id: StableIdSchema,
   name: DisplayNameSchema,
   lifecycle: LifecycleSchema,
@@ -22181,6 +22187,19 @@ var DEFAULT_EXCLUDE = [
   ".catalog/**"
 ];
 var CatalogInputSchemaSchema = external_exports.enum(["scg-v1", "zdp-v2"]);
+var CatalogConfigSchemaVersionSchema = external_exports.union([
+  external_exports.literal(CATALOG_CONFIG_SCHEMA_VERSION),
+  external_exports.literal(LEGACY_CATALOG_CONFIG_SCHEMA_VERSION)
+]).transform(() => CATALOG_CONFIG_SCHEMA_VERSION);
+var CATALOG_RESOURCE_LIMIT_DEFAULTS = {
+  maxManifestBytes: 256 * 1024,
+  maxTotalManifestBytes: 64 * 1024 * 1024,
+  maxManifests: 1e3,
+  maxObjectDepth: 32,
+  maxCollectionEntries: 1e5,
+  maxExtensionBytes: 8 * 1024 * 1024,
+  maxReportBytes: 64 * 1024 * 1024
+};
 var ManifestNameSchema = external_exports.string().trim().min(1).refine(isManifestFileName, "Manifest names must be filenames without path separators.");
 var CatalogSourceSchema = external_exports.object({
   root: external_exports.string().trim().min(1),
@@ -22188,7 +22207,7 @@ var CatalogSourceSchema = external_exports.object({
   manifestNames: external_exports.array(ManifestNameSchema).min(1).optional()
 }).strict();
 var RawCatalogConfigSchema = external_exports.object({
-  schemaVersion: external_exports.literal(CATALOG_CONFIG_SCHEMA_VERSION),
+  schemaVersion: CatalogConfigSchemaVersionSchema,
   sources: external_exports.array(CatalogSourceSchema).min(1).optional(),
   scan: external_exports.object({
     roots: external_exports.array(external_exports.string().min(1)).optional(),
@@ -22328,13 +22347,13 @@ var CatalogConfigSchema = RawCatalogConfigSchema.transform((config2) => ({
     minimumServiceCount: config2.validation?.minimumServiceCount ?? 0
   },
   limits: {
-    maxManifestBytes: config2.limits?.maxManifestBytes ?? 256 * 1024,
-    maxTotalManifestBytes: config2.limits?.maxTotalManifestBytes ?? 64 * 1024 * 1024,
-    maxManifests: config2.limits?.maxManifests ?? 1e3,
-    maxObjectDepth: config2.limits?.maxObjectDepth ?? 32,
-    maxCollectionEntries: config2.limits?.maxCollectionEntries ?? 1e5,
-    maxExtensionBytes: config2.limits?.maxExtensionBytes ?? 8 * 1024 * 1024,
-    maxReportBytes: config2.limits?.maxReportBytes ?? 64 * 1024 * 1024
+    maxManifestBytes: config2.limits?.maxManifestBytes ?? CATALOG_RESOURCE_LIMIT_DEFAULTS.maxManifestBytes,
+    maxTotalManifestBytes: config2.limits?.maxTotalManifestBytes ?? CATALOG_RESOURCE_LIMIT_DEFAULTS.maxTotalManifestBytes,
+    maxManifests: config2.limits?.maxManifests ?? CATALOG_RESOURCE_LIMIT_DEFAULTS.maxManifests,
+    maxObjectDepth: config2.limits?.maxObjectDepth ?? CATALOG_RESOURCE_LIMIT_DEFAULTS.maxObjectDepth,
+    maxCollectionEntries: config2.limits?.maxCollectionEntries ?? CATALOG_RESOURCE_LIMIT_DEFAULTS.maxCollectionEntries,
+    maxExtensionBytes: config2.limits?.maxExtensionBytes ?? CATALOG_RESOURCE_LIMIT_DEFAULTS.maxExtensionBytes,
+    maxReportBytes: config2.limits?.maxReportBytes ?? CATALOG_RESOURCE_LIMIT_DEFAULTS.maxReportBytes
   },
   output: {
     directory: config2.output?.directory ?? ".catalog",
@@ -22471,7 +22490,7 @@ function schemaIssueMessage(code, field) {
 }
 function schemaIssueHint(code, field) {
   if (code === "manifest.invalid_schema_version") {
-    return "Use schemaVersion scg.service/v1alpha1.";
+    return "Use schemaVersion scg.service/v1; scg.service/v1alpha1 remains accepted during 1.x.";
   }
   if (code === "security.secret_like_value") {
     return "Remove credentials, tokens, private keys, and secret-like annotations from the manifest.";
@@ -22772,7 +22791,7 @@ function configIssueMessage(issue2, field) {
 }
 function configIssueHint(issue2, field) {
   if (field === "schemaVersion") {
-    return "Use schemaVersion scg.config/v1alpha1.";
+    return "Use schemaVersion scg.config/v1; scg.config/v1alpha1 remains accepted during 1.x.";
   }
   if (field?.endsWith(".inputSchema")) {
     return "Use scg-v1 or zdp-v2.";
@@ -22792,7 +22811,7 @@ function configIssueHint(issue2, field) {
   if (field?.includes(".manifestNames")) {
     return "Provide at least one non-empty manifest filename or omit manifestNames for service.yaml.";
   }
-  return field ? `Update ${field} to match the scg.config/v1alpha1 contract.` : "Use schemaVersion scg.config/v1alpha1 and supported config fields.";
+  return field ? `Update ${field} to match the scg.config/v1 contract.` : "Use schemaVersion scg.config/v1 and supported config fields.";
 }
 
 // packages/core/dist/graph.js
@@ -23358,7 +23377,7 @@ function parseDateOnly(value) {
 }
 
 // packages/core/dist/scan.js
-var DEFAULT_TOOL_VERSION = "0.5.21";
+var DEFAULT_TOOL_VERSION = "1.0.0-rc.1";
 var DEFAULT_PARSE_CONCURRENCY = 16;
 async function compileCatalog(options = {}) {
   const cwd = options.cwd ?? process.cwd();
@@ -24150,7 +24169,7 @@ function escapeSingleQuotes(value) {
 }
 
 // packages/cli/dist/index.js
-var cliVersion = "0.5.21";
+var cliVersion = "1.0.0-rc.1";
 var DEFAULT_CONFIG_FILE = "scg.config.yaml";
 var MAX_CONFIG_BYTES = 1024 * 1024;
 async function runCli(options = {}) {
@@ -24476,7 +24495,7 @@ function validateConfigInput(config2, explicitConfigPath) {
     if (error51 instanceof CatalogConfigError) {
       return withConfigFile(error51.diagnostic, explicitConfigPath);
     }
-    return configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config values do not match the CLI configuration contract.", "Use schemaVersion scg.config/v1alpha1 and valid sources, scan, validation, limits, output, and privacy fields.");
+    return configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config values do not match the CLI configuration contract.", "Use schemaVersion scg.config/v1 and valid sources, scan, validation, limits, output, and privacy fields.");
   }
 }
 function withConfigFile(diagnostic, explicitConfigPath) {

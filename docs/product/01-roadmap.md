@@ -44,6 +44,8 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
 - Full-SHA workflow pins, CodeQL, bounded Dependabot updates, and explicit runner timeouts.
 - Ubuntu and Windows source-filesystem compatibility plus exact published native/mixed consumer
   registry smoke.
+- One machine-readable consumer conformance manifest reused by source, packed-package, released CLI,
+  and Action validation paths.
 
 ## Pre-1.0 Work
 

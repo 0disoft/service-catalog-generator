@@ -112,9 +112,9 @@ describe("release smoke workflow contract", () => {
         run: "node scripts/release-evidence.mjs"
       })
     );
-    expect(registrySmokeText).toContain('join(root, "examples", "native-consumer")');
-    expect(registrySmokeText).toContain('join(root, "examples", "mixed-consumer")');
-    expect(registrySmokeText).toContain('edge.resolution === "catalog"');
+    expect(registrySmokeText).toContain("runConsumerConformance");
+    expect(registrySmokeText).toContain('join(root, "examples")');
+    expect(registrySmokeText).toContain('"consumer-conformance.json"');
     expect(registrySmokeText).toContain('["completion", "powershell"]');
   });
 

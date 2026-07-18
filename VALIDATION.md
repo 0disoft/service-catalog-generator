@@ -15,6 +15,7 @@ This document owns stable validation names for this scaffold.
 - contract
 - migration-check
 - smoke
+- consumer-conformance
 - docs
 - secret-scan
 - dependency-audit

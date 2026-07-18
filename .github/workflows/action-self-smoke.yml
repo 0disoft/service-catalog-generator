@@ -28,12 +28,13 @@ jobs:
           output-directory: .tmp/action-smoke/.catalog
 
       - name: Assert action outputs and reports
+        env:
+          SCG_ACTION_SERVICE_COUNT: ${{ steps.scg.outputs.service-count }}
+          SCG_ACTION_ERROR_COUNT: ${{ steps.scg.outputs.error-count }}
+          SCG_ACTION_WARNING_COUNT: ${{ steps.scg.outputs.warning-count }}
         run: |
-          test "${{ steps.scg.outputs.service-count }}" = "2"
-          test "${{ steps.scg.outputs.error-count }}" = "0"
-          test "${{ steps.scg.outputs.warning-count }}" = "0"
+          node scripts/consumer-conformance.mjs --action-case native-scg-v1 --catalog .tmp/action-smoke/.catalog/catalog.json
           test "${{ steps.scg.outputs.report-directory }}" = ".tmp/action-smoke/.catalog"
-          test -f .tmp/action-smoke/.catalog/catalog.json
           test -f .tmp/action-smoke/.catalog/graph.dot
           test -f .tmp/action-smoke/.catalog/report.html
 
@@ -46,12 +47,13 @@ jobs:
           output-directory: .tmp/action-smoke/mixed
 
       - name: Assert mixed source action outputs
+        env:
+          SCG_ACTION_SERVICE_COUNT: ${{ steps.scg_mixed.outputs.service-count }}
+          SCG_ACTION_ERROR_COUNT: ${{ steps.scg_mixed.outputs.error-count }}
+          SCG_ACTION_WARNING_COUNT: ${{ steps.scg_mixed.outputs.warning-count }}
         run: |
-          test "${{ steps.scg_mixed.outputs.service-count }}" = "2"
-          test "${{ steps.scg_mixed.outputs.error-count }}" = "0"
-          test "${{ steps.scg_mixed.outputs.warning-count }}" = "0"
+          node scripts/consumer-conformance.mjs --action-case mixed-scg-v1-zdp-v2 --catalog .tmp/action-smoke/mixed/catalog.json
           test "${{ steps.scg_mixed.outputs.report-directory }}" = ".tmp/action-smoke/mixed"
-          node -e "const c=require('./.tmp/action-smoke/mixed/catalog.json'); if(c.summary.edgeCount!==1) process.exit(1)"
 
       - name: Create synthetic ZDP service manifests
         run: |

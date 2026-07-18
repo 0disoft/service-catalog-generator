@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { observeNpmVersion } from "./npm-release-visibility.mjs";
 import { resolveNpmCommand, runInstalledCli } from "./package-smoke-helpers.mjs";
 import { normalizeReleaseVersion } from "./release-version.mjs";
+import { runConsumerConformance } from "./consumer-conformance.mjs";
 
 const root = process.cwd();
 const packageName = "@0disoft/service-catalog-generator";
@@ -58,50 +59,14 @@ try {
     "published CLI must generate PowerShell completion"
   );
 
-  await cp(join(root, "examples", "native-consumer"), workspace, { recursive: true });
-  runInstalledCli(binPath, workspace, ["report", "--config", "scg.config.yaml", "--no-color"]);
-
-  const catalogPath = join(workspace, ".catalog", "catalog.json");
-  assert(existsSync(catalogPath), "registry smoke missing catalog.json");
-  assert(existsSync(join(workspace, ".catalog", "graph.dot")), "registry smoke missing graph.dot");
-  assert(
-    existsSync(join(workspace, ".catalog", "report.html")),
-    "registry smoke missing report.html"
-  );
-  const catalog = JSON.parse(await readFile(catalogPath, "utf8"));
-  assert(catalog.summary.serviceCount === 2, "native consumer must compile two services");
-  assert(catalog.summary.edgeCount === 1, "native consumer must resolve one dependency edge");
-  assert(catalog.summary.errorCount === 0, "native consumer must report zero errors");
-
-  const mixedFixturePath = join(workspace, "examples", "mixed-consumer");
-  await cp(join(root, "examples", "mixed-consumer"), mixedFixturePath, { recursive: true });
-  runInstalledCli(binPath, workspace, [
-    "report",
-    "--config",
-    "examples/mixed-consumer/scg.config.yaml",
-    "--no-color"
-  ]);
-
-  const mixedCatalogPath = join(workspace, ".catalog-mixed", "catalog.json");
-  assert(existsSync(mixedCatalogPath), "registry smoke missing mixed catalog.json");
-  const mixedCatalog = JSON.parse(await readFile(mixedCatalogPath, "utf8"));
-  assert(mixedCatalog.tool.version === version, "mixed consumer tool version mismatch");
-  assert(mixedCatalog.summary.serviceCount === 2, "mixed consumer must compile two services");
-  assert(mixedCatalog.summary.edgeCount === 1, "mixed consumer must resolve one dependency edge");
-  assert(mixedCatalog.summary.errorCount === 0, "mixed consumer must report zero errors");
-  assert(
-    mixedCatalog.services.map((service) => service.id).join(",") === "billing-api,platform-runtime",
-    "mixed consumer must preserve native and ZDP services"
-  );
-  assert(
-    mixedCatalog.graph.edges.some(
-      (edge) =>
-        edge.source === "billing-api" &&
-        edge.target === "platform-runtime" &&
-        edge.resolution === "catalog"
-    ),
-    "mixed consumer must resolve its cross-source dependency"
-  );
+  await cp(join(root, "examples"), join(workspace, "examples"), { recursive: true });
+  await runConsumerConformance({
+    root: workspace,
+    manifestPath: join(workspace, "examples", "consumer-conformance.json"),
+    expectedToolVersion: version,
+    verifyReports: true,
+    invokeCli: ({ cwd, args }) => runInstalledCli(binPath, cwd, args)
+  });
 
   console.log(
     `registry-smoke: ok ${packageName}@${version} (${process.platform}, native=2/1/0, mixed=2/1/0)`

@@ -4,6 +4,8 @@
 
 - Added native Bash, Zsh, and PowerShell parsing and registration checks on pinned Ubuntu, macOS,
   and Windows hosted runners for generated completion scripts.
+- Added a reusable native/mixed consumer conformance manifest and runner shared by source,
+  packed-package, and released-package validation.
 
 ## 0.5.21
 

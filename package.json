@@ -42,6 +42,7 @@
     "build": "tsc -b tsconfig.json && node scripts/build.mjs",
     "migration-check": "node scripts/not-configured.mjs migration-check \"No schema migrations exist yet.\"",
     "smoke": "pnpm run build && node scripts/smoke.mjs",
+    "consumer-conformance": "node scripts/consumer-conformance.mjs",
     "docs": "node scripts/check-docs.mjs",
     "secret-scan": "node scripts/secret-scan.mjs",
     "dependency-audit": "node scripts/dependency-audit.mjs",
@@ -50,7 +51,7 @@
     "registry-smoke": "node scripts/registry-smoke.mjs",
     "release:trust:dry-run": "node scripts/trusted-publisher-dry-run.mjs",
     "prepack": "pnpm run build",
-    "check": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run contract && pnpm run smoke && pnpm run docs && pnpm run recovery-drill && pnpm run secret-scan && pnpm run dependency-audit"
+    "check": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run contract && pnpm run smoke && pnpm run consumer-conformance && pnpm run docs && pnpm run recovery-drill && pnpm run secret-scan && pnpm run dependency-audit"
   },
   "devDependencies": {
     "@types/node": "26.1.1",

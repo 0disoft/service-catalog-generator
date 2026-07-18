@@ -97,9 +97,11 @@ describe("GitHub Action wrapper", () => {
         "self-smoke": {
           steps: Array<{
             id?: string;
+            name?: string;
             uses?: string;
             "continue-on-error"?: boolean;
             with?: Record<string, string>;
+            run?: string;
           }>;
         };
       };
@@ -154,6 +156,12 @@ describe("GitHub Action wrapper", () => {
           "output-directory": ".tmp/action-smoke/mixed"
         }
       })
+    );
+    expect(steps.find((step) => step.name === "Assert action outputs and reports")?.run).toContain(
+      "--action-case native-scg-v1"
+    );
+    expect(steps.find((step) => step.name === "Assert mixed source action outputs")?.run).toContain(
+      "--action-case mixed-scg-v1-zdp-v2"
     );
     expect(zdpWarningStep).toEqual(
       expect.objectContaining({

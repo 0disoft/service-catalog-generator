@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "scg.consumer-conformance/v1",
+  "cases": [
+    {
+      "id": "native-scg-v1",
+      "cwd": "examples/native-consumer",
+      "config": "scg.config.yaml",
+      "reportFiles": [".catalog/catalog.json", ".catalog/graph.dot", ".catalog/report.html"],
+      "expected": {
+        "summary": {
+          "serviceCount": 2,
+          "errorCount": 0,
+          "warningCount": 0,
+          "edgeCount": 1
+        },
+        "serviceIds": ["auth-api", "billing-api"],
+        "diagnosticCodes": [],
+        "edges": [
+          {
+            "source": "billing-api",
+            "target": "auth-api",
+            "type": "service",
+            "criticality": "required",
+            "direction": "outbound",
+            "resolution": "catalog"
+          }
+        ]
+      }
+    },
+    {
+      "id": "mixed-scg-v1-zdp-v2",
+      "cwd": ".",
+      "config": "examples/mixed-consumer/scg.config.yaml",
+      "reportFiles": [
+        ".catalog-mixed/catalog.json",
+        ".catalog-mixed/graph.dot",
+        ".catalog-mixed/report.html"
+      ],
+      "expected": {
+        "summary": {
+          "serviceCount": 2,
+          "errorCount": 0,
+          "warningCount": 0,
+          "edgeCount": 1
+        },
+        "serviceIds": ["billing-api", "platform-runtime"],
+        "diagnosticCodes": [],
+        "edges": [
+          {
+            "source": "billing-api",
+            "target": "platform-runtime",
+            "type": "service",
+            "criticality": "required",
+            "direction": "outbound",
+            "resolution": "catalog"
+          }
+        ]
+      }
+    }
+  ]
+}

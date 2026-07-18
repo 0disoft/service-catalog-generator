@@ -4,6 +4,7 @@ import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { resolveNpmCommand, runInstalledCli } from "./package-smoke-helpers.mjs";
+import { runConsumerConformance } from "./consumer-conformance.mjs";
 
 const root = process.cwd();
 const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
@@ -56,45 +57,14 @@ try {
     "installed CLI must generate PowerShell completion"
   );
 
-  await cp(join(root, "examples", "native-consumer"), installDirectory, { recursive: true });
-
-  runInstalledCli(binPath, installDirectory, [
-    "report",
-    "--config",
-    "scg.config.yaml",
-    "--no-color"
-  ]);
-  assert(
-    existsSync(join(installDirectory, ".catalog", "catalog.json")),
-    "report smoke missing catalog.json"
-  );
-  const catalog = JSON.parse(await readFile(join(installDirectory, ".catalog", "catalog.json")));
-  assert(catalog.summary.serviceCount === 2, "native consumer must compile two services");
-  assert(catalog.summary.edgeCount === 1, "native consumer must resolve one dependency edge");
-
-  await cp(
-    join(root, "examples", "mixed-consumer"),
-    join(installDirectory, "examples", "mixed-consumer"),
-    {
-      recursive: true
-    }
-  );
-  runInstalledCli(binPath, installDirectory, [
-    "report",
-    "--config",
-    "examples/mixed-consumer/scg.config.yaml",
-    "--no-color"
-  ]);
-  const mixedCatalog = JSON.parse(
-    await readFile(join(installDirectory, ".catalog-mixed", "catalog.json"))
-  );
-  assert(mixedCatalog.summary.serviceCount === 2, "mixed consumer must compile two services");
-  assert(mixedCatalog.summary.errorCount === 0, "mixed consumer must compile without errors");
-  assert(mixedCatalog.summary.edgeCount === 1, "mixed consumer must resolve a cross-source edge");
-  assert(
-    mixedCatalog.services.map((service) => service.id).join(",") === "billing-api,platform-runtime",
-    "mixed consumer must preserve native and ZDP services"
-  );
+  await cp(join(root, "examples"), join(installDirectory, "examples"), { recursive: true });
+  await runConsumerConformance({
+    root: installDirectory,
+    manifestPath: join(installDirectory, "examples", "consumer-conformance.json"),
+    expectedToolVersion: packageJson.version,
+    verifyReports: true,
+    invokeCli: ({ cwd, args }) => runInstalledCli(binPath, cwd, args)
+  });
 
   console.log(`pack-smoke: ok ${packageJson.name}@${packageJson.version}`);
 } finally {

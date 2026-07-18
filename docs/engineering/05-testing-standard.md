@@ -28,7 +28,7 @@ Testing standard defines merge-blocking expectations for unit, integration, cont
 | Security tests | Cover XSS, DOT injection, path traversal, symlink loops, and secret-like values. |
 | Action tests | Cover input mapping, permission assumptions, output mapping, and CLI exit propagation. |
 | E2E tests | Run a tiny synthetic workspace through scan, check, and report. |
-| Native consumer tests | Compile the standalone `examples/native-consumer` repository through source, packed CLI, and Action paths. |
+| Consumer conformance | Compare native and mixed consumer summaries, service IDs, diagnostics, and dependency edges through source, packed CLI, released CLI, and Action paths. |
 | Source compatibility tests | Verify custom manifest names, global excludes, case semantics, and realpath aliases on Ubuntu and Windows. |
 | Performance tests | Measure native and mixed 500/1,000-manifest workspaces plus 100/5,000-source scaling against documented budgets. |
 
@@ -42,6 +42,11 @@ Testing standard defines merge-blocking expectations for unit, integration, cont
 - `invalid-bad-schema-version.service.yaml`
 
 Fixtures must be synthetic and must not include real organization data.
+
+`examples/consumer-conformance.json` is the machine-readable consumer contract. The
+`consumer-conformance` validation runs the built source CLI against it, while packed-package and
+registry smoke reuse the same manifest with their installed binary. A new consumer profile must add
+one case to this manifest instead of copying assertions into each release script.
 
 ## Performance Budgets
 

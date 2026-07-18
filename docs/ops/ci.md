@@ -21,6 +21,7 @@ credentials, long-running services, write permissions, telemetry, or private cat
 - test
 - contract
 - smoke
+- consumer-conformance
 - docs
 - recovery-drill
 - secret-scan
@@ -53,7 +54,8 @@ publication.
 
 ## Validation
 
-- Required validation names: docs, smoke, recovery-drill, secret-scan, dependency-audit, check
+- Required validation names: docs, smoke, consumer-conformance, recovery-drill, secret-scan,
+  dependency-audit, check
 - Release blocker status: CI cannot publish releases if implemented gates are failing
 - Remaining operational risk: dependency audit retries transient registry failures, but CI still
   depends on the package registry eventually returning audit metadata.

@@ -1,6 +1,6 @@
 # Product Brief
 
-Status: Active Pre-1.0
+Status: Active 1.0 RC
 Owner: 0disoft
 
 ## Purpose

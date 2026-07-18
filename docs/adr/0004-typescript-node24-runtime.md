@@ -21,6 +21,7 @@ runtime for static report generation.
 - The initial workspace should use pnpm.
 - The CLI binary name is `scg`.
 - Runtime support changes require smoke validation and documentation updates.
+- TypeScript compiler-track migration follows ADR 0014 and keeps compiler API ownership explicit.
 - Go, Rust, Docker, and frontend frameworks remain out of scope for the MVP unless a later ADR
   accepts them.
 

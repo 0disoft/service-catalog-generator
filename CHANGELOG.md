@@ -6,6 +6,8 @@
   and Windows hosted runners for generated completion scripts.
 - Added a reusable native/mixed consumer conformance manifest and runner shared by source,
   packed-package, and released-package validation.
+- Added a merge-blocking TypeScript 7 native compiler lane on Ubuntu and Windows while retaining
+  TypeScript 6 for compiler API and package-build compatibility.
 
 ## 0.5.21
 

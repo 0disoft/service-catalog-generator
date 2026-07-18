@@ -18,6 +18,7 @@ credentials, long-running services, write permissions, telemetry, or private cat
 - format
 - lint
 - typecheck
+- typecheck-native
 - test
 - contract
 - smoke
@@ -34,6 +35,10 @@ Oxfmt owns formatting checks and Oxlint owns JavaScript and TypeScript lint rule
 continues to own type checking, project-reference builds, and declaration emit; the lint gate must
 not replace the `typecheck` gate without a separate compatibility decision and equivalent release
 evidence.
+
+TypeScript 6.0.3 remains the explicit compiler API and package-build dependency. TypeScript 7.0.2
+runs as the separate `typecheck-native` gate on Ubuntu and Windows, covering project references and
+the test/script configuration without letting package-manager binary-link order select a compiler.
 
 Third-party Actions are pinned to immutable commit SHAs. Dependabot checks npm and GitHub Actions
 updates weekly, groups compatible minor and patch updates, and limits each ecosystem to three open

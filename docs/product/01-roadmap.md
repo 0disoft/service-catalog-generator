@@ -46,6 +46,8 @@ reports, explicit ZDP v2 adaptation, and repository-local plus central-catalog a
   registry smoke.
 - One machine-readable consumer conformance manifest reused by source, packed-package, released CLI,
   and Action validation paths.
+- TypeScript 7 native compiler compatibility on Ubuntu and Windows while TypeScript 6 remains the
+  explicit compiler API and package-build dependency.
 
 ## Pre-1.0 Work
 

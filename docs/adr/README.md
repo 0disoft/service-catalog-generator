@@ -22,6 +22,7 @@ This directory records durable product and architecture decisions for Service Ca
 - 0011 Input Schema Adapters
 - 0012 Oxc Quality Toolchain
 - 0013 Source-Scoped Input Adapters
+- 0014 TypeScript 7 Native Compatibility Lane
 
 ## Source of Truth
 

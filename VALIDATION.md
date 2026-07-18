@@ -11,6 +11,7 @@ This document owns stable validation names for this scaffold.
 - format
 - lint
 - typecheck
+- typecheck-native
 - test
 - contract
 - migration-check

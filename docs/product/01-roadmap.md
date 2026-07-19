@@ -49,6 +49,8 @@ and repository-local plus central-catalog adoption evidence.
   registry smoke.
 - One machine-readable consumer conformance manifest reused by source, packed-package, released CLI,
   and Action validation paths.
+- Exact released Action tag consumption on Ubuntu and Windows for canonical v1, legacy alpha-input,
+  and mixed consumers.
 - TypeScript 7 native compiler compatibility on Ubuntu and Windows while TypeScript 6 remains the
   explicit compiler API and package-build dependency.
 

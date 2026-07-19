@@ -173,6 +173,9 @@ Current verified release evidence:
   expected service, edge, and diagnostic counts.
 - Hosted Action smoke: workflow run `29645316999` compiled canonical v1, legacy alpha-input, mixed,
   and ZDP fixtures at the release commit.
+- Released Action smoke: workflow run `29672248655` resolved the exact public
+  `0disoft/service-catalog-generator@v1.0.0-rc.1` tag and passed canonical v1, legacy alpha-input,
+  and mixed consumer conformance on Ubuntu and Windows.
 - Hosted CI: workflow run `29645317020` passed TypeScript 7, report publication, shell completion,
   and source compatibility jobs across the declared Ubuntu, Windows, and macOS runners.
 - Hosted post-publish smoke: automatic workflow run `29645463785` installed the exact RC package and

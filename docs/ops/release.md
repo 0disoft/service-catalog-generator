@@ -15,7 +15,8 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 ## Validation
 
 - Required validation names: format, lint, typecheck, typecheck-native, test, contract, smoke,
-  consumer-conformance, docs, recovery-drill, release-evidence, registry-smoke, check
+  consumer-conformance, docs, recovery-drill, release-evidence, registry-smoke,
+  released-action-smoke, check
 - Release blocker status: any missing implemented validation is a blocker unless documented as not
   yet configured
 - Remaining operational risk: package availability, Trusted Publishing, prerelease channel
@@ -84,7 +85,8 @@ CLI JSON output, and exit codes are compatibility contracts.
    the GitHub Release and restored or deleted the mutable major Action tag.
 11. If npm publish succeeds but downstream evidence later fails, treat the package as immutable and
    cut a forward-fix patch release rather than trying to rewrite the published version.
-12. Smoke test package installation and Action usage from the released tag.
+12. Smoke test package installation and dispatch `released-action-smoke` so GitHub resolves the
+    exact public Action tag on Ubuntu and Windows.
 13. Run `pnpm run release-evidence -- <version>` after promotion.
 
 After a successful `release` workflow, `release-smoke` installs the exact published npm version on
@@ -93,6 +95,11 @@ fixtures. The evidence job runs only after both registry smoke jobs pass, then v
 provenance and signatures, npm dist-tag ownership, the GitHub Release, the immutable version tag,
 stable-only major Action tag policy, and the originating release workflow. Registry visibility is
 retried for up to 60 seconds before the smoke fails.
+
+The separate `released-action-smoke` workflow runs after a successful release and supports manual
+replay. It invokes the exact package-version Action tag for canonical v1, legacy alpha-input, and
+mixed ZDP consumers on Ubuntu and Windows. Its public Action reference must match `package.json` and
+is validated before a release tag can pass `release-check`.
 
 The workflow also supports a manual `version` input, with or without a `v` prefix, for replaying
 evidence against an existing release. A post-publish failure never authorizes rollback or mutation

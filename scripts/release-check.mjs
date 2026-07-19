@@ -13,6 +13,7 @@ const changelogText = await readText("CHANGELOG.md");
 const cliSource = await readText("packages/cli/src/index.ts");
 const coreScanSource = await readText("packages/core/src/scan.ts");
 const releaseWorkflowText = await readText(".github/workflows/release.yml");
+const releasedActionWorkflowText = await readText(".github/workflows/released-action-smoke.yml");
 const releaseWorkflow = parse(releaseWorkflowText);
 
 assert(
@@ -87,6 +88,17 @@ assert(
 assert(
   releaseWorkflowText.includes("node scripts/pack-smoke.mjs"),
   "release workflow must smoke test the packed tarball before npm publish"
+);
+assert(
+  releasedActionWorkflowText.includes(
+    `uses: 0disoft/service-catalog-generator@v${rootPackage.version}`
+  ),
+  "released Action smoke must use the exact package version tag"
+);
+assert(
+  releasedActionWorkflowText.includes("ubuntu-latest") &&
+    releasedActionWorkflowText.includes("windows-latest"),
+  "released Action smoke must cover Ubuntu and Windows"
 );
 
 if (process.env.GITHUB_REF_TYPE === "tag") {

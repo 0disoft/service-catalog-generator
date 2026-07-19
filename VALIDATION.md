@@ -23,6 +23,7 @@ This document owns stable validation names for this scaffold.
 - recovery-drill
 - release-evidence
 - registry-smoke
+- released-action-smoke
 - check
 
 ## Required Final Report

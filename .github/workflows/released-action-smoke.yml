@@ -1,0 +1,88 @@
+name: released-action-smoke
+run-name: released-action-smoke v1.0.0-rc.1
+
+on:
+  workflow_run:
+    workflows:
+      - release
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: released-action-smoke-${{ github.event.workflow_run.id || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  consumer-smoke:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    name: released Action (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - id: native
+        uses: 0disoft/service-catalog-generator@v1.0.0-rc.1
+        with:
+          config: examples/native-consumer/scg.config.yaml
+          roots: examples/native-consumer/services
+          report: "true"
+          format: json
+          output-directory: .tmp/released-action/native
+
+      - name: Verify canonical v1 consumer
+        env:
+          SCG_ACTION_SERVICE_COUNT: ${{ steps.native.outputs.service-count }}
+          SCG_ACTION_ERROR_COUNT: ${{ steps.native.outputs.error-count }}
+          SCG_ACTION_WARNING_COUNT: ${{ steps.native.outputs.warning-count }}
+        run: node scripts/consumer-conformance.mjs --action-case native-scg-v1 --catalog .tmp/released-action/native/catalog.json
+
+      - id: legacy
+        uses: 0disoft/service-catalog-generator@v1.0.0-rc.1
+        with:
+          config: examples/legacy-alpha-consumer/scg.config.yaml
+          roots: examples/legacy-alpha-consumer/services
+          report: "true"
+          format: json
+          output-directory: .tmp/released-action/legacy
+
+      - name: Verify legacy alpha-input consumer
+        env:
+          SCG_ACTION_SERVICE_COUNT: ${{ steps.legacy.outputs.service-count }}
+          SCG_ACTION_ERROR_COUNT: ${{ steps.legacy.outputs.error-count }}
+          SCG_ACTION_WARNING_COUNT: ${{ steps.legacy.outputs.warning-count }}
+        run: node scripts/consumer-conformance.mjs --action-case legacy-alpha-input --catalog .tmp/released-action/legacy/catalog.json
+
+      - id: mixed
+        uses: 0disoft/service-catalog-generator@v1.0.0-rc.1
+        with:
+          config: examples/mixed-consumer/scg.config.yaml
+          report: "true"
+          format: json
+          output-directory: .tmp/released-action/mixed
+
+      - name: Verify mixed adapter consumer
+        env:
+          SCG_ACTION_SERVICE_COUNT: ${{ steps.mixed.outputs.service-count }}
+          SCG_ACTION_ERROR_COUNT: ${{ steps.mixed.outputs.error-count }}
+          SCG_ACTION_WARNING_COUNT: ${{ steps.mixed.outputs.warning-count }}
+        run: node scripts/consumer-conformance.mjs --action-case mixed-scg-v1-zdp-v2 --catalog .tmp/released-action/mixed/catalog.json

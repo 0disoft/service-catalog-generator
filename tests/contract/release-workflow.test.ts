@@ -187,12 +187,17 @@ describe("release workflow contract", () => {
   });
 
   it("pins third-party workflow Actions and disables checkout credential persistence", () => {
+    const packageJson = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8")) as {
+      version: string;
+    };
+    const releasedActionReference = `0disoft/service-catalog-generator@v${packageJson.version}`;
     for (const workflowPath of [
       ".github/workflows/ci.yml",
       ".github/workflows/action-self-smoke.yml",
       ".github/workflows/codeql.yml",
       ".github/workflows/release.yml",
-      ".github/workflows/release-smoke.yml"
+      ".github/workflows/release-smoke.yml",
+      ".github/workflows/released-action-smoke.yml"
     ]) {
       const workflowText = readFileSync(join(process.cwd(), workflowPath), "utf8");
       const workflow = parse(workflowText) as WorkflowSecurityContract;
@@ -205,7 +210,11 @@ describe("release workflow contract", () => {
 
       expect(thirdPartyReferences.length).toBeGreaterThan(0);
       for (const reference of thirdPartyReferences) {
-        expect(reference, workflowPath).toMatch(/^[^@\s]+@[0-9a-f]{40}$/);
+        if (reference === releasedActionReference) {
+          expect(workflowPath).toBe(".github/workflows/released-action-smoke.yml");
+        } else {
+          expect(reference, workflowPath).toMatch(/^[^@\s]+@[0-9a-f]{40}$/);
+        }
       }
       for (const [jobName, job] of Object.entries(workflow.jobs)) {
         expect(job["timeout-minutes"], `${workflowPath}:${jobName}`).toBeGreaterThan(0);

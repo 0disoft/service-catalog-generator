@@ -6,6 +6,7 @@ const root = process.cwd();
 
 const rootPackage = await readJson("package.json");
 const releaseWorkflowText = await readText(".github/workflows/release.yml");
+const releasedActionWorkflowText = await readText(".github/workflows/released-action-smoke.yml");
 const releaseWorkflow = parse(releaseWorkflowText);
 const disasterRecoveryText = await readText("docs/ops/disaster-recovery.md");
 const rollbackText = await readText("docs/ops/rollback.md");
@@ -50,6 +51,15 @@ assertText(releaseWorkflowText, ".github/workflows/release.yml", [
   "Recover GitHub release state when npm publish fails"
 ]);
 
+assertText(releasedActionWorkflowText, ".github/workflows/released-action-smoke.yml", [
+  "workflow_run:",
+  "workflow_dispatch:",
+  `0disoft/service-catalog-generator@v${rootPackage.version}`,
+  "ubuntu-latest",
+  "windows-latest",
+  "persist-credentials: false"
+]);
+
 assertText(disasterRecoveryText, "docs/ops/disaster-recovery.md", [
   "no hosted runtime or persistent service state",
   "Restore user manifests from Git history.",
@@ -74,7 +84,8 @@ assertText(releaseText, "docs/ops/release.md", [
   "A prerelease has no major-tag mutation to recover",
   "published under npm `next`",
   "restores the previous major Action tag target",
-  "Smoke test package installation and Action usage from the released tag.",
+  "exact public Action tag",
+  "released-action-smoke",
   "recovery-drill"
 ]);
 

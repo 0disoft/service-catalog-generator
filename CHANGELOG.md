@@ -6,6 +6,8 @@
   stable-channel isolation evidence.
 - Removed Windows command-shell interpretation from installed-package smoke execution while keeping
   the generated npm shim presence check and direct packaged CLI validation.
+- Added Ubuntu and Windows consumer smoke for the exact released Action tag, bound to the package
+  version and shared canonical, legacy, and mixed conformance assertions.
 
 ## 1.0.0-rc.1
 

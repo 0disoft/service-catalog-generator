@@ -191,6 +191,7 @@ describe("release workflow contract", () => {
       version: string;
     };
     const releasedActionReference = `0disoft/service-catalog-generator@v${packageJson.version}`;
+    const majorActionReference = `0disoft/service-catalog-generator@v${packageJson.version.split(".")[0]}`;
     for (const workflowPath of [
       ".github/workflows/ci.yml",
       ".github/workflows/action-self-smoke.yml",
@@ -210,7 +211,7 @@ describe("release workflow contract", () => {
 
       expect(thirdPartyReferences.length).toBeGreaterThan(0);
       for (const reference of thirdPartyReferences) {
-        if (reference === releasedActionReference) {
+        if (reference === releasedActionReference || reference === majorActionReference) {
           expect(workflowPath).toBe(".github/workflows/released-action-smoke.yml");
         } else {
           expect(reference, workflowPath).toMatch(/^[^@\s]+@[0-9a-f]{40}$/);

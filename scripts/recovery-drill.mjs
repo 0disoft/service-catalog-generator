@@ -8,6 +8,10 @@ const rootPackage = await readJson("package.json");
 const releaseWorkflowText = await readText(".github/workflows/release.yml");
 const releasedActionWorkflowText = await readText(".github/workflows/released-action-smoke.yml");
 const releaseWorkflow = parse(releaseWorkflowText);
+const releasedActionWorkflow = parse(releasedActionWorkflowText);
+const releasedActionReferences = Object.values(releasedActionWorkflow?.jobs ?? {}).flatMap((job) =>
+  (job?.steps ?? []).map((step) => step?.uses).filter(Boolean)
+);
 const disasterRecoveryText = await readText("docs/ops/disaster-recovery.md");
 const rollbackText = await readText("docs/ops/rollback.md");
 const releaseText = await readText("docs/ops/release.md");
@@ -54,11 +58,20 @@ assertText(releaseWorkflowText, ".github/workflows/release.yml", [
 assertText(releasedActionWorkflowText, ".github/workflows/released-action-smoke.yml", [
   "workflow_run:",
   "workflow_dispatch:",
-  `0disoft/service-catalog-generator@v${rootPackage.version}`,
   "ubuntu-latest",
   "windows-latest",
   "persist-credentials: false"
 ]);
+assert(
+  releasedActionReferences.includes(`0disoft/service-catalog-generator@v${rootPackage.version}`),
+  "released Action smoke must retain the exact package-version reference"
+);
+assert(
+  releasedActionReferences.includes(
+    `0disoft/service-catalog-generator@v${rootPackage.version.split(".")[0]}`
+  ),
+  "released Action smoke must retain the moving major reference"
+);
 
 assertText(disasterRecoveryText, "docs/ops/disaster-recovery.md", [
   "no hosted runtime or persistent service state",

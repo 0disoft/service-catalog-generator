@@ -99,12 +99,16 @@ retried for up to 60 seconds before the smoke fails.
 
 The separate `released-action-smoke` workflow runs after a successful release and supports manual
 replay. It invokes the exact package-version Action tag for canonical v1, legacy alpha-input, and
-mixed ZDP consumers on Ubuntu and Windows. Its public Action reference must match `package.json` and
-is validated before a release tag can pass `release-check`.
+mixed ZDP consumers on Ubuntu and Windows. Stable releases and manual replays also invoke the moving
+major Action tag with the canonical v1 consumer on both runners. Prerelease-triggered runs skip the
+major-channel job so an older stable Action is not evaluated against prerelease fixtures. The exact
+and moving public Action references must match `package.json` and are validated before a release tag
+can pass `release-check`.
 
-The workflow also supports a manual `version` input, with or without a `v` prefix, for replaying
-evidence against an existing release. A post-publish failure never authorizes rollback or mutation
-of the npm version; investigate the failed evidence and publish a forward-fix patch release.
+Manual dispatch replays the exact and moving Action references encoded by the selected workflow
+ref. To replay an older release, dispatch the workflow from that immutable version tag. A
+post-publish failure never authorizes rollback or mutation of the npm version; investigate the
+failed evidence and publish a forward-fix patch release.
 
 For npm CLI smoke tests, run from a temporary directory outside this repository so npm does not
 resolve the local workspace package instead of the published package:

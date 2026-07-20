@@ -15,6 +15,10 @@ const coreScanSource = await readText("packages/core/src/scan.ts");
 const releaseWorkflowText = await readText(".github/workflows/release.yml");
 const releasedActionWorkflowText = await readText(".github/workflows/released-action-smoke.yml");
 const releaseWorkflow = parse(releaseWorkflowText);
+const releasedActionWorkflow = parse(releasedActionWorkflowText);
+const releasedActionReferences = Object.values(releasedActionWorkflow?.jobs ?? {}).flatMap((job) =>
+  (job?.steps ?? []).map((step) => step?.uses).filter(Boolean)
+);
 
 assert(
   rootPackage.name === "@0disoft/service-catalog-generator",
@@ -90,10 +94,14 @@ assert(
   "release workflow must smoke test the packed tarball before npm publish"
 );
 assert(
-  releasedActionWorkflowText.includes(
-    `uses: 0disoft/service-catalog-generator@v${rootPackage.version}`
-  ),
+  releasedActionReferences.includes(`0disoft/service-catalog-generator@v${rootPackage.version}`),
   "released Action smoke must use the exact package version tag"
+);
+assert(
+  releasedActionReferences.includes(
+    `0disoft/service-catalog-generator@v${rootPackage.version.split(".")[0]}`
+  ),
+  "released Action smoke must execute the moving major tag"
 );
 assert(
   releasedActionWorkflowText.includes("ubuntu-latest") &&

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "flags": {
+    "scg.report.json.enabled": {
+      "type": "boolean",
+      "defaultVariant": "enabled",
+      "variants": {
+        "enabled": true,
+        "disabled": false
+      }
+    },
+    "scg.report.dot.enabled": {
+      "type": "boolean",
+      "defaultVariant": "disabled",
+      "variants": {
+        "enabled": true,
+        "disabled": false
+      }
+    },
+    "scg.report.html.enabled": {
+      "type": "boolean",
+      "defaultVariant": "enabled",
+      "variants": {
+        "enabled": true,
+        "disabled": false
+      }
+    }
+  }
+}

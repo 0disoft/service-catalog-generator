@@ -25,7 +25,8 @@ const requiredFiles = [
   "docs/adr/0008-static-report-security-boundary.md",
   "docs/adr/0009-release-and-package-provenance.md",
   "docs/adr/0010-generated-artifacts-are-never-source-truth.md",
-  "docs/adr/0015-stable-v1-contract-and-release-channels.md"
+  "docs/adr/0015-stable-v1-contract-and-release-channels.md",
+  "examples/openfeature-consumer/README.md"
 ];
 
 const requiredText = new Map([
@@ -44,6 +45,10 @@ const requiredText = new Map([
     ["@0disoft", "pnpm install --frozen-lockfile", "pnpm run check", "dist/action/index.cjs"]
   ],
   ["DEVELOPMENT.md", ["Node.js: 24", "packages/schema/src", "tests/contract", "pnpm run check"]],
+  [
+    "examples/openfeature-consumer/README.md",
+    ["@0disoft/openfeature-local-provider@1.0.0-rc.2", "normal registry", "built SCG CLI"]
+  ],
   [
     "docs/product/01-roadmap.md",
     [

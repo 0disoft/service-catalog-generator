@@ -47,6 +47,13 @@ A standalone native `scg-v1` consumer fixture with two services, strict dependen
 its own config lives under `examples/native-consumer`. Packed-package and GitHub Action smoke tests
 both compile that fixture so native behavior does not depend on the ZDP adapter.
 
+The repository also consumes the published
+`@0disoft/openfeature-local-provider@1.0.0-rc.2` package from the normal registry. Its
+`examples/openfeature-consumer/flags.json` snapshot selects JSON and HTML report formats through
+OpenFeature before the consumer-conformance runner invokes the built SCG CLI. This is a
+repository-owned integration fixture, not a new SCG command flag or an independent-maintainer
+adoption claim.
+
 One run can compile explicitly partitioned native and ZDP roots through source-scoped config:
 
 ```powershell

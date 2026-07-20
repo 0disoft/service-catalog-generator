@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.0.1
+
+- Added a normal-registry OpenFeature local-provider consumer fixture that selects real SCG report
+  formats and verifies the built CLI output through the repository conformance path.
+- Made the complete check rebuild the committed Action bundle before contract validation so clean
+  checkouts do not depend on stale generated output.
+
 ## 1.0.0
 
 - Promoted the verified v1 manifest, config, catalog, CLI, report, and Action contracts to stable

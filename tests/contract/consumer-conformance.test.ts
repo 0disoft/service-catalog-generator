@@ -27,12 +27,12 @@ describe("consumer conformance kit", () => {
         root: workspace,
         manifestPath: join(workspace, "manifest.json"),
         invokeCli,
-        expectedToolVersion: "1.0.0",
+        expectedToolVersion: "1.0.1",
         verifyReports: true
       })
     ).resolves.toEqual({
       schemaVersion: "scg.consumer-conformance-result/v1",
-      toolVersion: "1.0.0",
+      toolVersion: "1.0.1",
       caseCount: 1,
       cases: [{ id: "native", ...expected }]
     });
@@ -130,7 +130,7 @@ function expectedResult() {
 function snapshot() {
   return {
     schemaVersion: "scg.catalog/v1",
-    tool: { name: "service-catalog-generator", version: "1.0.0" },
+    tool: { name: "service-catalog-generator", version: "1.0.1" },
     summary: { serviceCount: 1, errorCount: 0, warningCount: 0, edgeCount: 1 },
     services: [{ id: "service-a" }],
     diagnostics: [],

@@ -1,6 +1,6 @@
 {
   "name": "@0disoft/service-catalog-generator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Read-only service.yaml compiler and linter for deterministic service catalog artifacts.",
   "license": "Apache-2.0",
   "type": "module",
@@ -43,7 +43,7 @@
     "build": "node node_modules/typescript/bin/tsc -b tsconfig.json && node scripts/build.mjs",
     "migration-check": "vitest run tests/contract/schema-migration.test.ts",
     "smoke": "pnpm run build && node scripts/smoke.mjs",
-    "consumer-conformance": "node scripts/consumer-conformance.mjs",
+    "consumer-conformance": "node scripts/consumer-conformance.mjs && node scripts/openfeature-consumer.mjs",
     "docs": "node scripts/check-docs.mjs",
     "secret-scan": "node scripts/secret-scan.mjs",
     "dependency-audit": "node scripts/dependency-audit.mjs",
@@ -52,9 +52,11 @@
     "registry-smoke": "node scripts/registry-smoke.mjs",
     "release:trust:dry-run": "node scripts/trusted-publisher-dry-run.mjs",
     "prepack": "pnpm run build",
-    "check": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run typecheck:native && pnpm run test && pnpm run contract && pnpm run migration-check && pnpm run smoke && pnpm run consumer-conformance && pnpm run docs && pnpm run recovery-drill && pnpm run secret-scan && pnpm run dependency-audit"
+    "check": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run typecheck:native && pnpm run build && pnpm run test && pnpm run contract && pnpm run migration-check && pnpm run smoke && pnpm run consumer-conformance && pnpm run docs && pnpm run recovery-drill && pnpm run secret-scan && pnpm run dependency-audit"
   },
   "devDependencies": {
+    "@0disoft/openfeature-local-provider": "1.0.0-rc.2",
+    "@openfeature/server-sdk": "1.22.0",
     "@types/node": "26.1.1",
     "@typescript/native": "npm:typescript@7.0.2",
     "oxfmt": "0.59.0",

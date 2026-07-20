@@ -30,6 +30,10 @@ The first first-party adapter is `zdp-v2`. It reads ZDP `service.yaml` manifests
 `contract.schema_version: 2`, maps their stable service fields into the SCG catalog model, and keeps
 ZDP-specific metadata under `extensions.zdp`.
 
+The adapter requires `contract.last_reviewed_at` in `YYYY-MM-DD` form because the stable SCG
+catalog requires `metadata.lastReviewedAt`. Missing or malformed source dates fail with
+`adapter.invalid_input`; the adapter never invents a sentinel review date.
+
 SCG does not enforce ZDP architecture policy. ZDP policy validation remains owned by
 `zdp-architecture-linter`; SCG only reads, normalizes, reports, and maps dependencies for catalog
 artifacts.

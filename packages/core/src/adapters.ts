@@ -43,8 +43,16 @@ function adaptZdpV2Manifest(value: unknown, file: string): AdaptedManifest {
   const id = readString(service.id);
   const repo = readString(service.repo) ?? id;
   const owner = readString(service.owner) ?? "unknown";
+  const lastReviewedAt = readDate(contract.last_reviewed_at);
   if (!id) {
     return invalidAdapterInput(file, "ZDP v2 input requires service.id.");
+  }
+  if (!lastReviewedAt) {
+    return invalidAdapterInput(
+      file,
+      "ZDP v2 input requires contract.last_reviewed_at in YYYY-MM-DD format.",
+      "contract.last_reviewed_at"
+    );
   }
 
   const runtime = asRecord(root.runtime);
@@ -93,7 +101,7 @@ function adaptZdpV2Manifest(value: unknown, file: string): AdaptedManifest {
       dependencies: mapDependencies(dependencies),
       ...(readString(cost?.owner) ? { cost: { owner: toOwnerRef(readString(cost?.owner)) } } : {}),
       metadata: {
-        lastReviewedAt: readDate(contract.last_reviewed_at) ?? "1970-01-01"
+        lastReviewedAt
       },
       extensions: {
         zdp: compactRecord({
@@ -181,7 +189,7 @@ function hasPersonalData(data: Record<string, unknown> | undefined): boolean {
   );
 }
 
-function invalidAdapterInput(file: string, message: string): AdaptedManifest {
+function invalidAdapterInput(file: string, message: string, field?: string): AdaptedManifest {
   return {
     ok: false,
     diagnostics: [
@@ -189,6 +197,7 @@ function invalidAdapterInput(file: string, message: string): AdaptedManifest {
         severity: "error",
         code: "adapter.invalid_input",
         file,
+        ...(field ? { field } : {}),
         message,
         hint: "Use --input-schema scg-v1 for SCG manifests or provide a ZDP v2 service.yaml."
       })

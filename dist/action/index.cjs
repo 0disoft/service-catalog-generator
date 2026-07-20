@@ -22916,6 +22916,7 @@ function serializedByteLength(value) {
 }
 
 // packages/core/dist/parser.js
+var MANIFEST_READ_CHUNK_BYTES = 64 * 1024;
 async function parseManifestFile(file2, limits) {
   let source;
   let handle;
@@ -22925,19 +22926,11 @@ async function parseManifestFile(file2, limits) {
     if (fileStat.size > limits.maxManifestBytes) {
       return invalidYaml(file2, "Manifest file exceeds the configured size limit.");
     }
-    const buffer = Buffer.alloc(limits.maxManifestBytes + 1);
-    let offset = 0;
-    while (offset < buffer.length) {
-      const { bytesRead } = await handle.read(buffer, offset, buffer.length - offset, offset);
-      if (bytesRead === 0) {
-        break;
-      }
-      offset += bytesRead;
-    }
-    if (offset > limits.maxManifestBytes) {
+    const boundedSource = await readBoundedSource(handle, limits.maxManifestBytes);
+    if (boundedSource === void 0) {
       return invalidYaml(file2, "Manifest file exceeds the configured size limit.");
     }
-    source = buffer.subarray(0, offset).toString("utf8");
+    source = boundedSource;
   } catch {
     return invalidYaml(file2, "Manifest file could not be read.");
   } finally {
@@ -22968,6 +22961,21 @@ async function parseManifestFile(file2, limits) {
   } catch {
     return invalidYaml(file2, "Manifest YAML is invalid.");
   }
+}
+async function readBoundedSource(handle, maxBytes) {
+  const chunks = [];
+  let offset = 0;
+  while (offset <= maxBytes) {
+    const remainingBytes = maxBytes + 1 - offset;
+    const chunk = Buffer.allocUnsafe(Math.min(MANIFEST_READ_CHUNK_BYTES, remainingBytes));
+    const { bytesRead } = await handle.read(chunk, 0, chunk.length, offset);
+    if (bytesRead === 0) {
+      return Buffer.concat(chunks, offset).toString("utf8");
+    }
+    chunks.push(chunk.subarray(0, bytesRead));
+    offset += bytesRead;
+  }
+  return void 0;
 }
 function resourceLimitExceeded(file2, message) {
   return {
@@ -23103,8 +23111,12 @@ function adaptZdpV2Manifest(value, file2) {
   const id = readString(service.id);
   const repo = readString(service.repo) ?? id;
   const owner = readString(service.owner) ?? "unknown";
+  const lastReviewedAt = readDate(contract.last_reviewed_at);
   if (!id) {
     return invalidAdapterInput(file2, "ZDP v2 input requires service.id.");
+  }
+  if (!lastReviewedAt) {
+    return invalidAdapterInput(file2, "ZDP v2 input requires contract.last_reviewed_at in YYYY-MM-DD format.", "contract.last_reviewed_at");
   }
   const runtime = asRecord(root.runtime);
   const domain2 = asRecord(root.domain);
@@ -23149,7 +23161,7 @@ function adaptZdpV2Manifest(value, file2) {
       dependencies: mapDependencies(dependencies),
       ...readString(cost?.owner) ? { cost: { owner: toOwnerRef(readString(cost?.owner)) } } : {},
       metadata: {
-        lastReviewedAt: readDate(contract.last_reviewed_at) ?? "1970-01-01"
+        lastReviewedAt
       },
       extensions: {
         zdp: compactRecord({
@@ -23221,7 +23233,7 @@ function dependencyList(value, type) {
 function hasPersonalData(data) {
   return readString(data?.pii_level) !== "none" || readBoolean(data?.payment_data) === true || readBoolean(data?.message_content) === true || readBoolean(data?.ai_user_data) === true;
 }
-function invalidAdapterInput(file2, message) {
+function invalidAdapterInput(file2, message, field) {
   return {
     ok: false,
     diagnostics: [
@@ -23229,6 +23241,7 @@ function invalidAdapterInput(file2, message) {
         severity: "error",
         code: "adapter.invalid_input",
         file: file2,
+        ...field ? { field } : {},
         message,
         hint: "Use --input-schema scg-v1 for SCG manifests or provide a ZDP v2 service.yaml."
       })

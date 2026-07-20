@@ -5,6 +5,8 @@ import { createDiagnostic } from "./diagnostics.js";
 import { measureValueStructure } from "./resource-policy.js";
 import type { DiscoveredManifest, ParsedManifest } from "./types.js";
 
+const MANIFEST_READ_CHUNK_BYTES = 64 * 1024;
+
 export async function parseManifestFile(
   file: DiscoveredManifest,
   limits: { maxManifestBytes: number; maxObjectDepth: number }
@@ -18,19 +20,11 @@ export async function parseManifestFile(
       return invalidYaml(file, "Manifest file exceeds the configured size limit.");
     }
 
-    const buffer = Buffer.alloc(limits.maxManifestBytes + 1);
-    let offset = 0;
-    while (offset < buffer.length) {
-      const { bytesRead } = await handle.read(buffer, offset, buffer.length - offset, offset);
-      if (bytesRead === 0) {
-        break;
-      }
-      offset += bytesRead;
-    }
-    if (offset > limits.maxManifestBytes) {
+    const boundedSource = await readBoundedSource(handle, limits.maxManifestBytes);
+    if (boundedSource === undefined) {
       return invalidYaml(file, "Manifest file exceeds the configured size limit.");
     }
-    source = buffer.subarray(0, offset).toString("utf8");
+    source = boundedSource;
   } catch {
     return invalidYaml(file, "Manifest file could not be read.");
   } finally {
@@ -65,6 +59,28 @@ export async function parseManifestFile(
   } catch {
     return invalidYaml(file, "Manifest YAML is invalid.");
   }
+}
+
+async function readBoundedSource(
+  handle: Awaited<ReturnType<typeof open>>,
+  maxBytes: number
+): Promise<string | undefined> {
+  const chunks: Buffer[] = [];
+  let offset = 0;
+
+  while (offset <= maxBytes) {
+    const remainingBytes = maxBytes + 1 - offset;
+    const chunk = Buffer.allocUnsafe(Math.min(MANIFEST_READ_CHUNK_BYTES, remainingBytes));
+    const { bytesRead } = await handle.read(chunk, 0, chunk.length, offset);
+    if (bytesRead === 0) {
+      return Buffer.concat(chunks, offset).toString("utf8");
+    }
+
+    chunks.push(chunk.subarray(0, bytesRead));
+    offset += bytesRead;
+  }
+
+  return undefined;
 }
 
 function resourceLimitExceeded(file: DiscoveredManifest, message: string): ParsedManifest {

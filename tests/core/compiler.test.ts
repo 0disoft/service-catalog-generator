@@ -107,6 +107,32 @@ describe("core catalog compiler", () => {
     );
   });
 
+  it("accepts a manifest at the exact byte limit and rejects it one byte below", async () => {
+    const workspace = await createWorkspace();
+    const manifest = serviceYaml({ id: "bounded-api" });
+    const manifestBytes = Buffer.byteLength(manifest);
+    await writeManifest(workspace, "services/bounded/service.yaml", manifest);
+
+    const accepted = await compileCatalog({
+      cwd: workspace,
+      config: { limits: { maxManifestBytes: manifestBytes } }
+    });
+    expect(accepted.services.map((service) => service.id)).toEqual(["bounded-api"]);
+
+    const rejected = await compileCatalog({
+      cwd: workspace,
+      config: { limits: { maxManifestBytes: manifestBytes - 1 } }
+    });
+    expect(rejected.services).toEqual([]);
+    expect(rejected.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "manifest.invalid_yaml",
+        file: "services/bounded/service.yaml",
+        message: "Manifest file exceeds the configured size limit."
+      })
+    );
+  });
+
   it("fails the complete catalog when aggregate collection entries exceed the budget", async () => {
     const workspace = await createWorkspace();
     await writeManifest(workspace, "services/one/service.yaml", serviceYaml({ id: "one-api" }));
@@ -415,6 +441,31 @@ describe("core catalog compiler", () => {
         }
       }
     });
+  });
+
+  it.each([
+    ["missing", (manifest: string) => manifest.replace('  last_reviewed_at: "2026-07-01"\n', "")],
+    [
+      "malformed",
+      (manifest: string) =>
+        manifest.replace('  last_reviewed_at: "2026-07-01"', "  last_reviewed_at: yesterday")
+    ]
+  ])("rejects a %s ZDP v2 review date instead of inventing a sentinel", async (_, mutate) => {
+    const workspace = await createWorkspace();
+    await writeManifest(workspace, "platform/runtime/service.yaml", mutate(zdpV2ServiceYaml()));
+
+    const result = await compileCatalog({ cwd: workspace, inputSchema: "zdp-v2" });
+
+    expect(result.services).toEqual([]);
+    expect(result.snapshot.diagnostics).toContainEqual(
+      expect.objectContaining({
+        severity: "error",
+        code: "adapter.invalid_input",
+        file: "platform/runtime/service.yaml",
+        field: "contract.last_reviewed_at"
+      })
+    );
+    expect(JSON.stringify(result.snapshot)).not.toContain("1970-01-01");
   });
 
   it("normalizes long repeated owner separators without a backtracking expression", async () => {

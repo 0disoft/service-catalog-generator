@@ -8,6 +8,8 @@
   the generated npm shim presence check and direct packaged CLI validation.
 - Added Ubuntu and Windows consumer smoke for the exact released Action tag, bound to the package
   version and shared canonical, legacy, and mixed conformance assertions.
+- Rejected missing or malformed ZDP review dates instead of normalizing them to a stale sentinel,
+  and bounded manifest reads without allocating the configured per-file limit up front.
 
 ## 1.0.0-rc.1
 

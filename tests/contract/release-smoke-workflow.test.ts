@@ -112,10 +112,8 @@ describe("release smoke workflow contract", () => {
         run: "node scripts/release-evidence.mjs"
       })
     );
-    expect(registrySmokeText).toContain("runConsumerConformance");
-    expect(registrySmokeText).toContain('join(root, "examples")');
-    expect(registrySmokeText).toContain('"consumer-conformance.json"');
-    expect(registrySmokeText).toContain('["completion", "powershell"]');
+    expect(registrySmokeText).toContain("runExternalConsumerConformance");
+    expect(registrySmokeText).not.toContain('join(root, "examples")');
   });
 
   it("pins Actions, checks out the release commit, and does not persist credentials", () => {

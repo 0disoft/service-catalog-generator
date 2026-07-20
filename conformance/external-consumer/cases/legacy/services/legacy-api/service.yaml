@@ -1,0 +1,25 @@
+schemaVersion: scg.service/v1alpha1
+id: legacy-api
+name: Legacy API
+lifecycle: production
+owner:
+  type: team
+  ref: platform
+repository:
+  provider: local
+  slug: legacy-api
+runtime:
+  language: typescript
+  platform: node
+deploy:
+  type: container
+  targets:
+    - environment: production
+      provider: unknown
+      ref: legacy-api-prod
+data:
+  storesPersonalData: false
+  classification: internal
+dependencies: []
+metadata:
+  lastReviewedAt: "2026-07-01"

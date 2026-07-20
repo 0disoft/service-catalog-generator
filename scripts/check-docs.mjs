@@ -17,6 +17,7 @@ const requiredFiles = [
   "docs/product/02-spec.md",
   "docs/compatibility/1.0-contract-matrix.md",
   "docs/compatibility/pre-1.0-to-1.0.md",
+  "conformance/external-consumer/README.md",
   "docs/adr/0003-single-public-monorepo.md",
   "docs/adr/0004-typescript-node24-runtime.md",
   "docs/adr/0005-service-manifest-schema-v1alpha1.md",
@@ -39,6 +40,10 @@ const requiredText = new Map([
   [
     "docs/compatibility/1.0-contract-matrix.md",
     ["stable", "experimental", "internal", "resource.limit_exceeded"]
+  ],
+  [
+    "conformance/external-consumer/README.md",
+    ["standalone synthetic consumer project", "npm install --ignore-scripts", "npm test"]
   ],
   [
     "CONTRIBUTING.md",

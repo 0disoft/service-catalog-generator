@@ -1,0 +1,26 @@
+schemaVersion: scg.config/v1
+
+sources:
+  - root: conformance/external-consumer/cases/mixed/services/native
+    inputSchema: scg-v1
+  - root: conformance/external-consumer/cases/mixed/services/zdp
+    inputSchema: zdp-v2
+
+scan:
+  exclude:
+    - .git/**
+    - node_modules/**
+    - .tmp/**
+
+validation:
+  failOnWarnings: true
+  allowUnknownDependencies: false
+  staleAfterDays: 365
+  minimumServiceCount: 2
+
+output:
+  directory: .tmp/released-action/mixed
+  formats:
+    - json
+    - dot
+    - html

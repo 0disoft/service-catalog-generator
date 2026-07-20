@@ -1,0 +1,10 @@
+schemaVersion: scg.config/v1alpha1
+scan:
+  roots:
+    - services
+output:
+  directory: .catalog
+  formats:
+    - json
+    - dot
+    - html

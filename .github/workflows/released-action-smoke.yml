@@ -43,8 +43,8 @@ jobs:
       - id: native
         uses: 0disoft/service-catalog-generator@v1.0.1
         with:
-          config: examples/native-consumer/scg.config.yaml
-          roots: examples/native-consumer/services
+          config: conformance/external-consumer/cases/native/scg.config.yaml
+          roots: conformance/external-consumer/cases/native/services
           report: "true"
           format: json
           output-directory: .tmp/released-action/native
@@ -54,13 +54,13 @@ jobs:
           SCG_ACTION_SERVICE_COUNT: ${{ steps.native.outputs.service-count }}
           SCG_ACTION_ERROR_COUNT: ${{ steps.native.outputs.error-count }}
           SCG_ACTION_WARNING_COUNT: ${{ steps.native.outputs.warning-count }}
-        run: node scripts/consumer-conformance.mjs --action-case native-scg-v1 --catalog .tmp/released-action/native/catalog.json
+        run: node conformance/external-consumer/verify.mjs action --case native-scg-v1 --catalog .tmp/released-action/native/catalog.json
 
       - id: legacy
         uses: 0disoft/service-catalog-generator@v1.0.1
         with:
-          config: examples/legacy-alpha-consumer/scg.config.yaml
-          roots: examples/legacy-alpha-consumer/services
+          config: conformance/external-consumer/cases/legacy/scg.config.yaml
+          roots: conformance/external-consumer/cases/legacy/services
           report: "true"
           format: json
           output-directory: .tmp/released-action/legacy
@@ -70,12 +70,12 @@ jobs:
           SCG_ACTION_SERVICE_COUNT: ${{ steps.legacy.outputs.service-count }}
           SCG_ACTION_ERROR_COUNT: ${{ steps.legacy.outputs.error-count }}
           SCG_ACTION_WARNING_COUNT: ${{ steps.legacy.outputs.warning-count }}
-        run: node scripts/consumer-conformance.mjs --action-case legacy-alpha-input --catalog .tmp/released-action/legacy/catalog.json
+        run: node conformance/external-consumer/verify.mjs action --case legacy-alpha-input --catalog .tmp/released-action/legacy/catalog.json
 
       - id: mixed
         uses: 0disoft/service-catalog-generator@v1.0.1
         with:
-          config: examples/mixed-consumer/scg.config.yaml
+          config: conformance/external-consumer/cases/mixed/scg.action.config.yaml
           report: "true"
           format: json
           output-directory: .tmp/released-action/mixed
@@ -85,7 +85,7 @@ jobs:
           SCG_ACTION_SERVICE_COUNT: ${{ steps.mixed.outputs.service-count }}
           SCG_ACTION_ERROR_COUNT: ${{ steps.mixed.outputs.error-count }}
           SCG_ACTION_WARNING_COUNT: ${{ steps.mixed.outputs.warning-count }}
-        run: node scripts/consumer-conformance.mjs --action-case mixed-scg-v1-zdp-v2 --catalog .tmp/released-action/mixed/catalog.json
+        run: node conformance/external-consumer/verify.mjs action --case mixed-scg-v1-zdp-v2 --catalog .tmp/released-action/mixed/catalog.json
 
   major-channel-smoke:
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && !contains(github.event.workflow_run.head_branch, '-')) }}
@@ -112,8 +112,8 @@ jobs:
       - id: major
         uses: 0disoft/service-catalog-generator@v1
         with:
-          config: examples/native-consumer/scg.config.yaml
-          roots: examples/native-consumer/services
+          config: conformance/external-consumer/cases/native/scg.config.yaml
+          roots: conformance/external-consumer/cases/native/services
           report: "true"
           format: json
           output-directory: .tmp/released-action/major
@@ -123,4 +123,4 @@ jobs:
           SCG_ACTION_SERVICE_COUNT: ${{ steps.major.outputs.service-count }}
           SCG_ACTION_ERROR_COUNT: ${{ steps.major.outputs.error-count }}
           SCG_ACTION_WARNING_COUNT: ${{ steps.major.outputs.warning-count }}
-        run: node scripts/consumer-conformance.mjs --action-case native-scg-v1 --catalog .tmp/released-action/major/catalog.json
+        run: node conformance/external-consumer/verify.mjs action --case native-scg-v1 --catalog .tmp/released-action/major/catalog.json

@@ -1,0 +1,25 @@
+schemaVersion: scg.service/v1
+id: auth-api
+name: Authentication API
+lifecycle: production
+owner:
+  type: team
+  ref: team:identity
+repository:
+  provider: github
+  slug: example/auth-api
+runtime:
+  language: typescript
+  platform: node
+deploy:
+  type: container
+  targets:
+    - environment: production
+      provider: unknown
+      ref: auth-api-prod
+data:
+  storesPersonalData: false
+  classification: confidential
+dependencies: []
+metadata:
+  lastReviewedAt: "2026-07-01"

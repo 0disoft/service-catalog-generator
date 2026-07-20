@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "scg.consumer-conformance/v1",
+  "cases": [
+    {
+      "id": "native-scg-v1",
+      "cwd": "cases/native",
+      "config": "scg.config.yaml",
+      "reportFiles": [".catalog/catalog.json", ".catalog/graph.dot", ".catalog/report.html"],
+      "expected": {
+        "summary": {
+          "serviceCount": 2,
+          "errorCount": 0,
+          "warningCount": 0,
+          "edgeCount": 1
+        },
+        "serviceIds": ["auth-api", "billing-api"],
+        "diagnosticCodes": [],
+        "edges": [
+          {
+            "source": "billing-api",
+            "target": "auth-api",
+            "type": "service",
+            "criticality": "required",
+            "direction": "outbound",
+            "resolution": "catalog"
+          }
+        ]
+      }
+    },
+    {
+      "id": "legacy-alpha-input",
+      "cwd": "cases/legacy",
+      "config": "scg.config.yaml",
+      "reportFiles": [".catalog/catalog.json", ".catalog/graph.dot", ".catalog/report.html"],
+      "expected": {
+        "summary": {
+          "serviceCount": 1,
+          "errorCount": 0,
+          "warningCount": 0,
+          "edgeCount": 0
+        },
+        "serviceIds": ["legacy-api"],
+        "diagnosticCodes": [],
+        "edges": []
+      }
+    },
+    {
+      "id": "mixed-scg-v1-zdp-v2",
+      "cwd": "cases/mixed",
+      "config": "scg.config.yaml",
+      "reportFiles": [".catalog/catalog.json", ".catalog/graph.dot", ".catalog/report.html"],
+      "expected": {
+        "summary": {
+          "serviceCount": 2,
+          "errorCount": 0,
+          "warningCount": 0,
+          "edgeCount": 1
+        },
+        "serviceIds": ["billing-api", "platform-runtime"],
+        "diagnosticCodes": [],
+        "edges": [
+          {
+            "source": "billing-api",
+            "target": "platform-runtime",
+            "type": "service",
+            "criticality": "required",
+            "direction": "outbound",
+            "resolution": "catalog"
+          }
+        ]
+      }
+    }
+  ]
+}

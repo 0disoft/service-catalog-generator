@@ -1,0 +1,15 @@
+{
+  "name": "scg-external-consumer-conformance",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "test": "node verify.mjs cli"
+  },
+  "dependencies": {
+    "@0disoft/service-catalog-generator": "latest"
+  }
+}

@@ -77,7 +77,7 @@ describe("released Action smoke workflow contract", () => {
       majorChannelJob.steps.some(
         (step) =>
           step.run ===
-          "node scripts/consumer-conformance.mjs --action-case native-scg-v1 --catalog .tmp/released-action/major/catalog.json"
+          "node conformance/external-consumer/verify.mjs action --case native-scg-v1 --catalog .tmp/released-action/major/catalog.json"
       )
     ).toBe(true);
   });
@@ -108,7 +108,7 @@ describe("released Action smoke workflow contract", () => {
     );
 
     for (const caseId of ["native-scg-v1", "legacy-alpha-input", "mixed-scg-v1-zdp-v2"]) {
-      expect(job.steps.some((step) => step.run?.includes(`--action-case ${caseId}`))).toBe(true);
+      expect(job.steps.some((step) => step.run?.includes(`--case ${caseId}`))).toBe(true);
     }
 
     expect(majorChannelJob["runs-on"]).toBe("${{ matrix.os }}");

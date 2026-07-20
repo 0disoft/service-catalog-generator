@@ -97,13 +97,18 @@ provenance and signatures, npm dist-tag ownership, the GitHub Release, the immut
 stable-only major Action tag policy, and the originating release workflow. Registry visibility is
 retried for up to 60 seconds before the smoke fails.
 
+The registry and packed-tarball smoke paths copy `conformance/external-consumer` to a temporary
+project before installation. That project imports no workspace package or repository test helper.
+Normal CI installs npm `latest` through the same project on Ubuntu and Windows, while release smoke
+replaces the dependency with the exact released version or packed tarball.
+
 The separate `released-action-smoke` workflow runs after a successful release and supports manual
 replay. It invokes the exact package-version Action tag for canonical v1, legacy alpha-input, and
 mixed ZDP consumers on Ubuntu and Windows. Stable releases and manual replays also invoke the moving
 major Action tag with the canonical v1 consumer on both runners. Prerelease-triggered runs skip the
 major-channel job so an older stable Action is not evaluated against prerelease fixtures. The exact
-and moving public Action references must match `package.json` and are validated before a release tag
-can pass `release-check`.
+and moving public Action references use the standalone external-consumer fixtures and verifier,
+must match `package.json`, and are validated before a release tag can pass `release-check`.
 
 Manual dispatch replays the exact and moving Action references encoded by the selected workflow
 ref. To replay an older release, dispatch the workflow from that immutable version tag. A

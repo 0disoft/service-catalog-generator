@@ -1,0 +1,26 @@
+schemaVersion: scg.config/v1
+
+sources:
+  - root: services/native
+    inputSchema: scg-v1
+  - root: services/zdp
+    inputSchema: zdp-v2
+
+scan:
+  exclude:
+    - .git/**
+    - node_modules/**
+    - .catalog/**
+
+validation:
+  failOnWarnings: true
+  allowUnknownDependencies: false
+  staleAfterDays: 365
+  minimumServiceCount: 2
+
+output:
+  directory: .catalog
+  formats:
+    - json
+    - dot
+    - html

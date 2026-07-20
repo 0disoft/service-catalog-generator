@@ -1,0 +1,30 @@
+schemaVersion: scg.service/v1
+id: billing-api
+name: Billing API
+lifecycle: production
+owner:
+  type: team
+  ref: team:payments
+repository:
+  provider: github
+  slug: example/billing-api
+runtime:
+  language: typescript
+  platform: node
+deploy:
+  type: container
+  targets:
+    - environment: production
+      provider: unknown
+      ref: billing-api-prod
+data:
+  storesPersonalData: false
+  classification: confidential
+dependencies:
+  - type: service
+    target: platform-runtime
+    direction: outbound
+    criticality: required
+    reason: uses shared deployment contracts
+metadata:
+  lastReviewedAt: "2026-07-01"

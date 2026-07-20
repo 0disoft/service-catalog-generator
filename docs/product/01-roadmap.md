@@ -5,11 +5,11 @@ Owner: 0disoft
 
 ## Current Position
 
-The MVP phases are implemented and the latest verified public release is `1.0.0-rc.2` on the npm
-`next` channel. The stable npm `latest` and Action `v0` channels remain on `0.5.21`; Action `v1` is
-intentionally absent until a stable 1.0 release. SCG is a read-only compiler and linter with a
-published npm CLI, a GitHub Action, deterministic JSON/DOT/HTML reports, explicit ZDP v2 adaptation,
-and repository-local plus central-catalog adoption evidence.
+The MVP phases are implemented and the latest verified public release is stable `1.0.0` on the npm
+`latest` channel. Immutable Action `v1.0.0` and moving Action `v1` resolve to the same release commit;
+the npm `next` channel remains on `1.0.0-rc.2` for prerelease consumers. SCG is a read-only compiler
+and linter with a published npm CLI, a GitHub Action, deterministic JSON/DOT/HTML reports, explicit
+ZDP v2 adaptation, and repository-local plus central-catalog adoption evidence.
 
 ## Delivered
 
@@ -54,14 +54,14 @@ and repository-local plus central-catalog adoption evidence.
 - TypeScript 7 native compiler compatibility on Ubuntu and Windows while TypeScript 6 remains the
   explicit compiler API and package-build dependency.
 
-## 1.0 Release-Candidate Work
+## 1.x Maintenance
 
 ### Compatibility Review
 
 - Keep the published 1.0 contract matrix synchronized with manifest, config, CLI JSON, diagnostic,
   exit-code, report, package, and Action surfaces.
 - Preserve the accepted alpha-input compatibility window and resource-default floors through hosted
-  release-candidate evidence.
+  release evidence.
 - Maintain the pre-1.0-to-1.0 migration guide, removal rules, and 2.0 deprecation boundary.
 
 ### Resource And Publication Safety
@@ -78,13 +78,13 @@ and repository-local plus central-catalog adoption evidence.
 - Keep repository-local ZDP gates and the central 40-service catalog green against released Action
   bundles.
 - Keep canonical v1, legacy alpha-input, and mixed synthetic consumers green through source, packed
-  npm CLI, released-package, and GitHub Action execution before stable promotion.
-- Record Windows and Linux installed-package evidence for each release candidate.
+  npm CLI, released-package, and GitHub Action execution for each supported release.
+- Record Windows and Linux installed-package evidence for each release.
 
 ### Release Confidence
 
 - Keep hosted CodeQL, bounded dependency maintenance, npm visibility checks, and run-owned rollback
-  guards green for each release candidate.
+  guards green for each release.
 - Prove both existing-major-tag update and new-major-tag creation paths without rewriting immutable
   version tags.
 - Keep ambiguous npm publish outcomes in forward-fix mode unless registry absence is positively
@@ -92,7 +92,7 @@ and repository-local plus central-catalog adoption evidence.
 - Keep exact published-package installation and native-consumer compilation green on hosted Ubuntu
   and Windows before accepting post-release provenance and tag evidence.
 
-## 1.0 Exit Criteria
+## 1.0 Exit Criteria (Met)
 
 - Manifest and config schemas have documented compatibility and migration rules.
 - CLI JSON, diagnostics, and exit codes have explicit stable-field guarantees.

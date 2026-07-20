@@ -47,12 +47,12 @@ const requiredText = new Map([
   [
     "docs/product/01-roadmap.md",
     [
-      "latest verified public release is `1.0.0-rc.2`",
+      "latest verified public release is stable `1.0.0`",
       "latest verified public release",
-      "`0.5.21`",
-      "intentionally absent until a stable 1.0 release",
-      "## 1.0 Release-Candidate Work",
-      "## 1.0 Exit Criteria"
+      "`1.0.0-rc.2`",
+      "moving Action `v1` resolve to the same release commit",
+      "## 1.x Maintenance",
+      "## 1.0 Exit Criteria (Met)"
     ]
   ],
   [".github/CODEOWNERS", ["* @0disoft"]],

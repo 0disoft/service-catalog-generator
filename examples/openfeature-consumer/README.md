@@ -1,7 +1,7 @@
 # OpenFeature Consumer Fixture
 
 This repository consumes the published
-`@0disoft/openfeature-local-provider@1.0.0-rc.2` package through the normal pnpm dependency graph.
+`@0disoft/openfeature-local-provider@1.0.0` package through the normal pnpm dependency graph.
 The fixture loads `flags.json` through the provider, evaluates three boolean report-format flags
 through `@openfeature/server-sdk`, and passes the enabled formats to the built SCG CLI.
 
@@ -16,7 +16,6 @@ pnpm run build
 pnpm run consumer-conformance
 ```
 
-This fixture proves real cross-package use from a separate repository and a normal registry
-dependency. Both repositories are maintained by `0disoft`, so this is not evidence of an
-independent maintainer relationship and does not by itself authorize stable promotion of the
-provider.
+This fixture proves real cross-package use of the stable provider from a separate repository and a
+normal registry dependency. Both repositories are maintained by `0disoft`, so this remains
+owner-operated adoption evidence rather than an independent maintainer relationship.

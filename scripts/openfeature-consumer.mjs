@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
 import { createLocalProvider, loadFlagSnapshotFile } from "@0disoft/openfeature-local-provider";
 import { OpenFeature } from "@openfeature/server-sdk";
 
-const expectedProviderVersion = "1.0.0-rc.2";
+const expectedProviderVersion = "1.0.0";
 const reportFlagKeys = {
   json: "scg.report.json.enabled",
   dot: "scg.report.dot.enabled",

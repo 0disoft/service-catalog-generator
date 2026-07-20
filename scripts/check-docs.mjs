@@ -47,7 +47,7 @@ const requiredText = new Map([
   ["DEVELOPMENT.md", ["Node.js: 24", "packages/schema/src", "tests/contract", "pnpm run check"]],
   [
     "examples/openfeature-consumer/README.md",
-    ["@0disoft/openfeature-local-provider@1.0.0-rc.2", "normal registry", "built SCG CLI"]
+    ["@0disoft/openfeature-local-provider@1.0.0", "normal registry", "built SCG CLI"]
   ],
   [
     "docs/product/01-roadmap.md",

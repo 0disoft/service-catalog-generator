@@ -1,6 +1,6 @@
 # Service Catalog Generator
 
-Status: Pre-1.0
+Status: Stable 1.x
 Scope: infra
 Repository Type: cli-tool
 Addons: github-action, docs-site
@@ -48,7 +48,7 @@ its own config lives under `examples/native-consumer`. Packed-package and GitHub
 both compile that fixture so native behavior does not depend on the ZDP adapter.
 
 The repository also consumes the published
-`@0disoft/openfeature-local-provider@1.0.0-rc.2` package from the normal registry. Its
+`@0disoft/openfeature-local-provider@1.0.0` package from the normal registry. Its
 `examples/openfeature-consumer/flags.json` snapshot selects JSON and HTML report formats through
 OpenFeature before the consumer-conformance runner invokes the built SCG CLI. This is a
 repository-owned integration fixture, not a new SCG command flag or an independent-maintainer

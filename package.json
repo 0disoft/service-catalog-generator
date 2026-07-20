@@ -55,7 +55,7 @@
     "check": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run typecheck:native && pnpm run build && pnpm run test && pnpm run contract && pnpm run migration-check && pnpm run smoke && pnpm run consumer-conformance && pnpm run docs && pnpm run recovery-drill && pnpm run secret-scan && pnpm run dependency-audit"
   },
   "devDependencies": {
-    "@0disoft/openfeature-local-provider": "1.0.0-rc.2",
+    "@0disoft/openfeature-local-provider": "1.0.0",
     "@openfeature/server-sdk": "1.22.0",
     "@types/node": "26.1.1",
     "@typescript/native": "npm:typescript@7.0.2",

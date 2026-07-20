@@ -16,8 +16,8 @@ importers:
         version: 2.9.0
     devDependencies:
       '@0disoft/openfeature-local-provider':
-        specifier: 1.0.0-rc.2
-        version: 1.0.0-rc.2(@openfeature/server-sdk@1.22.0(@openfeature/core@1.11.0))
+        specifier: 1.0.0
+        version: 1.0.0(@openfeature/server-sdk@1.22.0(@openfeature/core@1.11.0))
       '@openfeature/server-sdk':
         specifier: 1.22.0
         version: 1.22.0(@openfeature/core@1.11.0)
@@ -87,8 +87,8 @@ importers:
 
 packages:
 
-  '@0disoft/openfeature-local-provider@1.0.0-rc.2':
-    resolution: {integrity: sha512-yDDYu2n4B3cX22b2JW73QCXvL3ad1F/6OksjMTkiytHDDfAr6Ru/81KGpjm44BkVL+NMhXjRQEUhlMFWPSQFiA==}
+  '@0disoft/openfeature-local-provider@1.0.0':
+    resolution: {integrity: sha512-AxPAeIqnlKdRiiVQczJICwWLB82TnxSSSDv6bHQDF8TABnaRS67ZLn9vJ7AJqwrS3uJDccj3EINhkya1AZ6gwA==}
     engines: {node: '>=22 <25'}
     hasBin: true
     peerDependencies:
@@ -1418,7 +1418,7 @@ packages:
 
 snapshots:
 
-  '@0disoft/openfeature-local-provider@1.0.0-rc.2(@openfeature/server-sdk@1.22.0(@openfeature/core@1.11.0))':
+  '@0disoft/openfeature-local-provider@1.0.0(@openfeature/server-sdk@1.22.0(@openfeature/core@1.11.0))':
     dependencies:
       '@openfeature/server-sdk': 1.22.0(@openfeature/core@1.11.0)
       yaml: 2.9.0

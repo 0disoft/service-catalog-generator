@@ -8,6 +8,8 @@
   formats and verifies the built CLI output through the repository conformance path.
 - Made the complete check rebuild the committed Action bundle before contract validation so clean
   checkouts do not depend on stale generated output.
+- Promoted the repository-owned OpenFeature consumer fixture from the final release candidate to
+  the published stable `@0disoft/openfeature-local-provider@1.0.0` package.
 
 ## 1.0.0
 

@@ -37,10 +37,10 @@ The root `action.yml` file is the public GitHub Action metadata entrypoint. The 
 compile implementation into `packages/action/dist/index.js`, but the action must call the same CLI
 behavior rather than duplicating validation logic.
 
-## Release-Candidate Usage
+## Stable Usage
 
 ```yaml
-- uses: 0disoft/service-catalog-generator@v1.0.0-rc.2
+- uses: 0disoft/service-catalog-generator@v1
   with:
     roots: .
     manifest-name: service.yaml
@@ -49,9 +49,9 @@ behavior rather than duplicating validation logic.
     output-directory: .catalog
 ```
 
-Release candidates must use an exact tag. The moving `v1` tag is created only by the first stable
-1.0 release and never points to a prerelease. Existing `v0` consumers remain on the final 0.x
-release until they deliberately migrate.
+Stable consumers may use moving tag `v1`; callers that require immutable resolution may pin
+`v1.0.0`. Release candidates continue to require exact prerelease tags and never move `v1`.
+Existing `v0` consumers remain on the final 0.x release until they deliberately migrate.
 
 Use `input-schema: zdp-v2` only when the checked-in manifests are ZDP v2 contracts. The action maps
 the value to the CLI and must not implement a separate schema or policy layer.

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.0.0
+
+- Promoted the verified v1 manifest, config, catalog, CLI, report, and Action contracts to stable
+  npm `latest` and Action `v1` channels without narrowing the release-candidate compatibility
+  guarantees.
+
 ## 1.0.0-rc.2
 
 - Recorded the published `1.0.0-rc.1` npm, provenance, signature, prerelease, hosted smoke, and

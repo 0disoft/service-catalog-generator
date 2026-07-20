@@ -40,7 +40,7 @@ behavior rather than duplicating validation logic.
 ## Release-Candidate Usage
 
 ```yaml
-- uses: 0disoft/service-catalog-generator@v1.0.0-rc.1
+- uses: 0disoft/service-catalog-generator@v1.0.0-rc.2
   with:
     roots: .
     manifest-name: service.yaml

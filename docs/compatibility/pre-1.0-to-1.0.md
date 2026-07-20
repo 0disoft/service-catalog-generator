@@ -53,9 +53,9 @@ promoted v1 shapes are identical to the final pre-1.0 shapes.
 
 ## Release Channels
 
-- Install `@0disoft/service-catalog-generator@1.0.0-rc.1` or a later exact prerelease version for
+- Install `@0disoft/service-catalog-generator@1.0.0-rc.2` or a later exact prerelease version for
   release-candidate evaluation. npm `next` may also select the current prerelease.
-- Use `0disoft/service-catalog-generator@v1.0.0-rc.1` for Action evaluation. Prereleases never move
+- Use `0disoft/service-catalog-generator@v1.0.0-rc.2` for Action evaluation. Prereleases never move
   the `v1` tag.
 - npm `latest` and Action `v1` are stable channels. They move only for stable releases.
 - Action `v0` remains frozen on the final 0.x release.

@@ -23390,7 +23390,7 @@ function parseDateOnly(value) {
 }
 
 // packages/core/dist/scan.js
-var DEFAULT_TOOL_VERSION = "1.0.0-rc.1";
+var DEFAULT_TOOL_VERSION = "1.0.0-rc.2";
 var DEFAULT_PARSE_CONCURRENCY = 16;
 async function compileCatalog(options = {}) {
   const cwd = options.cwd ?? process.cwd();
@@ -24182,7 +24182,7 @@ function escapeSingleQuotes(value) {
 }
 
 // packages/cli/dist/index.js
-var cliVersion = "1.0.0-rc.1";
+var cliVersion = "1.0.0-rc.2";
 var DEFAULT_CONFIG_FILE = "scg.config.yaml";
 var MAX_CONFIG_BYTES = 1024 * 1024;
 async function runCli(options = {}) {

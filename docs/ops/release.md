@@ -181,6 +181,9 @@ Current verified release evidence:
 - Released Action smoke: workflow run `29722691695` resolved the exact public
   `0disoft/service-catalog-generator@v1.0.1` tag and passed canonical v1, legacy alpha-input,
   and mixed consumer conformance on Ubuntu and Windows.
+- Moving Action channel smoke: manual workflow run `29739511732` resolved the public
+  `0disoft/service-catalog-generator@v1` tag and passed canonical v1 conformance on Ubuntu and
+  Windows while replaying the exact `v1.0.1` consumer suite in the same run.
 - Hosted CI: workflow run `29722520378` passed TypeScript 7, report publication, shell completion,
   and source compatibility jobs across the declared Ubuntu, Windows, and macOS runners.
 - Hosted post-publish smoke: automatic workflow run `29722691632` installed the exact stable package and

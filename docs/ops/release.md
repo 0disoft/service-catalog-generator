@@ -20,7 +20,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 - Release blocker status: any missing implemented validation is a blocker unless documented as not
   yet configured
 - Remaining operational risk: package availability, Trusted Publishing, release-channel
-  isolation, and Action runtime support are verified for `1.0.0`; each future release must
+  isolation, and Action runtime support are verified for `1.0.1`; each future release must
   rerun `release-evidence` and reverify Trusted Publishing before promotion
 
 ## Release Units
@@ -157,32 +157,32 @@ The workflow must not use npm token secrets such as `NPM_PUBLISH_TOKEN`, `NPM_TO
 
 Current verified release evidence:
 
-- npm package: `@0disoft/service-catalog-generator@1.0.0` under dist-tag `latest`.
+- npm package: `@0disoft/service-catalog-generator@1.0.1` under dist-tag `latest`.
 - npm prerelease dist-tag: `next` remains `1.0.0-rc.2`.
 - npm integrity:
-  `sha512-0KHV7bGfxNggTnraijc1KgtnguitU5uTD7tJLd3vtWrxDSHn7Uhe1YRRvO7z9OAxcsVfqiRAbnDtFkwo01/yNQ==`.
+  `sha512-6R6i0Qf0Zticydv6XinWiYQ/SybstVORpemkuti61sdjwIY0XuYXu+cAxO5rqX95M6B5E7Yzewekyqu2tt0qzA==`.
 - npm provenance predicate: `https://slsa.dev/provenance/v1`.
 - npm signature audit: `invalid: 0`, `missing: 0`.
-- GitHub release: `v1.0.0`, published, not a draft, and not a prerelease.
-- Release workflow run: `29713915082`, conclusion `success`; it created the stable GitHub Release,
+- GitHub release: `v1.0.1`, published, not a draft, and not a prerelease.
+- Release workflow run: `29722628054`, conclusion `success`; it created the stable GitHub Release,
   moved the major Action tag, and published npm through Trusted Publishing.
-- Release commit: `566d3d6084a831370352e23ee1831bba6c2a7a21`.
-- Action channels: immutable `v1.0.0` and moving `v1` resolve to the release commit; frozen `v0`
+- Release commit: `cdac970ee61cd5b78f47c6a1a2e497b02a47abf8`.
+- Action channels: immutable `v1.0.1` and moving `v1` resolve to the release commit; frozen `v0`
   remains on `33a0e03a67a877e8b8e9504988dbcdb657d65eaa`, the final `0.5.21` release commit.
-- Published CLI smoke: clean exact-version npm installations returned `1.0.0`, generated static
+- Published CLI smoke: clean exact-version npm installations returned `1.0.1`, generated static
   PowerShell completion, and compiled canonical v1, legacy alpha-input, and mixed fixtures with the
   expected service, edge, and diagnostic counts.
-- Hosted Action smoke: workflow run `29713675421` compiled canonical v1, legacy alpha-input, mixed,
-  and ZDP fixtures at the release commit.
-- Released Action smoke: workflow run `29713966470` resolved the exact public
-  `0disoft/service-catalog-generator@v1.0.0` tag and passed canonical v1, legacy alpha-input,
+- Hosted Action smoke: workflow run `29716348297` compiled canonical v1, legacy alpha-input, mixed,
+  and ZDP fixtures at the release-preparation commit.
+- Released Action smoke: workflow run `29722691695` resolved the exact public
+  `0disoft/service-catalog-generator@v1.0.1` tag and passed canonical v1, legacy alpha-input,
   and mixed consumer conformance on Ubuntu and Windows.
-- Hosted CI: workflow run `29713675429` passed TypeScript 7, report publication, shell completion,
+- Hosted CI: workflow run `29722520378` passed TypeScript 7, report publication, shell completion,
   and source compatibility jobs across the declared Ubuntu, Windows, and macOS runners.
-- Hosted post-publish smoke: automatic workflow run `29713966473` installed the exact stable package and
+- Hosted post-publish smoke: automatic workflow run `29722691632` installed the exact stable package and
   compiled all three consumer-conformance cases on Ubuntu and Windows before release evidence.
-- CodeQL: workflow run `29713675440` completed JavaScript/TypeScript and Actions analysis at the
-  release commit.
+- CodeQL: workflow run `29716348289` completed JavaScript/TypeScript and Actions analysis at the
+  release-preparation commit.
 - Trusted Publishing dry-run: `pnpm run release:trust:dry-run` returned publish permission for
   `0disoft/service-catalog-generator/.github/workflows/release.yml` immediately before the tag push.
 

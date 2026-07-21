@@ -2,13 +2,18 @@
 
 ## Supported Versions
 
-This project is pre-1.0. Security fixes target the latest released minor version and the current
-`main` branch.
+Security fixes target the latest stable 1.x release and the current `main` branch. Published
+versions remain immutable, so affected releases receive a forward-fix patch rather than rewritten
+artifacts. Historical backports are made only when a security advisory explicitly says so.
 
 | Version | Supported |
 | --- | --- |
-| `0.5.x` | Yes |
-| `< 0.5.0` | No |
+| latest stable `1.x` | Yes |
+| superseded `1.x` patches | Advisory-specific only |
+| `< 1.0.0` | No |
+
+See `docs/compatibility/1.x-support-policy.md` for release-line, deprecation, runtime-floor, and
+channel policy.
 
 ## Reporting a Vulnerability
 

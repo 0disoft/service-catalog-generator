@@ -28,4 +28,20 @@ describe("1.0 compatibility documentation", () => {
     expect(migration).toContain("Prereleases never move");
     expect(migration).toContain("npm `latest` and Action `v1` are stable channels");
   });
+
+  it("keeps support, deprecation, and fail-on-warning compatibility explicit", async () => {
+    const policy = await readFile("docs/compatibility/1.x-support-policy.md", "utf8");
+    const security = await readFile("SECURITY.md", "utf8");
+    const normalizedPolicy = policy.replace(/\s+/g, " ");
+
+    expect(normalizedPolicy).toContain("latest stable `1.x`");
+    expect(normalizedPolicy).toContain("do not receive routine backports");
+    expect(normalizedPolicy).toContain("No 1.x end-of-support date is scheduled");
+    expect(normalizedPolicy).toContain("must not start failing under `--fail-on-warning`");
+    expect(normalizedPolicy).toContain(
+      "Published npm versions and immutable Git tags are never rewritten"
+    );
+    expect(security).toContain("latest stable `1.x`");
+    expect(security).toContain("Advisory-specific only");
+  });
 });

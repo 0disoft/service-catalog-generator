@@ -54,6 +54,11 @@ OpenFeature before the consumer-conformance runner invokes the built SCG CLI. Th
 repository-owned integration fixture, not a new SCG command flag or an independent-maintainer
 adoption claim.
 
+`examples/monorepo-consumer` models a repository with independently owned `apps` and `platform`
+roots, different manifest filenames, and a cross-root service dependency. The normal conformance
+gate executes this example through the built public CLI so source-scoped monorepo behavior cannot
+drift into a documentation-only claim.
+
 One run can compile explicitly partitioned native and ZDP roots through source-scoped config:
 
 ```powershell
@@ -86,6 +91,7 @@ scg report `
 - .agents/context-map.md: agent route map
 - docs/product/02-spec.md: product scope and MVP contract
 - docs/compatibility/1.0-contract-matrix.md: stable, experimental, and internal surfaces
+- docs/compatibility/1.x-support-policy.md: supported release line and deprecation policy
 - docs/compatibility/pre-1.0-to-1.0.md: deprecation and migration policy
 - docs/cli/command-contract.md: CLI command and output contract
 - docs/github-action/action-contract.md: CI wrapper contract

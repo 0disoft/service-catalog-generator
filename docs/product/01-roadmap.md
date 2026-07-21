@@ -55,6 +55,8 @@ ZDP v2 adaptation, and repository-local plus central-catalog adoption evidence.
   and mixed consumers.
 - TypeScript 7 native compiler ownership for type checking, project builds, and declaration emit,
   with TypeScript 6 retained as the explicit compiler API and Ubuntu/Windows compatibility lane.
+- Latest-stable-only 1.x support, deprecation, runtime-floor, security-forward-fix, and release-channel
+  policy with an executable multi-root monorepo consumer example.
 
 ## 1.x Maintenance
 

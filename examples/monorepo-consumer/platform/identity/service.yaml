@@ -1,0 +1,25 @@
+schemaVersion: scg.service/v1
+id: identity-api
+name: Identity API
+lifecycle: production
+owner:
+  type: team
+  ref: team:platform
+repository:
+  provider: github
+  slug: example/commerce-monorepo
+runtime:
+  language: typescript
+  platform: node
+deploy:
+  type: container
+  targets:
+    - environment: production
+      provider: unknown
+      ref: identity-api-prod
+data:
+  storesPersonalData: false
+  classification: confidential
+dependencies: []
+metadata:
+  lastReviewedAt: "2026-07-21"

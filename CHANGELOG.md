@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Documented the latest-stable 1.x support and deprecation policy, corrected the obsolete pre-1.0
+  security table, and added an executable multi-root monorepo consumer with custom manifest names.
 - Added a same-process source-validation trend gate and byte-for-byte repeated-package SHA-256
   verification before packed external-consumer conformance.
 - Added deterministic manifest/config YAML property fuzzing for alias expansion, duplicate keys,

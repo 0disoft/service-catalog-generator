@@ -16,6 +16,7 @@ const requiredFiles = [
   "docs/product/01-roadmap.md",
   "docs/product/02-spec.md",
   "docs/compatibility/1.0-contract-matrix.md",
+  "docs/compatibility/1.x-support-policy.md",
   "docs/compatibility/pre-1.0-to-1.0.md",
   "conformance/external-consumer/README.md",
   "contracts/compatibility-v1.json",
@@ -28,7 +29,8 @@ const requiredFiles = [
   "docs/adr/0009-release-and-package-provenance.md",
   "docs/adr/0010-generated-artifacts-are-never-source-truth.md",
   "docs/adr/0015-stable-v1-contract-and-release-channels.md",
-  "examples/openfeature-consumer/README.md"
+  "examples/openfeature-consumer/README.md",
+  "examples/monorepo-consumer/README.md"
 ];
 
 const requiredText = new Map([
@@ -43,6 +45,10 @@ const requiredText = new Map([
     ["stable", "experimental", "internal", "resource.limit_exceeded"]
   ],
   [
+    "docs/compatibility/1.x-support-policy.md",
+    ["latest stable `1.x`", "routine backports", "--fail-on-warning"]
+  ],
+  [
     "conformance/external-consumer/README.md",
     ["standalone synthetic consumer project", "npm install --ignore-scripts", "npm test"]
   ],
@@ -54,6 +60,10 @@ const requiredText = new Map([
   [
     "examples/openfeature-consumer/README.md",
     ["@0disoft/openfeature-local-provider@1.0.0", "normal registry", "built SCG CLI"]
+  ],
+  [
+    "examples/monorepo-consumer/README.md",
+    ["separately owned `apps` and `platform`", "scg report", "consumer-conformance runner"]
   ],
   [
     "docs/product/01-roadmap.md",

@@ -1,0 +1,30 @@
+schemaVersion: scg.config/v1
+
+sources:
+  - root: apps
+    inputSchema: scg-v1
+    manifestNames:
+      - catalog.yaml
+  - root: platform
+    inputSchema: scg-v1
+    manifestNames:
+      - service.yaml
+
+scan:
+  exclude:
+    - .git/**
+    - node_modules/**
+    - .catalog/**
+
+validation:
+  failOnWarnings: true
+  allowUnknownDependencies: false
+  staleAfterDays: 365
+  minimumServiceCount: 2
+
+output:
+  directory: .catalog
+  formats:
+    - json
+    - dot
+    - html

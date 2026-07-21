@@ -77,6 +77,32 @@
           }
         ]
       }
+    },
+    {
+      "id": "monorepo-source-roots",
+      "cwd": "examples/monorepo-consumer",
+      "config": "scg.config.yaml",
+      "reportFiles": [".catalog/catalog.json", ".catalog/graph.dot", ".catalog/report.html"],
+      "expected": {
+        "summary": {
+          "serviceCount": 2,
+          "errorCount": 0,
+          "warningCount": 0,
+          "edgeCount": 1
+        },
+        "serviceIds": ["identity-api", "storefront-api"],
+        "diagnosticCodes": [],
+        "edges": [
+          {
+            "source": "storefront-api",
+            "target": "identity-api",
+            "type": "service",
+            "criticality": "required",
+            "direction": "outbound",
+            "resolution": "catalog"
+          }
+        ]
+      }
     }
   ]
 }

@@ -132,7 +132,7 @@ describe("1.0 compatibility baseline", () => {
     };
     const snapshot = CatalogSnapshotSchema.parse({
       schemaVersion: CATALOG_SNAPSHOT_SCHEMA_VERSION,
-      tool: { name: "service-catalog-generator", version: "1.0.1" },
+      tool: { name: "service-catalog-generator", version: "1.0.2" },
       summary: { serviceCount: 1, errorCount: 0, warningCount: 0, edgeCount: 1 },
       services: [service],
       diagnostics: [],

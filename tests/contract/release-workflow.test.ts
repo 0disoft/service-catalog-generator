@@ -251,7 +251,7 @@ describe("release workflow contract", () => {
     };
 
     expect(packageJson.name).toBe("@0disoft/service-catalog-generator");
-    expect(packageJson.version).toBe("1.0.1");
+    expect(packageJson.version).toBe("1.0.2");
     expect(packageJson.license).toBe("Apache-2.0");
     expect(packageJson.bin).toEqual({ scg: "dist/cli/index.js" });
     expect(packageJson.files).toEqual([

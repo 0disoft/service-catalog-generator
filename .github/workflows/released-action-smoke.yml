@@ -1,5 +1,5 @@
 name: released-action-smoke
-run-name: released-action-smoke v1.0.1
+run-name: released-action-smoke v1.0.2
 
 on:
   workflow_run:
@@ -41,7 +41,7 @@ jobs:
           package-manager-cache: false
 
       - id: native
-        uses: 0disoft/service-catalog-generator@v1.0.1
+        uses: 0disoft/service-catalog-generator@v1.0.2
         with:
           config: conformance/external-consumer/cases/native/scg.config.yaml
           roots: conformance/external-consumer/cases/native/services
@@ -57,7 +57,7 @@ jobs:
         run: node conformance/external-consumer/verify.mjs action --case native-scg-v1 --catalog .tmp/released-action/native/catalog.json
 
       - id: legacy
-        uses: 0disoft/service-catalog-generator@v1.0.1
+        uses: 0disoft/service-catalog-generator@v1.0.2
         with:
           config: conformance/external-consumer/cases/legacy/scg.config.yaml
           roots: conformance/external-consumer/cases/legacy/services
@@ -73,7 +73,7 @@ jobs:
         run: node conformance/external-consumer/verify.mjs action --case legacy-alpha-input --catalog .tmp/released-action/legacy/catalog.json
 
       - id: mixed
-        uses: 0disoft/service-catalog-generator@v1.0.1
+        uses: 0disoft/service-catalog-generator@v1.0.2
         with:
           config: conformance/external-consumer/cases/mixed/scg.action.config.yaml
           report: "true"

@@ -5,8 +5,8 @@ Owner: 0disoft
 
 ## Current Position
 
-The MVP phases are implemented and the latest verified public release is stable `1.0.1` on the npm
-`latest` channel. Immutable Action `v1.0.1` and moving Action `v1` resolve to the same release commit;
+The MVP phases are implemented and the latest verified public release is stable `1.0.2` on the npm
+`latest` channel. Immutable Action `v1.0.2` and moving Action `v1` resolve to the same release commit;
 the npm `next` channel remains on `1.0.0-rc.2` for prerelease consumers. SCG is a read-only compiler
 and linter with a published npm CLI, a GitHub Action, deterministic JSON/DOT/HTML reports, explicit
 ZDP v2 adaptation, and repository-local plus central-catalog adoption evidence.

@@ -20,7 +20,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 - Release blocker status: any missing implemented validation is a blocker unless documented as not
   yet configured
 - Remaining operational risk: package availability, Trusted Publishing, release-channel
-  isolation, and Action runtime support are verified for `1.0.1`; each future release must
+  isolation, and Action runtime support are verified for `1.0.2`; each future release must
   rerun `release-evidence` and reverify Trusted Publishing before promotion
 
 ## Release Units
@@ -168,38 +168,39 @@ The workflow must not use npm token secrets such as `NPM_PUBLISH_TOKEN`, `NPM_TO
 
 Current verified release evidence:
 
-- npm package: `@0disoft/service-catalog-generator@1.0.1` under dist-tag `latest`.
+- npm package: `@0disoft/service-catalog-generator@1.0.2` under dist-tag `latest`.
 - npm prerelease dist-tag: `next` remains `1.0.0-rc.2`.
 - npm integrity:
-  `sha512-6R6i0Qf0Zticydv6XinWiYQ/SybstVORpemkuti61sdjwIY0XuYXu+cAxO5rqX95M6B5E7Yzewekyqu2tt0qzA==`.
+  `sha512-MmITIcnqj6aom9FlaS71ZV7fIQjKAGKvows0U2m49SfSwRvhcWVqveLiDQiyeAnu3geqKiAbjSZwfXKIL0RD+A==`.
+- Pre-publish reproducibility: two independent package builds produced the same complete tarball
+  SHA-256 `683d134364826d5ad6a840f70b25f5ef4068d5cdefbf016eb7dc01f8ce07470c`.
 - npm provenance predicate: `https://slsa.dev/provenance/v1`.
 - npm signature audit: `invalid: 0`, `missing: 0`.
-- GitHub release: `v1.0.1`, published, not a draft, and not a prerelease.
-- Release workflow run: `29722628054`, conclusion `success`; it created the stable GitHub Release,
+- GitHub release: `v1.0.2`, published, not a draft, and not a prerelease.
+- Release workflow run: `29818655143`, conclusion `success`; it created the stable GitHub Release,
   moved the major Action tag, and published npm through Trusted Publishing.
-- Release commit: `cdac970ee61cd5b78f47c6a1a2e497b02a47abf8`.
-- Action channels: immutable `v1.0.1` and moving `v1` resolve to the release commit; frozen `v0`
+- Release commit: `efedc1c52995186d73a463a0b6383378d55c09bb`.
+- Action channels: immutable `v1.0.2` and moving `v1` resolve to the release commit; frozen `v0`
   remains on `33a0e03a67a877e8b8e9504988dbcdb657d65eaa`, the final `0.5.21` release commit.
-- Published CLI smoke: clean exact-version npm installations returned `1.0.1`, generated static
+- Published CLI smoke: clean exact-version npm installations returned `1.0.2`, generated static
   PowerShell completion, and compiled canonical v1, legacy alpha-input, and mixed fixtures with the
   expected service, edge, and diagnostic counts.
-- Hosted Action smoke: workflow run `29716348297` compiled canonical v1, legacy alpha-input, mixed,
+- Hosted Action smoke: workflow run `29818421570` compiled canonical v1, legacy alpha-input, mixed,
   and ZDP fixtures at the release-preparation commit.
-- Released Action smoke: workflow run `29722691695` resolved the exact public
-  `0disoft/service-catalog-generator@v1.0.1` tag and passed canonical v1, legacy alpha-input,
+- Released Action smoke: workflow run `29818744633` resolved the exact public
+  `0disoft/service-catalog-generator@v1.0.2` tag and passed canonical v1, legacy alpha-input,
   and mixed consumer conformance on Ubuntu and Windows.
-- Moving Action channel smoke: manual workflow run `29741802248` used the standalone external
+- Moving Action channel smoke: workflow run `29818744633` used the standalone external
   consumer kit to resolve the public `0disoft/service-catalog-generator@v1` tag and passed canonical
-  v1 conformance on Ubuntu and Windows while replaying the exact `v1.0.1` consumer suite in the same
+  v1 conformance on Ubuntu and Windows while replaying the exact `v1.0.2` consumer suite in the same
   run.
-- External npm latest consumer smoke: CI workflow run `29741779881` copied the standalone kit to a
-  clean temporary project, installed npm `latest`, and passed canonical v1, legacy alpha-input, and
-  mixed ZDP conformance on Ubuntu and Windows.
-- Hosted CI: workflow run `29722520378` passed TypeScript 7, report publication, shell completion,
-  and source compatibility jobs across the declared Ubuntu, Windows, and macOS runners.
-- Hosted post-publish smoke: automatic workflow run `29722691632` installed the exact stable package and
-  compiled all three consumer-conformance cases on Ubuntu and Windows before release evidence.
-- CodeQL: workflow run `29716348289` completed JavaScript/TypeScript and Actions analysis at the
+- Hosted CI: workflow run `29818421744` passed TypeScript 7, TypeScript 6 compatibility, report
+  publication, shell completion, source compatibility, and external npm consumer jobs across the
+  declared Ubuntu, Windows, and macOS runners.
+- Hosted post-publish smoke: automatic workflow run `29818744680` installed the exact stable package
+  and compiled all three external consumer-conformance cases on Ubuntu and Windows before release
+  evidence.
+- CodeQL: workflow run `29818421826` completed JavaScript/TypeScript and Actions analysis at the
   release-preparation commit.
 - Trusted Publishing dry-run: `pnpm run release:trust:dry-run` returned publish permission for
   `0disoft/service-catalog-generator/.github/workflows/release.yml` immediately before the tag push.

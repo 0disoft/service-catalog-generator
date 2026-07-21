@@ -49,6 +49,7 @@ describe("config YAML property fuzzing", () => {
   });
 
   it("handles deterministic seeded config mutations without uncaught failures", async () => {
+    const workspace = await createWorkspace();
     const baseline = [
       "schemaVersion: scg.config/v1",
       "scan:",
@@ -59,8 +60,8 @@ describe("config YAML property fuzzing", () => {
     ].join("\n");
 
     for (const source of seededMutations(baseline, 32)) {
-      const first = await runConfig(source);
-      const second = await runConfig(source);
+      const first = await runConfig(source, workspace);
+      const second = await runConfig(source, workspace);
       expect(second).toEqual(first);
       expect([0, 2]).toContain(first.exitCode);
       expect(JSON.stringify(first.output).length).toBeLessThan(16 * 1024);
@@ -68,18 +69,20 @@ describe("config YAML property fuzzing", () => {
   });
 });
 
-async function runConfig(contents: string | Buffer): Promise<{
+async function runConfig(
+  contents: string | Buffer,
+  workspace?: string
+): Promise<{
   exitCode: number;
   output: { diagnostics?: Array<{ code: string; message: string }> };
 }> {
-  const workspace = await mkdtemp(join(tmpdir(), "scg-config-fuzz-"));
-  cleanupRoots.push(workspace);
-  await writeFile(join(workspace, "scg.config.yaml"), contents);
+  const activeWorkspace = workspace ?? (await createWorkspace());
+  await writeFile(join(activeWorkspace, "scg.config.yaml"), contents);
   const stdout: string[] = [];
   const stderr: string[] = [];
   const exitCode = await runCli({
     argv: ["scan", "--json"],
-    cwd: workspace,
+    cwd: activeWorkspace,
     io: {
       stdout: { write: (value) => (stdout.push(String(value)), true) },
       stderr: { write: (value) => (stderr.push(String(value)), true) }
@@ -89,6 +92,12 @@ async function runConfig(contents: string | Buffer): Promise<{
     exitCode,
     output: JSON.parse((exitCode === 0 ? stdout : stderr).join(""))
   };
+}
+
+async function createWorkspace(): Promise<string> {
+  const workspace = await mkdtemp(join(tmpdir(), "scg-config-fuzz-"));
+  cleanupRoots.push(workspace);
+  return workspace;
 }
 
 function* seededMutations(source: string, count: number): Generator<string> {

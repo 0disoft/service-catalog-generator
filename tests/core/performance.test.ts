@@ -11,6 +11,11 @@ const cleanupRoots: string[] = [];
 const scanBudgetManifestCount = 500;
 const memoryBudgetManifestCount = 1000;
 const sourceValidationCount = 5000;
+const trendSmallSourceCount = 1000;
+const trendLargeSourceCount = 5000;
+const trendBatchIterations = 10;
+const trendSampleCount = 3;
+const sourceGrowthMultiplierLimit = 12;
 const sourceResolutionCount = 100;
 const mixedSourceCount = 20;
 const hostedRunnerBudgetMs = 5000;
@@ -95,10 +100,7 @@ describe("core catalog compiler performance", () => {
   );
 
   it("validates 5000 disjoint source declarations without quadratic overlap work", () => {
-    const sources = Array.from({ length: sourceValidationCount }, (_, index) => ({
-      root: `source-${index.toString().padStart(5, "0")}`,
-      inputSchema: index % 2 === 0 ? ("scg-v1" as const) : ("zdp-v2" as const)
-    }));
+    const sources = createDisjointSources(sourceValidationCount);
 
     const startedAt = performance.now();
     const result = CatalogConfigSchema.safeParse({
@@ -192,6 +194,28 @@ describe("core catalog compiler performance", () => {
     },
     memoryHarnessTimeoutMs
   );
+
+  it("keeps 5x source growth below the non-quadratic median trend ceiling", () => {
+    const smallSources = createDisjointSources(trendSmallSourceCount);
+    const largeSources = createDisjointSources(trendLargeSourceCount);
+
+    validateSourceBatch(smallSources, 1);
+    validateSourceBatch(largeSources, 1);
+
+    const smallMedianMs = median(
+      Array.from({ length: trendSampleCount }, () =>
+        validateSourceBatch(smallSources, trendBatchIterations)
+      )
+    );
+    const largeMedianMs = median(
+      Array.from({ length: trendSampleCount }, () =>
+        validateSourceBatch(largeSources, trendBatchIterations)
+      )
+    );
+
+    expect(smallMedianMs).toBeGreaterThan(0);
+    expect(largeMedianMs).toBeLessThan(smallMedianMs * sourceGrowthMultiplierLimit);
+  });
 });
 
 async function createWorkspace(): Promise<string> {
@@ -287,6 +311,36 @@ function samplePeakRss(): {
 
 function scanBudgetMs(): number {
   return process.env.CI === "true" ? hostedRunnerBudgetMs : localFilesystemBudgetMs;
+}
+
+function createDisjointSources(count: number): Array<{
+  root: string;
+  inputSchema: "scg-v1" | "zdp-v2";
+}> {
+  return Array.from({ length: count }, (_, index) => ({
+    root: `source-${index.toString().padStart(5, "0")}`,
+    inputSchema: index % 2 === 0 ? "scg-v1" : "zdp-v2"
+  }));
+}
+
+function validateSourceBatch(
+  sources: Array<{ root: string; inputSchema: "scg-v1" | "zdp-v2" }>,
+  iterations: number
+): number {
+  const startedAt = performance.now();
+  for (let iteration = 0; iteration < iterations; iteration += 1) {
+    const result = CatalogConfigSchema.safeParse({
+      schemaVersion: "scg.config/v1",
+      sources
+    });
+    expect(result.success).toBe(true);
+  }
+  return performance.now() - startedAt;
+}
+
+function median(values: number[]): number {
+  const sorted = [...values].sort((left, right) => left - right);
+  return sorted[Math.floor(sorted.length / 2)] ?? 0;
 }
 
 function serviceYaml(id: string): string {

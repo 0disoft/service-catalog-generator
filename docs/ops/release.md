@@ -77,18 +77,20 @@ CLI JSON output, and exit codes are compatibility contracts.
 5. Confirm `package.json` repository metadata matches the public GitHub repository.
 6. Run `recovery-drill` to confirm release, rollback, and disaster-recovery contracts have not
    drifted.
-7. Push an immutable `vX.Y.Z` tag that exactly matches `package.json.version`.
-8. Use the `release` workflow to create the GitHub Release.
-9. For a stable release, move or create the corresponding major Action tag. For a prerelease, leave
+7. Run package smoke and require two independent `pnpm pack` executions to produce the same complete
+   tarball SHA-256 before testing the packed external consumer.
+8. Push an immutable `vX.Y.Z` tag that exactly matches `package.json.version`.
+9. Use the `release` workflow to create the GitHub Release.
+10. For a stable release, move or create the corresponding major Action tag. For a prerelease, leave
    the major tag unchanged. Publish through npm Trusted Publishing and GitHub OIDC using `latest`
    for stable releases and `next` for prereleases.
-10. If the workflow fails before npm publish completes, confirm the automatic recovery step removed
+11. If the workflow fails before npm publish completes, confirm the automatic recovery step removed
    the GitHub Release and restored or deleted the mutable major Action tag.
-11. If npm publish succeeds but downstream evidence later fails, treat the package as immutable and
+12. If npm publish succeeds but downstream evidence later fails, treat the package as immutable and
    cut a forward-fix patch release rather than trying to rewrite the published version.
-12. Smoke test package installation and dispatch `released-action-smoke` so GitHub resolves the
+13. Smoke test package installation and dispatch `released-action-smoke` so GitHub resolves the
     exact public Action tag on Ubuntu and Windows.
-13. Run `pnpm run release-evidence -- <version>` after promotion.
+14. Run `pnpm run release-evidence -- <version>` after promotion.
 
 After a successful `release` workflow, `release-smoke` installs the exact published npm version on
 Ubuntu and Windows and compiles canonical v1, legacy alpha-input, and mixed-adapter consumer

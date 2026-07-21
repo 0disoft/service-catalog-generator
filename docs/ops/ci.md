@@ -58,6 +58,10 @@ consumer fixture, and then verifies provenance, package signatures, release stat
 Ubuntu. Failures are release evidence for a forward fix; they do not roll back an immutable npm
 publication.
 
+Pre-publish package smoke builds the tarball twice, compares complete SHA-256 digests, and only then
+installs the verified tarball into the isolated external-consumer project. This proves the committed
+source and build inputs produce byte-identical package artifacts before registry publication.
+
 ## Validation
 
 - Required validation names: docs, smoke, consumer-conformance, recovery-drill, secret-scan,

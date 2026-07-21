@@ -63,8 +63,14 @@ describe("manifest YAML property fuzzing", () => {
 
   it("parses deterministic seeded mutations without throwing or leaking rejected input", async () => {
     const baseline = minimalManifestYaml();
+    const reusableFile = await writeManifestCase("mutation.yaml", baseline);
     for (const [index, source] of Array.from(seededMutations(baseline, 48)).entries()) {
-      const file = await writeManifestCase(`mutation-${index}.yaml`, source);
+      await writeFile(reusableFile.absolutePath, source);
+      const file = {
+        ...reusableFile,
+        relativePath: `mutation-${index}.yaml`,
+        sizeBytes: Buffer.byteLength(source)
+      };
       const first = await parseManifestFile(file, limits);
       const second = await parseManifestFile(file, limits);
 

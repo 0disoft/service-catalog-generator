@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added a same-process source-validation trend gate and byte-for-byte repeated-package SHA-256
+  verification before packed external-consumer conformance.
 - Added deterministic manifest/config YAML property fuzzing for alias expansion, duplicate keys,
   deep objects, path-bearing manifest names, Unicode, and malformed UTF-8; invalid byte sequences
   now fail closed instead of being normalized to replacement characters.

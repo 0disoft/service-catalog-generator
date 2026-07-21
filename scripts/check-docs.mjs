@@ -18,6 +18,7 @@ const requiredFiles = [
   "docs/compatibility/1.0-contract-matrix.md",
   "docs/compatibility/pre-1.0-to-1.0.md",
   "conformance/external-consumer/README.md",
+  "contracts/compatibility-v1.json",
   "docs/adr/0003-single-public-monorepo.md",
   "docs/adr/0004-typescript-node24-runtime.md",
   "docs/adr/0005-service-manifest-schema-v1alpha1.md",

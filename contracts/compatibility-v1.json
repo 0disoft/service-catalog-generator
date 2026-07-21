@@ -1,0 +1,167 @@
+{
+  "schemaVersion": "scg.compatibility-baseline/v1",
+  "contractLine": "1.x",
+  "package": {
+    "name": "@0disoft/service-catalog-generator",
+    "bin": "dist/cli/index.js",
+    "nodeMinimum": ">=24.0.0"
+  },
+  "schemas": {
+    "service": "scg.service/v1",
+    "legacyServiceInput": "scg.service/v1alpha1",
+    "config": "scg.config/v1",
+    "legacyConfigInput": "scg.config/v1alpha1",
+    "catalog": "scg.catalog/v1"
+  },
+  "closedEnums": {
+    "ownerTypes": ["team", "group", "user", "system"],
+    "repositoryProviders": ["github", "gitlab", "bitbucket", "local", "url", "unknown"],
+    "lifecycles": ["experimental", "development", "production", "deprecated", "retired"],
+    "deploymentTypes": ["container", "serverless", "static", "library", "job", "unknown"],
+    "dataClassifications": ["public", "internal", "restricted", "confidential"],
+    "dependencyTypes": ["service", "api", "database", "queue", "external"],
+    "dependencyDirections": ["inbound", "outbound", "bidirectional"],
+    "dependencyCriticalities": ["required", "optional"],
+    "retirementStatuses": ["none", "planned", "retiring", "retired"],
+    "inputSchemas": ["scg-v1", "zdp-v2"],
+    "reportFormats": ["json", "dot", "html"]
+  },
+  "cli": {
+    "commands": ["scan", "check", "report", "completion"],
+    "flags": [
+      "--root",
+      "--config",
+      "--manifest",
+      "--format",
+      "--out",
+      "--fail-on-warning",
+      "--no-fail-on-warning",
+      "--allow-unknown-dependencies",
+      "--no-allow-unknown-dependencies",
+      "--input-schema",
+      "--json",
+      "--summary-json",
+      "--no-color",
+      "--help",
+      "--version"
+    ],
+    "exitCodes": [0, 1, 2, 3, 4, 5],
+    "completionShells": ["bash", "zsh", "powershell"]
+  },
+  "configDefaults": {
+    "schemaVersion": "scg.config/v1",
+    "scan": {
+      "roots": ["."],
+      "manifestNames": ["service.yaml"],
+      "exclude": [".git/**", "node_modules/**", "dist/**", "coverage/**", ".catalog/**"]
+    },
+    "validation": {
+      "failOnWarnings": false,
+      "allowUnknownDependencies": false,
+      "staleAfterDays": 90,
+      "minimumServiceCount": 0
+    },
+    "limits": {
+      "maxManifestBytes": 262144,
+      "maxTotalManifestBytes": 67108864,
+      "maxManifests": 1000,
+      "maxObjectDepth": 32,
+      "maxCollectionEntries": 100000,
+      "maxExtensionBytes": 8388608,
+      "maxReportBytes": 67108864
+    },
+    "output": {
+      "directory": ".catalog",
+      "formats": ["json", "dot", "html"]
+    },
+    "privacy": {
+      "redactRepositoryUrls": false,
+      "redactOwnerEmails": true
+    }
+  },
+  "manifestPaths": [
+    "schemaVersion",
+    "id",
+    "name",
+    "lifecycle",
+    "owner.type",
+    "owner.ref",
+    "repository.provider",
+    "repository.slug",
+    "repository.url",
+    "runtime.language",
+    "runtime.platform",
+    "runtime.framework",
+    "deploy.type",
+    "deploy.targets",
+    "data.storesPersonalData",
+    "data.classification",
+    "dependencies",
+    "cost.owner",
+    "retirement.status",
+    "retirement.note",
+    "metadata.lastReviewedAt",
+    "metadata.annotations",
+    "extensions"
+  ],
+  "catalogPaths": [
+    "schemaVersion",
+    "tool.name",
+    "tool.version",
+    "summary.serviceCount",
+    "summary.errorCount",
+    "summary.warningCount",
+    "summary.edgeCount",
+    "services",
+    "services.0.source.path",
+    "diagnostics",
+    "graph.edges",
+    "graph.edges.0.source",
+    "graph.edges.0.target",
+    "graph.edges.0.type",
+    "graph.edges.0.criticality",
+    "graph.edges.0.direction",
+    "graph.edges.0.resolution"
+  ],
+  "diagnosticCodes": [
+    "adapter.invalid_input",
+    "catalog.minimum_service_count",
+    "config.invalid",
+    "dependency.unknown_target",
+    "manifest.duplicate_id",
+    "manifest.invalid",
+    "manifest.invalid_format",
+    "manifest.invalid_schema_version",
+    "manifest.invalid_type",
+    "manifest.invalid_value",
+    "manifest.invalid_yaml",
+    "manifest.missing_required_field",
+    "metadata.future_review",
+    "metadata.stale_review",
+    "output.write_failed",
+    "path.outside_scan_root",
+    "resource.limit_exceeded",
+    "security.secret_like_value"
+  ],
+  "diagnosticPaths": ["severity", "code", "file", "field", "message", "hint"],
+  "reportFiles": ["catalog.json", "graph.dot", "report.html"],
+  "action": {
+    "runtime": "node24",
+    "main": "dist/action/index.cjs",
+    "inputs": [
+      "roots",
+      "manifest-name",
+      "input-schema",
+      "config",
+      "output-directory",
+      "fail-on-warning",
+      "allow-unknown-dependencies",
+      "report",
+      "format"
+    ],
+    "outputs": ["service-count", "error-count", "warning-count", "report-directory"],
+    "inputDefaults": {
+      "report": "false"
+    }
+  }
+}

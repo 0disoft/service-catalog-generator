@@ -18,7 +18,7 @@ import {
   type WrittenReportFile
 } from "@scg/report";
 import { parseDocument } from "yaml";
-import { cliCommandDefinitions, cliFlagDefinitions } from "./command-metadata.js";
+import { cliCommandDefinitions, cliFlagDefinitions, type CliExitCode } from "./command-metadata.js";
 import { isCompletionShell, renderCompletion } from "./completion.js";
 
 export const packageName = "@scg/cli";
@@ -34,7 +34,7 @@ export type CliPackageBoundary =
 
 export type CliCoreDependency = CorePackageBoundary;
 
-export type CliExitCode = 0 | 1 | 2 | 3 | 4 | 5;
+export type { CliExitCode } from "./command-metadata.js";
 
 export type CliIo = {
   stdout: Pick<NodeJS.WriteStream, "write">;

@@ -33,8 +33,8 @@
     "yaml": "2.9.0"
   },
   "scripts": {
-    "format": "oxfmt --check \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \".ox*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"conformance/**/*.{json,mjs,yaml}\" \"packages/**/*.{json,ts}\" \"scripts/**/*.{mjs,d.mts}\" \"tests/**/*.ts\"",
-    "format:write": "oxfmt --write \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \".ox*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"conformance/**/*.{json,mjs,yaml}\" \"packages/**/*.{json,ts}\" \"scripts/**/*.{mjs,d.mts}\" \"tests/**/*.ts\"",
+    "format": "oxfmt --check \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \".ox*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"conformance/**/*.{json,mjs,yaml}\" \"contracts/**/*.json\" \"packages/**/*.{json,ts}\" \"scripts/**/*.{mjs,d.mts}\" \"tests/**/*.ts\"",
+    "format:write": "oxfmt --write \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \".ox*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"conformance/**/*.{json,mjs,yaml}\" \"contracts/**/*.json\" \"packages/**/*.{json,ts}\" \"scripts/**/*.{mjs,d.mts}\" \"tests/**/*.ts\"",
     "lint": "oxlint . --deny-warnings",
     "typecheck": "node node_modules/typescript/bin/tsc -b tsconfig.json && node node_modules/typescript/bin/tsc -p tsconfig.check.json --noEmit",
     "typecheck:native": "node node_modules/@typescript/native/bin/tsc -b tsconfig.json && node node_modules/@typescript/native/bin/tsc -p tsconfig.check.json --noEmit",

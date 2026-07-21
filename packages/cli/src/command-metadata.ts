@@ -41,4 +41,7 @@ export const cliFlagDefinitions = [
 
 export const completionShells = ["bash", "zsh", "powershell"] as const;
 
+export const cliExitCodes = [0, 1, 2, 3, 4, 5] as const;
+
 export type CompletionShell = (typeof completionShells)[number];
+export type CliExitCode = (typeof cliExitCodes)[number];

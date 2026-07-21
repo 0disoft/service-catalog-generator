@@ -1,6 +1,6 @@
 # CLI Configuration
 
-Status: Stable Pre-1.0
+Status: Stable 1.x
 Repository Type: cli-tool
 
 ## Repository Type Contract
@@ -25,7 +25,8 @@ This repository type owns command behavior, arguments, flags, config loading, ex
 
 The default config filename is `scg.config.yaml`.
 The CLI reads at most 1 MiB before YAML parsing because config-owned resource limits cannot safely
-govern the config file that defines them.
+govern the config file that defines them. Config files and manifests must be valid UTF-8; malformed
+byte sequences fail closed and are never normalized to replacement characters before validation.
 
 ```yaml
 schemaVersion: scg.config/v1

@@ -374,8 +374,41 @@ async function loadConfigInput(
     };
   }
 
+  let source: string;
   try {
-    const source = await readBoundedConfigFile(configPath);
+    source = await readBoundedConfigFile(configPath);
+  } catch (error) {
+    if (error instanceof ConfigFileTooLargeError) {
+      return {
+        ok: false,
+        diagnostic: configDiagnostic(
+          explicitConfigPath ?? DEFAULT_CONFIG_FILE,
+          "Config file exceeds the 1 MiB size limit.",
+          "Reduce scg.config.yaml before running the CLI."
+        )
+      };
+    }
+    if (error instanceof InvalidUtf8Error) {
+      return {
+        ok: false,
+        diagnostic: configDiagnostic(
+          explicitConfigPath ?? DEFAULT_CONFIG_FILE,
+          "Config file is not valid UTF-8.",
+          "Save scg.config.yaml as valid UTF-8."
+        )
+      };
+    }
+    return {
+      ok: false,
+      diagnostic: configDiagnostic(
+        explicitConfigPath ?? DEFAULT_CONFIG_FILE,
+        "Config file could not be read.",
+        "Check the config path and file permissions."
+      )
+    };
+  }
+
+  try {
     const document = parseDocument(source, {
       prettyErrors: false,
       schema: "core",
@@ -411,23 +444,13 @@ async function loadConfigInput(
       ok: true,
       config: config as CatalogConfigInput
     };
-  } catch (error) {
-    if (error instanceof ConfigFileTooLargeError) {
-      return {
-        ok: false,
-        diagnostic: configDiagnostic(
-          explicitConfigPath ?? DEFAULT_CONFIG_FILE,
-          "Config file exceeds the 1 MiB size limit.",
-          "Reduce scg.config.yaml before running the CLI."
-        )
-      };
-    }
+  } catch {
     return {
       ok: false,
       diagnostic: configDiagnostic(
         explicitConfigPath ?? DEFAULT_CONFIG_FILE,
-        "Config file could not be read.",
-        "Check the config path and file permissions."
+        "Config YAML is invalid.",
+        "Fix scg.config.yaml syntax."
       )
     };
   }
@@ -454,9 +477,17 @@ async function readBoundedConfigFile(path: string): Promise<string> {
     if (offset > MAX_CONFIG_BYTES) {
       throw new ConfigFileTooLargeError();
     }
-    return buffer.subarray(0, offset).toString("utf8");
+    return decodeUtf8(buffer.subarray(0, offset));
   } finally {
     await handle?.close();
+  }
+}
+
+function decodeUtf8(buffer: Buffer): string {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+  } catch {
+    throw new InvalidUtf8Error();
   }
 }
 
@@ -671,6 +702,7 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
 
 class CliUsageError extends Error {}
 class ConfigFileTooLargeError extends Error {}
+class InvalidUtf8Error extends Error {}
 
 if (process.argv[1] && isCliEntrypoint(process.argv[1])) {
   runCli()

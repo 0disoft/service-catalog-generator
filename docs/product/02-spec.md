@@ -35,8 +35,9 @@ manifest field is wrong, missing, stale, unsafe, or impossible to resolve.
 
 ## Manifest Contract
 
-The first manifest target is `service.yaml` with schema version `scg.service/v1`. The minimum
-useful record covers:
+The first manifest target is a valid UTF-8 `service.yaml` with schema version `scg.service/v1`.
+Malformed byte sequences fail closed before YAML or schema validation. The minimum useful record
+covers:
 
 - stable service id;
 - display name;

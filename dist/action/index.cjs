@@ -22386,7 +22386,7 @@ function normalizeRelativeSourceRoot(root) {
   return segments.join("/") || ".";
 }
 function isManifestFileName(value) {
-  return value !== "." && value !== ".." && !value.includes("/") && !value.includes("\\");
+  return value !== "." && value !== ".." && !value.includes("\0") && !value.includes("/") && !value.includes("\\");
 }
 function sourceRootsOverlap(left, right) {
   return left === "." || right === "." || left === right || left.startsWith(`${right}/`) || right.startsWith(`${left}/`);
@@ -22931,8 +22931,8 @@ async function parseManifestFile(file2, limits) {
       return invalidYaml(file2, "Manifest file exceeds the configured size limit.");
     }
     source = boundedSource;
-  } catch {
-    return invalidYaml(file2, "Manifest file could not be read.");
+  } catch (error51) {
+    return invalidYaml(file2, error51 instanceof InvalidUtf8Error ? "Manifest file is not valid UTF-8." : "Manifest file could not be read.");
   } finally {
     await handle?.close();
   }
@@ -22970,12 +22970,19 @@ async function readBoundedSource(handle, maxBytes) {
     const chunk = Buffer.allocUnsafe(Math.min(MANIFEST_READ_CHUNK_BYTES, remainingBytes));
     const { bytesRead } = await handle.read(chunk, 0, chunk.length, offset);
     if (bytesRead === 0) {
-      return Buffer.concat(chunks, offset).toString("utf8");
+      return decodeUtf8(Buffer.concat(chunks, offset));
     }
     chunks.push(chunk.subarray(0, bytesRead));
     offset += bytesRead;
   }
   return void 0;
+}
+function decodeUtf8(buffer) {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+  } catch {
+    throw new InvalidUtf8Error();
+  }
 }
 function resourceLimitExceeded(file2, message) {
   return {
@@ -23006,6 +23013,8 @@ function invalidYaml(file2, message) {
     diagnostics: [diagnostic]
   };
 }
+var InvalidUtf8Error = class extends Error {
+};
 
 // packages/core/dist/source-config.js
 var import_promises3 = require("fs/promises");
@@ -24402,8 +24411,28 @@ async function loadConfigInput(cwd, explicitConfigPath) {
       config: {}
     };
   }
+  let source;
   try {
-    const source = await readBoundedConfigFile(configPath);
+    source = await readBoundedConfigFile(configPath);
+  } catch (error51) {
+    if (error51 instanceof ConfigFileTooLargeError) {
+      return {
+        ok: false,
+        diagnostic: configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config file exceeds the 1 MiB size limit.", "Reduce scg.config.yaml before running the CLI.")
+      };
+    }
+    if (error51 instanceof InvalidUtf8Error2) {
+      return {
+        ok: false,
+        diagnostic: configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config file is not valid UTF-8.", "Save scg.config.yaml as valid UTF-8.")
+      };
+    }
+    return {
+      ok: false,
+      diagnostic: configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config file could not be read.", "Check the config path and file permissions.")
+    };
+  }
+  try {
     const document = (0, import_yaml2.parseDocument)(source, {
       prettyErrors: false,
       schema: "core",
@@ -24428,16 +24457,10 @@ async function loadConfigInput(cwd, explicitConfigPath) {
       ok: true,
       config: config2
     };
-  } catch (error51) {
-    if (error51 instanceof ConfigFileTooLargeError) {
-      return {
-        ok: false,
-        diagnostic: configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config file exceeds the 1 MiB size limit.", "Reduce scg.config.yaml before running the CLI.")
-      };
-    }
+  } catch {
     return {
       ok: false,
-      diagnostic: configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config file could not be read.", "Check the config path and file permissions.")
+      diagnostic: configDiagnostic(explicitConfigPath ?? DEFAULT_CONFIG_FILE, "Config YAML is invalid.", "Fix scg.config.yaml syntax.")
     };
   }
 }
@@ -24461,9 +24484,16 @@ async function readBoundedConfigFile(path) {
     if (offset > MAX_CONFIG_BYTES) {
       throw new ConfigFileTooLargeError();
     }
-    return buffer.subarray(0, offset).toString("utf8");
+    return decodeUtf82(buffer.subarray(0, offset));
   } finally {
     await handle?.close();
+  }
+}
+function decodeUtf82(buffer) {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+  } catch {
+    throw new InvalidUtf8Error2();
   }
 }
 function mergeCliFlags(config2, parsed) {
@@ -24619,6 +24649,8 @@ function isPlainRecord(value) {
 var CliUsageError = class extends Error {
 };
 var ConfigFileTooLargeError = class extends Error {
+};
+var InvalidUtf8Error2 = class extends Error {
 };
 if (process.argv[1] && isCliEntrypoint(process.argv[1])) {
   runCli().then((exitCode) => {

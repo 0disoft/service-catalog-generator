@@ -46,6 +46,7 @@ Initial budgets:
 - Aggregate collection entries: 100,000; object depth: 32.
 - Aggregate retained extension JSON: 8 MiB.
 - Combined selected report output: 64 MiB.
+- Config and manifest decoding: strict UTF-8 with malformed byte sequences rejected before parsing.
 
 The synthetic 1,000-service fixture currently measures 484,000 input bytes, 26,000 collection
 entries, maximum depth 3, and 1,093,200 combined report bytes. Budgets may change after comparable

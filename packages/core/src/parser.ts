@@ -25,8 +25,13 @@ export async function parseManifestFile(
       return invalidYaml(file, "Manifest file exceeds the configured size limit.");
     }
     source = boundedSource;
-  } catch {
-    return invalidYaml(file, "Manifest file could not be read.");
+  } catch (error) {
+    return invalidYaml(
+      file,
+      error instanceof InvalidUtf8Error
+        ? "Manifest file is not valid UTF-8."
+        : "Manifest file could not be read."
+    );
   } finally {
     await handle?.close();
   }
@@ -73,7 +78,7 @@ async function readBoundedSource(
     const chunk = Buffer.allocUnsafe(Math.min(MANIFEST_READ_CHUNK_BYTES, remainingBytes));
     const { bytesRead } = await handle.read(chunk, 0, chunk.length, offset);
     if (bytesRead === 0) {
-      return Buffer.concat(chunks, offset).toString("utf8");
+      return decodeUtf8(Buffer.concat(chunks, offset));
     }
 
     chunks.push(chunk.subarray(0, bytesRead));
@@ -81,6 +86,14 @@ async function readBoundedSource(
   }
 
   return undefined;
+}
+
+function decodeUtf8(buffer: Buffer): string {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+  } catch {
+    throw new InvalidUtf8Error();
+  }
 }
 
 function resourceLimitExceeded(file: DiscoveredManifest, message: string): ParsedManifest {
@@ -114,3 +127,5 @@ function invalidYaml(file: DiscoveredManifest, message: string): ParsedManifest 
     diagnostics: [diagnostic]
   };
 }
+
+class InvalidUtf8Error extends Error {}

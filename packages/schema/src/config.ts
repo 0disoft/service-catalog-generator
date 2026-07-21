@@ -267,7 +267,13 @@ function normalizeRelativeSourceRoot(root: string): string | undefined {
 }
 
 function isManifestFileName(value: string): boolean {
-  return value !== "." && value !== ".." && !value.includes("/") && !value.includes("\\");
+  return (
+    value !== "." &&
+    value !== ".." &&
+    !value.includes("\0") &&
+    !value.includes("/") &&
+    !value.includes("\\")
+  );
 }
 
 function sourceRootsOverlap(left: string, right: string): boolean {

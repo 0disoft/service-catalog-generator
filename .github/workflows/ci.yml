@@ -28,8 +28,8 @@ jobs:
       - name: Verify committed Action bundle
         run: git diff --exit-code -- dist/action/index.cjs
 
-  typescript-native:
-    name: TypeScript 7 native (${{ matrix.os }})
+  typescript-legacy:
+    name: TypeScript 6 compatibility (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -48,7 +48,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm run typecheck:native
+      - run: pnpm run typecheck:legacy
 
   shell-completion:
     name: shell completion (${{ matrix.completion_shell }})

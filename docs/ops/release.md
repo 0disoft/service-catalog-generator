@@ -14,7 +14,7 @@ Cover release types, versioning, pre-release checklist, deployment flow, post-de
 
 ## Validation
 
-- Required validation names: format, lint, typecheck, typecheck-native, test, contract, smoke,
+- Required validation names: format, lint, typecheck, typecheck-legacy, test, contract, smoke,
   consumer-conformance, docs, recovery-drill, release-evidence, registry-smoke,
   released-action-smoke, check
 - Release blocker status: any missing implemented validation is a blocker unless documented as not

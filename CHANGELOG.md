@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Promoted TypeScript 7.0.2 to the primary type-check, project-build, and declaration-emit compiler
+  while retaining TypeScript 6.0.3 as the JavaScript compiler API dependency and a merge-blocking
+  Ubuntu/Windows compatibility lane.
+
 ## 1.0.1
 
 - Added a normal-registry OpenFeature local-provider consumer fixture that selects real SCG report

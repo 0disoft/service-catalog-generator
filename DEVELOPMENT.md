@@ -7,7 +7,8 @@
 - Language: strict TypeScript with NodeNext modules
 - Formatting: Oxfmt
 - Linting: Oxlint with an explicit migrated ESLint-compatible ruleset
-- Type checking and declaration emit: TypeScript (`tsc`)
+- Type checking and declaration emit: TypeScript 7 native `tsc`
+- Compiler API and compatibility lane: TypeScript 6
 - Tests: Vitest
 - Bundling: tsup
 

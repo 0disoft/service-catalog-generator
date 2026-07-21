@@ -53,8 +53,8 @@ ZDP v2 adaptation, and repository-local plus central-catalog adoption evidence.
   npm `latest`, packed-tarball, exact-release, and released-Action checks on Ubuntu and Windows.
 - Exact released Action tag consumption on Ubuntu and Windows for canonical v1, legacy alpha-input,
   and mixed consumers.
-- TypeScript 7 native compiler compatibility on Ubuntu and Windows while TypeScript 6 remains the
-  explicit compiler API and package-build dependency.
+- TypeScript 7 native compiler ownership for type checking, project builds, and declaration emit,
+  with TypeScript 6 retained as the explicit compiler API and Ubuntu/Windows compatibility lane.
 
 ## 1.x Maintenance
 

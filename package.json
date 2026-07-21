@@ -36,11 +36,11 @@
     "format": "oxfmt --check \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \".ox*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"conformance/**/*.{json,mjs,yaml}\" \"contracts/**/*.json\" \"packages/**/*.{json,ts}\" \"scripts/**/*.{mjs,d.mts}\" \"tests/**/*.ts\"",
     "format:write": "oxfmt --write \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \".ox*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"conformance/**/*.{json,mjs,yaml}\" \"contracts/**/*.json\" \"packages/**/*.{json,ts}\" \"scripts/**/*.{mjs,d.mts}\" \"tests/**/*.ts\"",
     "lint": "oxlint . --deny-warnings",
-    "typecheck": "node node_modules/typescript/bin/tsc -b tsconfig.json && node node_modules/typescript/bin/tsc -p tsconfig.check.json --noEmit",
-    "typecheck:native": "node node_modules/@typescript/native/bin/tsc -b tsconfig.json && node node_modules/@typescript/native/bin/tsc -p tsconfig.check.json --noEmit",
+    "typecheck": "node node_modules/@typescript/native/bin/tsc -b tsconfig.json && node node_modules/@typescript/native/bin/tsc -p tsconfig.check.json --noEmit",
+    "typecheck:legacy": "node node_modules/typescript/bin/tsc -b tsconfig.json && node node_modules/typescript/bin/tsc -p tsconfig.check.json --noEmit",
     "test": "vitest run tests/workspace.test.ts tests/schema tests/core tests/report tests/cli tests/action",
     "contract": "vitest run tests/contract",
-    "build": "node node_modules/typescript/bin/tsc -b tsconfig.json && node scripts/build.mjs",
+    "build": "node node_modules/@typescript/native/bin/tsc -b tsconfig.json && node scripts/build.mjs",
     "migration-check": "vitest run tests/contract/schema-migration.test.ts",
     "smoke": "pnpm run build && node scripts/smoke.mjs",
     "consumer-conformance": "node scripts/consumer-conformance.mjs && node scripts/openfeature-consumer.mjs",
@@ -52,7 +52,7 @@
     "registry-smoke": "node scripts/registry-smoke.mjs",
     "release:trust:dry-run": "node scripts/trusted-publisher-dry-run.mjs",
     "prepack": "pnpm run build",
-    "check": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run typecheck:native && pnpm run build && pnpm run test && pnpm run contract && pnpm run migration-check && pnpm run smoke && pnpm run consumer-conformance && pnpm run docs && pnpm run recovery-drill && pnpm run secret-scan && pnpm run dependency-audit"
+    "check": "pnpm run format && pnpm run lint && pnpm run typecheck && pnpm run typecheck:legacy && pnpm run build && pnpm run test && pnpm run contract && pnpm run migration-check && pnpm run smoke && pnpm run consumer-conformance && pnpm run docs && pnpm run recovery-drill && pnpm run secret-scan && pnpm run dependency-audit"
   },
   "devDependencies": {
     "@0disoft/openfeature-local-provider": "1.0.0",

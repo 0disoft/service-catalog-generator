@@ -1,54 +1,49 @@
-# TypeScript 7 Native Compatibility Lane
+# TypeScript 7 Compiler Ownership
 
 Status: Accepted
 Owner: 0disoft
 
 ## Decision
 
-Keep TypeScript 6.0.3 as the JavaScript compiler API and declaration-build dependency while running
-TypeScript 7.0.2 as a separate native CLI compatibility gate.
+Use TypeScript 7.0.2 as the primary compiler for type checking, project-reference builds,
+declaration emit, and package builds. Keep TypeScript 6.0.3 as the JavaScript compiler API dependency
+and as a separate compatibility gate.
 
-The stable `typecheck` and `build` scripts invoke `node_modules/typescript/bin/tsc` explicitly. The
-`typecheck-native` validation invokes `node_modules/@typescript/native/bin/tsc` explicitly and runs
-on Ubuntu and Windows. Package-manager binary-link order must never decide which compiler owns a
-gate.
+The stable `typecheck` and `build` scripts invoke `node_modules/@typescript/native/bin/tsc`
+explicitly. The `typecheck-legacy` validation invokes `node_modules/typescript/bin/tsc` explicitly
+and runs on Ubuntu and Windows. Package-manager binary-link order must never decide which compiler
+owns a gate.
 
 ## Context
 
-TypeScript 7 is the stable native compiler track, but 7.0 does not provide the stable JavaScript
-compiler API used by build tools. This repository also uses project references, declaration emit,
-and `tsup`, so replacing the `typescript` dependency outright would combine compiler adoption with
-an API-toolchain migration.
+TypeScript 7 is the stable native compiler track, but 7.0 does not provide the JavaScript compiler
+API used by build tools. The native compiler can own this repository's CLI compilation while `tsup`
+and other API consumers continue resolving TypeScript 6 from the direct `typescript` dependency.
 
-The repository already compiles cleanly with TypeScript 6.0.3. TypeScript 7.0.2 also accepts the
-current project-reference and test-check configurations, so a merge-blocking comparison lane can
-detect drift without silently changing the package build owner.
+The repository compiles cleanly with both TypeScript 6.0.3 and TypeScript 7.0.2. The earlier native
+compatibility lane proved project-reference, declaration, packed CLI, Action bundle, consumer, and
+hosted Ubuntu/Windows compatibility before this ownership change.
 
-## Promotion Gates
+## Rollback
 
-TypeScript 7 may replace the TypeScript 6 build owner only after all of the following are true:
-
-- every direct compiler API and build-tool consumer explicitly supports the selected TypeScript 7
-  API track;
-- project-reference builds and declaration emit remain green on Ubuntu and Windows;
-- packed CLI and committed Action bundle output remain compatible;
-- the full `check`, package smoke, consumer conformance, and hosted CodeQL gates pass;
-- rollback restores the explicit TypeScript 6 compiler path without lockfile reconstruction.
+If native compilation regresses, restore the `typecheck` and `build` scripts to the explicit
+`node_modules/typescript/bin/tsc` path. Both compiler packages remain locked, so rollback requires no
+dependency or lockfile reconstruction. The TypeScript 7 failure must remain visible in a dedicated
+gate until it is resolved.
 
 ## Consequences
 
-- TypeScript 7 regressions block merges before they can reach release preparation.
-- TypeScript 6 remains a development-only compatibility dependency and does not affect runtime or
-  published package contents.
+- TypeScript 7 regressions block the primary build before release preparation.
+- TypeScript 6 remains a development-only compiler API and compatibility dependency and does not
+  affect runtime or published package contents.
 - Native platform packages are lockfile-visible optional dependencies and must resolve on supported
   CI platforms.
-- A future TypeScript 7 API migration is a separate reviewed change, not an automatic consequence of
-  this lane.
+- A future TypeScript 7 JavaScript API migration remains a separate reviewed change.
 
 ## Rejected Alternatives
 
 - Let `node_modules/.bin/tsc` select a compiler. Alias installation order can change that link.
-- Replace TypeScript 6 immediately. This would leave `tsup` and other API consumers without an
-  explicit compatibility decision.
-- Keep TypeScript 7 as a non-blocking experiment. That would allow compiler drift to accumulate
-  until release preparation.
+- Remove TypeScript 6 immediately. TypeScript 7.0 does not provide the JavaScript compiler API used
+  by `tsup` and related tooling.
+- Keep TypeScript 7 as only a compatibility experiment. The native lane has already satisfied the
+  promotion evidence and leaving it secondary would defer the real migration indefinitely.

@@ -18,7 +18,7 @@ credentials, long-running services, write permissions, telemetry, or private cat
 - format
 - lint
 - typecheck
-- typecheck-native
+- typecheck-legacy
 - test
 - contract
 - smoke
@@ -36,9 +36,10 @@ continues to own type checking, project-reference builds, and declaration emit; 
 not replace the `typecheck` gate without a separate compatibility decision and equivalent release
 evidence.
 
-TypeScript 6.0.3 remains the explicit compiler API and package-build dependency. TypeScript 7.0.2
-runs as the separate `typecheck-native` gate on Ubuntu and Windows, covering project references and
-the test/script configuration without letting package-manager binary-link order select a compiler.
+TypeScript 7.0.2 owns `typecheck`, project-reference builds, declaration emit, and package builds.
+TypeScript 6.0.3 remains the explicit JavaScript compiler API dependency and runs as the separate
+`typecheck-legacy` compatibility gate on Ubuntu and Windows. Every compiler invocation uses an
+explicit package path so package-manager binary-link order cannot select a compiler.
 
 Third-party Actions are pinned to immutable commit SHAs. Dependabot checks npm and GitHub Actions
 updates weekly, groups compatible minor and patch updates, and limits each ecosystem to three open

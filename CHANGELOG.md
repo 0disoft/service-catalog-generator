@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Updated immutable CI pins to setup-node 7.0.0 and CodeQL Action 4.37.1, with contract tests kept
+  synchronized to the selected setup-node commit.
+
 ## 1.0.2
 
 - Documented the latest-stable 1.x support and deprecation policy, corrected the obsolete pre-1.0

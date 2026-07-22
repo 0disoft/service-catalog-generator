@@ -1,0 +1,41 @@
+{
+  "affectedArea": "docs(ci): exercise Clarissimi integration",
+  "confidence": 0.64,
+  "contributionType": "maintenance",
+  "contributor": {
+    "id": "100320863",
+    "login": "0disoft",
+    "platform": "github",
+    "profileUrl": "https://github.com/0disoft"
+  },
+  "evidenceRefs": [
+    {
+      "id": "PR-12",
+      "kind": "pull_request",
+      "title": "docs(ci): exercise Clarissimi integration",
+      "url": "https://github.com/0disoft/service-catalog-generator/pull/12"
+    },
+    {
+      "id": "docs/ops/ci.md",
+      "kind": "file",
+      "title": "docs/ops/ci.md"
+    },
+    {
+      "id": "74c4b2fb58f026ff6f59326b42fd22754d24a503",
+      "kind": "commit",
+      "title": "Merge commit 74c4b2fb58f0"
+    }
+  ],
+  "evidenceSummary": "Drafted maintenance recognition for docs(ci): exercise Clarissimi integration from pull_request PR-12.",
+  "impactLevel": "medium",
+  "maintainerApprovalStatus": "draft",
+  "publicRecognitionText": "Reduced maintenance work around docs(ci): exercise Clarissimi integration.",
+  "schemaVersion": "clarissimi.assessment/v1",
+  "source": {
+    "event": "merged_pull_request",
+    "mergedAt": "2026-07-22T12:44:59Z",
+    "pullRequestNumber": 12,
+    "repository": "0disoft/service-catalog-generator"
+  },
+  "suggestedBadge": "Maintenance Steward"
+}

@@ -1,0 +1,89 @@
+name: Clarissimi contributor recognition
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+  workflow_dispatch:
+    inputs:
+      draft-path:
+        description: Approved draft path under .clarissimi/drafts/
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  review-decision:
+    name: Clarissimi review decision
+    if: >
+      github.event_name == 'pull_request_target' &&
+      github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    steps:
+      - name: Check contributor recognition decision
+        uses: 0disoft/clarissimi@v0 # moving-v0
+        with:
+          mode: gate
+          gate-mode: ${{ vars.CLARISSIMI_GATE_MODE || 'advisory' }}
+
+  stage-draft:
+    name: Stage merged pull request draft
+    if: >
+      github.event_name == 'pull_request_target' &&
+      github.event.pull_request.merged == true &&
+      !startsWith(github.event.pull_request.head.ref, 'clarissimi/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+    steps:
+      - name: Checkout trusted base branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: true # Clarissimi publishes a review branch with this scoped token.
+
+      - name: Stage contributor recognition draft
+        uses: 0disoft/clarissimi@v0 # moving-v0
+        with:
+          mode: stage-draft
+          base-branch: main
+          comment-mode: upsert
+
+  promote-draft:
+    name: Propose approved contributor recognition
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+    steps:
+      - name: Checkout trusted base branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: true # Clarissimi publishes a review branch with this scoped token.
+
+      - name: Propose approved contributor recognition
+        uses: 0disoft/clarissimi@v0 # moving-v0
+        with:
+          mode: promote-draft
+          draft-path: ${{ inputs.draft-path }}
+          base-branch: main
+          markdown-summary: gallery
+          include-automation-contributors: true

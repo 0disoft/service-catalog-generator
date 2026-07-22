@@ -46,6 +46,20 @@ updates weekly, groups compatible minor and patch updates, and limits each ecosy
 pull requests. Major dependency updates remain separate review units. Every hosted job has an
 explicit timeout so a stalled registry, build, or analysis cannot consume the runner indefinitely.
 
+Clarissimi is the single deliberate moving-Action exception: `.github/workflows/clarissimi.yml`
+uses the maintainer-promoted `0disoft/clarissimi@v0` channel so contributor-recognition fixes arrive
+without a repository edit. Its pre-merge decision job is read-only and advisory by default. Merged
+pull requests create only a review draft; an approved draft is promoted through a second proposal
+pull request. The two proposal jobs persist checkout credentials only for their scoped branch push,
+and neither workflow path commits directly to `main`.
+
+The workflow intentionally has no provider token. Its deterministic initial draft is only an inbox
+scaffold: a maintainer or delegated coding agent must replace or correct the assessment, change its
+approval status, and merge that draft before dispatching `promote-draft` with the exact checked-in
+draft path. After the advisory flow has been exercised, repository variable
+`CLARISSIMI_GATE_MODE=required` can make the existing decision job fail closed without renaming the
+check.
+
 Generated shell completion is parsed and registered by the native shell before merge: Bash on
 Ubuntu 24.04, Zsh on macOS 15, and PowerShell on Windows Server 2025. These checks run without user
 profiles, filesystem discovery, network access from completion, or interactive completion state.

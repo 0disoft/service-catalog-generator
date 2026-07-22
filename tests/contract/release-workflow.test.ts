@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 
-const CHECKOUT_ACTION = "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0";
+const CHECKOUT_ACTION = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1";
 const SETUP_NODE_ACTION = "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020";
 
 type ReleaseWorkflow = {
@@ -192,9 +192,11 @@ describe("release workflow contract", () => {
     };
     const releasedActionReference = `0disoft/service-catalog-generator@v${packageJson.version}`;
     const majorActionReference = `0disoft/service-catalog-generator@v${packageJson.version.split(".")[0]}`;
+    const clarissimiMovingReference = "0disoft/clarissimi@v0";
     for (const workflowPath of [
       ".github/workflows/ci.yml",
       ".github/workflows/action-self-smoke.yml",
+      ".github/workflows/clarissimi.yml",
       ".github/workflows/codeql.yml",
       ".github/workflows/release.yml",
       ".github/workflows/release-smoke.yml",
@@ -211,7 +213,9 @@ describe("release workflow contract", () => {
 
       expect(thirdPartyReferences.length).toBeGreaterThan(0);
       for (const reference of thirdPartyReferences) {
-        if (reference === releasedActionReference || reference === majorActionReference) {
+        if (reference === clarissimiMovingReference) {
+          expect(workflowPath).toBe(".github/workflows/clarissimi.yml");
+        } else if (reference === releasedActionReference || reference === majorActionReference) {
           expect(workflowPath).toBe(".github/workflows/released-action-smoke.yml");
         } else {
           expect(reference, workflowPath).toMatch(/^[^@\s]+@[0-9a-f]{40}$/);
@@ -221,7 +225,12 @@ describe("release workflow contract", () => {
         expect(job["timeout-minutes"], `${workflowPath}:${jobName}`).toBeGreaterThan(0);
         for (const step of job.steps ?? []) {
           if (step.uses === CHECKOUT_ACTION) {
-            expect(step.with?.["persist-credentials"], `${workflowPath}:${jobName}`).toBe(false);
+            const clarissimiWriteJob =
+              workflowPath === ".github/workflows/clarissimi.yml" &&
+              (jobName === "stage-draft" || jobName === "promote-draft");
+            expect(step.with?.["persist-credentials"], `${workflowPath}:${jobName}`).toBe(
+              clarissimiWriteJob
+            );
           }
         }
       }

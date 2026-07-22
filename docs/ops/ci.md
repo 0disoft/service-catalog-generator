@@ -60,6 +60,10 @@ draft path. After the advisory flow has been exercised, repository variable
 `CLARISSIMI_GATE_MODE=required` can make the existing decision job fail closed without renaming the
 check.
 
+Repository-level smoke uses a documentation-only source pull request and closes the generated
+Clarissimi draft without promotion, so test-only assessment data never enters the contributor
+ledger.
+
 Generated shell completion is parsed and registered by the native shell before merge: Bash on
 Ubuntu 24.04, Zsh on macOS 15, and PowerShell on Windows Server 2025. These checks run without user
 profiles, filesystem discovery, network access from completion, or interactive completion state.

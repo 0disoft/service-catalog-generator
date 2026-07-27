@@ -1,0 +1,56 @@
+{
+  "affectedArea": "deps: bump the development-dependencies group with 2 updates",
+  "confidence": 0.64,
+  "contributionType": "maintenance",
+  "contributor": {
+    "id": "49699333",
+    "login": "dependabot[bot]",
+    "platform": "github",
+    "profileUrl": "https://github.com/apps/dependabot"
+  },
+  "evidenceRefs": [
+    {
+      "id": "PR-14",
+      "kind": "pull_request",
+      "title": "deps: bump the development-dependencies group with 2 updates",
+      "url": "https://github.com/0disoft/service-catalog-generator/pull/14"
+    },
+    {
+      "id": "label:dependencies",
+      "kind": "label",
+      "title": "dependencies"
+    },
+    {
+      "id": "label:javascript",
+      "kind": "label",
+      "title": "javascript"
+    },
+    {
+      "id": "package.json",
+      "kind": "file",
+      "title": "package.json"
+    },
+    {
+      "id": "pnpm-lock.yaml",
+      "kind": "file",
+      "title": "pnpm-lock.yaml"
+    },
+    {
+      "id": "a687a239019be065031deb8f0fbb26f7a538fead",
+      "kind": "commit",
+      "title": "Merge commit a687a239019b"
+    }
+  ],
+  "evidenceSummary": "Drafted maintenance recognition for deps: bump the development-dependencies group with 2 updates from pull_request PR-14.",
+  "impactLevel": "high",
+  "maintainerApprovalStatus": "draft",
+  "publicRecognitionText": "Reduced maintenance work around deps: bump the development-dependencies group with 2 updates.",
+  "schemaVersion": "clarissimi.assessment/v1",
+  "source": {
+    "event": "merged_pull_request",
+    "mergedAt": "2026-07-27T10:04:36Z",
+    "pullRequestNumber": 14,
+    "repository": "0disoft/service-catalog-generator"
+  },
+  "suggestedBadge": "Maintenance Steward"
+}

@@ -1,0 +1,51 @@
+{
+  "affectedArea": "deps: bump the github-actions group with 2 updates",
+  "confidence": 0.64,
+  "contributionType": "maintenance",
+  "contributor": {
+    "id": "49699333",
+    "login": "dependabot[bot]",
+    "platform": "github",
+    "profileUrl": "https://github.com/apps/dependabot"
+  },
+  "evidenceRefs": [
+    {
+      "id": "PR-15",
+      "kind": "pull_request",
+      "title": "deps: bump the github-actions group with 2 updates",
+      "url": "https://github.com/0disoft/service-catalog-generator/pull/15"
+    },
+    {
+      "id": "label:dependencies",
+      "kind": "label",
+      "title": "dependencies"
+    },
+    {
+      "id": "label:github_actions",
+      "kind": "label",
+      "title": "github_actions"
+    },
+    {
+      "id": ".github/workflows/codeql.yml",
+      "kind": "file",
+      "title": ".github/workflows/codeql.yml"
+    },
+    {
+      "id": "79006c064cd0c82d61d4a81af6dc56f11682bb9d",
+      "kind": "commit",
+      "title": "Merge commit 79006c064cd0"
+    }
+  ],
+  "evidenceSummary": "Drafted maintenance recognition for deps: bump the github-actions group with 2 updates from pull_request PR-15.",
+  "impactLevel": "high",
+  "maintainerApprovalStatus": "draft",
+  "publicRecognitionText": "Reduced maintenance work around deps: bump the github-actions group with 2 updates.",
+  "schemaVersion": "clarissimi.assessment/v1",
+  "source": {
+    "event": "merged_pull_request",
+    "mergedAt": "2026-07-27T10:04:36Z",
+    "pullRequestNumber": 15,
+    "repository": "0disoft/service-catalog-generator"
+  },
+  "suggestedBadge": "Maintenance Steward"
+}

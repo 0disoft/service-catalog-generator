@@ -56,11 +56,11 @@
   },
   "devDependencies": {
     "@0disoft/openfeature-local-provider": "1.0.0",
-    "@openfeature/server-sdk": "1.22.0",
-    "@types/node": "26.1.1",
+    "@openfeature/server-sdk": "1.23.0",
+    "@types/node": "26.1.2",
     "@typescript/native": "npm:typescript@7.0.2",
-    "oxfmt": "0.60.0",
-    "oxlint": "1.75.0",
+    "oxfmt": "0.61.0",
+    "oxlint": "1.76.0",
     "tsup": "8.5.1",
     "typescript": "6.0.3",
     "vitest": "4.1.10"

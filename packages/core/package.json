@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@scg/schema": "workspace:*",
-    "yaml": "2.9.0"
+    "yaml": "2.9.1"
   },
   "scripts": {
     "typecheck": "tsc -b"

@@ -30,7 +30,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "yaml": "2.9.0"
+    "yaml": "2.9.1"
   },
   "scripts": {
     "format": "oxfmt --check \"package.json\" \"pnpm-workspace.yaml\" \"tsconfig*.json\" \".ox*.json\" \"*.config.*\" \"action.yml\" \".github/workflows/*.yml\" \"conformance/**/*.{json,mjs,yaml}\" \"contracts/**/*.json\" \"packages/**/*.{json,ts}\" \"scripts/**/*.{mjs,d.mts}\" \"tests/**/*.ts\"",
